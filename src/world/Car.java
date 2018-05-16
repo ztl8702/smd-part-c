@@ -62,7 +62,7 @@ public class Car extends Sprite{
 	private static int CAR_HEIGHT;
 
 	private float health;
-	private static final float MAX_HEALTH = 100;
+	private static final float MAX_HEALTH = 10000;
 	
 	private int key = 1; // If no keys elsewhere, we have the exit key
 
@@ -334,7 +334,7 @@ public class Car extends Sprite{
 			float scalar = this.velocity.len() / MAX_REVERSE_SPEED;
 			this.velocity.scl(1/scalar);
 		}
-		else if (this.velocity.len() < EPSILON){
+		else if (this.velocity.len() <2* EPSILON){
 			this.velocity.x = 0;
 			this.velocity.y = 0;
 			if(carDirection.equals(State.FORWARD)){

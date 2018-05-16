@@ -245,6 +245,12 @@ public class Simulation extends ApplicationAdapter implements InputProcessor {
 	public static void endGame(boolean won){
 		gameEnded = true;
 		gameWon = won;
+		/*try {
+			System.in.read();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		};*/
 	}
 
 }
