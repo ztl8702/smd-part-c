@@ -1,19 +1,19 @@
-package controller;
+package mycontroller.autopilot;
 
 import utilities.Coordinate;
 import world.Car;
 
-public class TurningOperator extends BaseOperator {
+public class TurningAutoPilot extends BaseAutoPilot {
 
 	public static final float MAINTAIN_SPEED = 1.0f;
-	private Operator maintainSpeedOpt;
-	private enum State {Waiting, ReachTurningSpeed, StartTurning, FinishedTurning};
+	private AutoPilot maintainSpeedOpt;
+	private enum State {Waiting, ReachTurningSpeed, StartTurning, FinishedTurning}
 	private State state;
 	private Coordinate fromTile;
 	private Coordinate toTile;
 	
 	
-	public TurningOperator(Coordinate fromTile, Coordinate toTile) {
+	public TurningAutoPilot(Coordinate fromTile, Coordinate toTile) {
 		// prototype, only support one turning type
 		assert (fromTile.x+1 == toTile.x);
 		assert (fromTile.y+1 == toTile.y);
@@ -23,13 +23,13 @@ public class TurningOperator extends BaseOperator {
 		
 		
 		// let someone else care about the speed
-		maintainSpeedOpt = new MaintainSpeedOperator(MAINTAIN_SPEED);
+		maintainSpeedOpt = new MaintainSpeedAutoPilot(MAINTAIN_SPEED);
 		state = State.Waiting;
 	}
 	
 	@Override
-	public OperatorAction handle(float delta, Car car) {
-		OperatorAction speedOpt = this.maintainSpeedOpt.handle(delta, car);
+	public AutoPilotAction handle(float delta, Car car) {
+		AutoPilotAction speedOpt = this.maintainSpeedOpt.handle(delta, car);
 		Coordinate coord = new Coordinate(car.getPosition());
 		System.out.printf("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x, this.getCentreLineX(toTile.x),d(),this.getCentreLineX(toTile.x)-d(),car.getX());
 		switch (this.state) {
@@ -49,13 +49,16 @@ public class TurningOperator extends BaseOperator {
 				changeState(State.FinishedTurning);
 				return speedOpt;
 			}
-			OperatorAction oo = OperatorAction.combine(speedOpt, OperatorAction.turnLeft());
-			oo.Backward = false;
-			return oo;
+			AutoPilotAction output = AutoPilotAction.combine(speedOpt, AutoPilotAction.turnLeft());
+			// Overwrite the backward attribute:
+			// We should never reverse+turn at the same time, otherwise the turning trajectory will
+			// be weird.
+            output.backward = false;
+			return output;
 		default:
 			return speedOpt;
-		}
-		return OperatorAction.nothing();
+		} 
+		return AutoPilotAction.nothing();
 	}
 	
 	private void changeState(State newState) {
@@ -63,7 +66,8 @@ public class TurningOperator extends BaseOperator {
 			this.state = newState;
 		}
 	}
-	
+
+	@Override
 	public boolean canTakeCharge() {
 		if (this.state == State.Waiting || this.state == State.FinishedTurning) {
 			return false;
@@ -71,8 +75,12 @@ public class TurningOperator extends BaseOperator {
 		return true;
 	}
 	
-	// distance before the centre line
+	/**
+     * Gets the distances ahead of the target tiles' centre line at which we need to start
+     * turning.
+	 */
 	private double d() {
+	    // This formula comes from a bit of calculus.
 		return (6.0/5.0/ Math.PI) * (double)(MAINTAIN_SPEED);
 	}
 

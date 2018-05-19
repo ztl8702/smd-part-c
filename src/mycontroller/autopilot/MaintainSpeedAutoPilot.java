@@ -1,41 +1,52 @@
-package controller;
+package mycontroller.autopilot;
 
 import java.util.Random;
 
 import world.Car;
 
-public class MaintainSpeedOperator extends BaseOperator {
+/**
+ * An AutoPilot that maintains the car speed at a given value.
+ */
+public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 	public static float SPEED_EPS = 0.005f;
 	private Random random = new Random();
 	private float target;
 	public enum State {RecoveringWait, RecoveringReverse, Accelerating, Decelerating, Idle}
 	private State state = State.Idle;
-	
-	
-	public MaintainSpeedOperator(float target) {
+
+
+	/**
+	 * Constructor
+	 * @param target The speed to maintain at.
+	 */
+	public MaintainSpeedAutoPilot(float target) {
 		this.target = target;
 	}
-	
+
 	private float underSpeedTime = 0;
 	private float recoveringWaitTime = 0;
 	private float recoveringReverseTime = 0;
+
 	@Override
-	public OperatorAction handle(float delta, Car car) {
+	public AutoPilotAction handle(float delta, Car car) {
 		float currentSpeed = car.getSpeed();
 		System.out.printf("[%.4f] %.6f %.6f\n", delta,currentSpeed, car.getVelocity().len());
-		
+
 		switch (this.state) {
 		case Accelerating:
 			if (currentSpeed < target) {
 				if (currentSpeed < 0.1f) {
-					underSpeedTime += delta;	
+					underSpeedTime += delta;
 					if (underSpeedTime > 0.5) {
+						// Circuit breaker mechanism: if the car does not move, we need to
+						// back off for a while before pressing the pedal again.
+						// This is needed due to a bug in the Simulation.
 						System.err.println("!!!!!!!!!!!!!!!!!!STUCK!!!!!!!!!!!!!!!!!");
 						changeState(State.RecoveringWait);
 						break;
 					}
 				}
-				return OperatorAction.forward();
+				return AutoPilotAction.forward();
 			}
 			else {
 				changeState(State.Idle);
@@ -43,7 +54,7 @@ public class MaintainSpeedOperator extends BaseOperator {
 			break;
 		case Decelerating:
 			if (currentSpeed - SPEED_EPS > target) {
-				return OperatorAction.backward();
+				return AutoPilotAction.backward();
 			}
 			else {
 				changeState(State.Idle);
@@ -52,13 +63,13 @@ public class MaintainSpeedOperator extends BaseOperator {
 		case Idle:
 			if (currentSpeed + SPEED_EPS < target) {
 				changeState(State.Accelerating);
-				return OperatorAction.forward();
+				return AutoPilotAction.forward();
 			} else if (currentSpeed - SPEED_EPS-0.2f > target) {
 				changeState(State.Decelerating);
-				return OperatorAction.brake();
+				return AutoPilotAction.brake();
 			}
 			else {
-				return OperatorAction.nothing();
+				return AutoPilotAction.nothing();
 			}
 		case RecoveringWait:
 			recoveringWaitTime += delta;
@@ -69,25 +80,23 @@ public class MaintainSpeedOperator extends BaseOperator {
 		case RecoveringReverse:
 			changeState(State.Idle);
 			System.err.println("!!!!!!!!!!!!!!!!!!RECOVERED!!!!!!!!!!!!!!!!!");
-			return OperatorAction.backward();
+			return AutoPilotAction.backward();
 			//break;
 		}
-		return OperatorAction.nothing();
+		return AutoPilotAction.nothing();
 	}
-	
+
 	private void changeState(State newState) {
 		if (this.state != newState) {
 			System.out.println("[MaintinSpeedOperator] state change: "+this.state+" -> "+newState);
 			this.state = newState;
-			
+
 			if (newState == State.Accelerating) {
 				this.underSpeedTime = 0;
 			}
 			if (newState == State.RecoveringWait) {
 				this.recoveringWaitTime = 0;
 			}
-			// transition actions:
-			
 		}
 	}
 

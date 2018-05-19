@@ -1,17 +1,21 @@
-package controller;
+package mycontroller.easycontroller;
 
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Random;
 
+import controller.CarController;
+import mycontroller.autopilot.MaintainSpeedAutoPilot;
+import mycontroller.autopilot.AutoPilot;
+import mycontroller.autopilot.AutoPilotAction;
+import mycontroller.autopilot.TurningAutoPilot;
 import utilities.Coordinate;
 import world.Car;
 
 public class EasyController extends CarController {
 
 	private EasyWindow controls;
-	private Operator opt = null;
-	private Queue<Operator> upcomingOpts = new LinkedList<Operator>();
+	private AutoPilot opt = null;
+	private Queue<AutoPilot> upcomingOpts = new LinkedList<AutoPilot>();
 
 	//private Queue<String> pendingActions = new LinkedList<String>();
 	String theAction = "";
@@ -43,26 +47,26 @@ public class EasyController extends CarController {
 		}
 		
 		if (opt!=null) {
-			OperatorAction action = opt.handle(delta, this.car);
-			if (action.Brake) {
+			AutoPilotAction action = opt.handle(delta, this.car);
+			if (action.brake) {
 				this.applyBrake();
 			}
-			if (action.Forward) {
+			if (action.forward) {
 				this.applyForwardAcceleration();			
 			}
-			if (action.Backward) {
+			if (action.backward) {
 				this.applyReverseAcceleration();
 			}
-			if (action.TurnLeft) {
+			if (action.turnLeft) {
 				this.turnLeft(delta);
 			}
-			if (action.TurnRight) {
+			if (action.turnRight) {
 				this.turnRight(delta);
 			}
 			
 		}
 		System.out.println(opt);
-		for (Operator o : this.upcomingOpts) {
+		for (AutoPilot o : this.upcomingOpts) {
 			System.out.println(o);
 			o.handle(delta, car);
 		}
@@ -72,16 +76,16 @@ public class EasyController extends CarController {
 	private void addOperator(String newAction) {
 			switch (newAction) {
 			case "speed0":
-				upcomingOpts.add(new MaintainSpeedOperator(0));
+				upcomingOpts.add(new MaintainSpeedAutoPilot(0));
 				break;
 			case "speed1":
-				upcomingOpts.add(new MaintainSpeedOperator(1));
+				upcomingOpts.add(new MaintainSpeedAutoPilot(1));
 				break;
 			case "speed2":
-				upcomingOpts.add(new MaintainSpeedOperator(2));
+				upcomingOpts.add(new MaintainSpeedAutoPilot(2));
 				break;
 			case "turn":
-				upcomingOpts.add(new TurningOperator(new Coordinate(6,3), new Coordinate(7,4)));
+				upcomingOpts.add(new TurningAutoPilot(new Coordinate(6,3), new Coordinate(7,4)));
 				break;
 			default:
 				opt = null;

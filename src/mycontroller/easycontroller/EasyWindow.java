@@ -1,4 +1,4 @@
-package controller;
+package mycontroller.easycontroller;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;

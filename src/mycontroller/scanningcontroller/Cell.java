@@ -1,4 +1,4 @@
-package mycontroller;
+package mycontroller.scanningcontroller;
 
 public class Cell {
 	public enum CellType {ROAD, WALL, START, FINISH, TRAP, UNREACHABLE}

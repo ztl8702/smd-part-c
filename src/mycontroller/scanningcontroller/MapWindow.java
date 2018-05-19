@@ -1,4 +1,4 @@
-package mycontroller;
+package mycontroller.scanningcontroller;
 
 import java.awt.Font;
 import java.awt.Frame;

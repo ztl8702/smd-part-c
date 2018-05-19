@@ -1,9 +1,10 @@
-package mycontroller;
+package mycontroller.scanningcontroller;
 
 import java.io.IOException;
 import java.util.HashMap;
 
 import controller.CarController;
+import mycontroller.StateManager;
 import tiles.MapTile;
 import utilities.Coordinate;
 import world.Car;

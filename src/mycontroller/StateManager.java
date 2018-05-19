@@ -5,16 +5,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import mycontroller.scanningcontroller.Cell;
+import mycontroller.scanningcontroller.ColoredRegion;
+import mycontroller.scanningcontroller.ColoursWindow;
+import mycontroller.scanningcontroller.MapWindow;
 import tiles.MapTile;
-import tiles.TrapTile;
 import tiles.LavaTrap;
 import utilities.Coordinate;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.Frame;
-import java.awt.TextArea;
-import java.awt.TextField;
 
 public class StateManager {
 	public HashMap<Coordinate, Cell> map = new HashMap<Coordinate, Cell>();

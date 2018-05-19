@@ -1,4 +1,4 @@
-package mycontroller;
+package mycontroller.scanningcontroller;
 
 import java.util.HashSet;
 
