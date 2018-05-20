@@ -11,12 +11,16 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 	public static float SPEED_EPS = 0.005f;
 	private Random random = new Random();
 	private float target;
-	public enum State {RecoveringWait, RecoveringReverse, Accelerating, Decelerating, Idle}
-	private State state = State.Idle;
 
+	public enum State {
+		RecoveringWait, RecoveringReverse, Accelerating, Decelerating, Idle
+	}
+
+	private State state = State.Idle;
 
 	/**
 	 * Constructor
+	 * 
 	 * @param target The speed to maintain at.
 	 */
 	public MaintainSpeedAutoPilot(float target) {
@@ -30,7 +34,7 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 	@Override
 	public AutoPilotAction handle(float delta, Car car) {
 		float currentSpeed = car.getSpeed();
-		System.out.printf("[%.4f] %.6f %.6f\n", delta,currentSpeed, car.getVelocity().len());
+		System.out.printf("[%.4f] %.6f %.6f\n", delta, currentSpeed, car.getVelocity().len());
 
 		switch (this.state) {
 		case Accelerating:
@@ -47,16 +51,14 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 					}
 				}
 				return AutoPilotAction.forward();
-			}
-			else {
+			} else {
 				changeState(State.Idle);
 			}
 			break;
 		case Decelerating:
 			if (currentSpeed - SPEED_EPS > target) {
 				return AutoPilotAction.brake();
-			}
-			else {
+			} else {
 				changeState(State.Idle);
 			}
 			break;
@@ -64,11 +66,10 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 			if (currentSpeed + SPEED_EPS < target) {
 				changeState(State.Accelerating);
 				return AutoPilotAction.forward();
-			} else if (currentSpeed - SPEED_EPS-0.2f > target) {
+			} else if (currentSpeed - SPEED_EPS - 0.2f > target) {
 				changeState(State.Decelerating);
 				return AutoPilotAction.brake();
-			}
-			else {
+			} else {
 				return AutoPilotAction.nothing();
 			}
 		case RecoveringWait:
@@ -81,14 +82,14 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 			changeState(State.Idle);
 			System.err.println("!!!!!!!!!!!!!!!!!!RECOVERED!!!!!!!!!!!!!!!!!");
 			return AutoPilotAction.backward();
-			//break;
+		// break;
 		}
 		return AutoPilotAction.nothing();
 	}
 
 	private void changeState(State newState) {
 		if (this.state != newState) {
-			System.out.println("[MaintinSpeedOperator] state change: "+this.state+" -> "+newState);
+			System.out.println("[MaintinSpeedOperator] state change: " + this.state + " -> " + newState);
 			this.state = newState;
 
 			if (newState == State.Accelerating) {

@@ -6,8 +6,13 @@ import world.Car;
  * Recentres a moving car to a certain position along the X or Y axis.
  */
 public class ReCentreAutoPilot extends BaseAutoPilot {
-    public enum CentringAxis {X, Y}
-    public enum State {Idle, Turning, GoingStraight, TurningBack, Finished}
+    public enum CentringAxis {
+        X, Y
+    }
+
+    public enum State {
+        Idle, Turning, GoingStraight, TurningBack, Finished
+    }
 
     private CentringAxis axis;
     private State state;
@@ -25,12 +30,12 @@ public class ReCentreAutoPilot extends BaseAutoPilot {
         double y = car.getY();
         double angle = car.getAngle();
 
-        switch (state){
-            case Idle:
-                // Figure out the targets
-                break;
-            case Turning:
-                break;
+        switch (state) {
+        case Idle:
+            // Figure out the targets
+            break;
+        case Turning:
+            break;
         }
         return AutoPilotAction.nothing();
     }
@@ -41,7 +46,7 @@ public class ReCentreAutoPilot extends BaseAutoPilot {
     }
 
     private void changeState(State newState) {
-        if (newState!=state){
+        if (newState != state) {
             state = newState;
         }
     }
@@ -57,7 +62,7 @@ public class ReCentreAutoPilot extends BaseAutoPilot {
         // Some calculus
         // integrate sin(a-a*6/5/pi*x) from 0 to a*6/5/pi
 
-        return 5.0*Math.PI * (Math.cos(theta - (36.0*theta*theta)/(25.0*Math.PI*Math.PI) ) - Math.cos(theta))
-                / (6.0*theta);
+        return 5.0 * Math.PI * (Math.cos(theta - (36.0 * theta * theta) / (25.0 * Math.PI * Math.PI)) - Math.cos(theta))
+                / (6.0 * theta);
     }
 }
