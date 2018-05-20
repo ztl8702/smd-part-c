@@ -5,7 +5,7 @@ import world.Car;
 
 public class TurningAutoPilot extends BaseAutoPilot {
 
-	public static final float MAINTAIN_SPEED = 1.0f;
+	public static final float MAINTAIN_SPEED = 2f;
 	private AutoPilot maintainSpeedOpt;
 	private enum State {Waiting, ReachTurningSpeed, StartTurning, FinishedTurning}
 	private State state;
@@ -29,9 +29,10 @@ public class TurningAutoPilot extends BaseAutoPilot {
 	
 	@Override
 	public AutoPilotAction handle(float delta, Car car) {
-		AutoPilotAction speedOpt = this.maintainSpeedOpt.handle(delta, car);
 		Coordinate coord = new Coordinate(car.getPosition());
 		System.out.printf("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x, this.getCentreLineX(toTile.x),d(),this.getCentreLineX(toTile.x)-d(),car.getX());
+
+
 		switch (this.state) {
 		case Waiting: 
 			if (coord.x >= fromTile.x-2) {
@@ -42,23 +43,34 @@ public class TurningAutoPilot extends BaseAutoPilot {
 			if (car.getX()>= this.getCentreLineX(toTile.x)-d()) {
 				changeState(State.StartTurning);
 			}
-			return speedOpt;
+			break;
 		case StartTurning:
 			float a = car.getAngle();
 			if (90-0.05f<=a && a <= 90 +0.05f) {
 				changeState(State.FinishedTurning);
-				return speedOpt;
 			}
-			AutoPilotAction output = AutoPilotAction.combine(speedOpt, AutoPilotAction.turnLeft());
-			// Overwrite the backward attribute:
-			// We should never reverse+turn at the same time, otherwise the turning trajectory will
-			// be weird.
-            output.backward = false;
-			return output;
-		default:
-			return speedOpt;
-		} 
-		return AutoPilotAction.nothing();
+			break;
+
+		}
+        AutoPilotAction speedOpt = this.maintainSpeedOpt.handle(delta, car);
+
+        switch(state){
+            case Waiting:
+                return AutoPilotAction.nothing();
+            case ReachTurningSpeed:
+                return speedOpt;
+            case StartTurning:
+                AutoPilotAction output = AutoPilotAction.combine(speedOpt, AutoPilotAction.turnLeft());
+                // Overwrite the backward attribute:
+                // We should never reverse+turn at the same time, otherwise the turning trajectory will
+                // be weird.
+                output.backward = false;
+                return output;
+            case FinishedTurning:
+                return speedOpt;
+            default:
+                return AutoPilotAction.nothing();
+        }
 	}
 	
 	private void changeState(State newState) {

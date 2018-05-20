@@ -4,10 +4,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import controller.CarController;
-import mycontroller.autopilot.MaintainSpeedAutoPilot;
-import mycontroller.autopilot.AutoPilot;
-import mycontroller.autopilot.AutoPilotAction;
-import mycontroller.autopilot.TurningAutoPilot;
+import mycontroller.autopilot.*;
 import utilities.Coordinate;
 import world.Car;
 
@@ -36,6 +33,10 @@ public class EasyController extends CarController {
 		controls.onSetTurn = () ->{
 			addOperator("turn");
 		};
+        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(2,3), new Coordinate(4,3), 0));
+        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(4,3), new Coordinate(6,3), 2));
+        upcomingOpts.add(new TurningAutoPilot(new Coordinate(6,3), new Coordinate(7,4)));
+        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(7,4), new Coordinate(7,15), 0));
 	}
 
 	@Override
@@ -45,7 +46,7 @@ public class EasyController extends CarController {
 			System.out.println(upcomingOpts.peek()+"taking charge");
 			this.opt = upcomingOpts.remove();
 		}
-		
+		System.out.printf("delta=%.6f (%.6f, %.6f)\n", delta,car.getX(),car.getY());
 		if (opt!=null) {
 			AutoPilotAction action = opt.handle(delta, this.car);
 			if (action.brake) {

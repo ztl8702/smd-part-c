@@ -54,7 +54,7 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 			break;
 		case Decelerating:
 			if (currentSpeed - SPEED_EPS > target) {
-				return AutoPilotAction.backward();
+				return AutoPilotAction.brake();
 			}
 			else {
 				changeState(State.Idle);
