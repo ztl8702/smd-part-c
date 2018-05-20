@@ -1,4 +1,4 @@
-package mycontroller.easycontroller;
+package mycontroller.democontroller;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -7,8 +7,12 @@ import controller.CarController;
 import mycontroller.autopilot.*;
 import utilities.Coordinate;
 import world.Car;
+import world.WorldSpatial;
 
-public class EasyController extends CarController {
+/**
+ * DemoController is used for testing autopilots
+ */
+public class DemoController extends CarController {
 
 	private EasyWindow controls;
 	private AutoPilot opt = null;
@@ -16,7 +20,7 @@ public class EasyController extends CarController {
 
 	//private Queue<String> pendingActions = new LinkedList<String>();
 	String theAction = "";
-	public EasyController(Car car) {
+	public DemoController(Car car) {
 		super(car);
 		controls = new EasyWindow();
 		controls.onSetSpeed1 = () ->{
@@ -35,14 +39,25 @@ public class EasyController extends CarController {
 		};
         upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(2,3), new Coordinate(4,3), 0));
         upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(4,3), new Coordinate(6,3), 2));
-        upcomingOpts.add(new TurningAutoPilot(new Coordinate(6,3), new Coordinate(7,4)));
-        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(7,4), new Coordinate(7,15), 0));
+        upcomingOpts.add(new TurningAutoPilot(new Coordinate(6,3), new Coordinate(7,4), WorldSpatial.RelativeDirection.LEFT));
+        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(7,4), new Coordinate(7,12), 0));
+        upcomingOpts.add(new TurningAutoPilot(new Coordinate(7,12), new Coordinate(6,13), WorldSpatial.RelativeDirection.LEFT));
+        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(6,13), new Coordinate(2,13), 0));
+        upcomingOpts.add(new TurningAutoPilot(new Coordinate(2,13), new Coordinate(1,14), WorldSpatial.RelativeDirection.RIGHT));
+        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(1,14), new Coordinate(1,17), 0));
+        upcomingOpts.add(new TurningAutoPilot(new Coordinate(1,17), new Coordinate(2,18), WorldSpatial.RelativeDirection.RIGHT));
+        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(2,18), new Coordinate(9,18), 0));
+        upcomingOpts.add(new TurningAutoPilot(new Coordinate(10,18), new Coordinate(11,17), WorldSpatial.RelativeDirection.RIGHT));
+        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(11,17), new Coordinate(11,15), 0));
+        upcomingOpts.add(new TurningAutoPilot(new Coordinate(11,15), new Coordinate(12,14), WorldSpatial.RelativeDirection.LEFT));
+        upcomingOpts.add(new TurningAutoPilot(new Coordinate(12,14), new Coordinate(13,15), WorldSpatial.RelativeDirection.LEFT));
+        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(13,15), new Coordinate(13,17), 0));
 	}
 
 	@Override
 	public void update(float delta) {
 		System.out.print(upcomingOpts.size());
-		while (!upcomingOpts.isEmpty() && upcomingOpts.peek().canTakeCharge()) {
+		while (!upcomingOpts.isEmpty() && upcomingOpts.peek().canTakeCharge() && (this.opt ==null || this.opt.canBeSwappedOut()) ) {
 			System.out.println(upcomingOpts.peek()+"taking charge");
 			this.opt = upcomingOpts.remove();
 		}
@@ -86,7 +101,7 @@ public class EasyController extends CarController {
 				upcomingOpts.add(new MaintainSpeedAutoPilot(2));
 				break;
 			case "turn":
-				upcomingOpts.add(new TurningAutoPilot(new Coordinate(6,3), new Coordinate(7,4)));
+				upcomingOpts.add(new TurningAutoPilot(new Coordinate(6,3), new Coordinate(7,4),WorldSpatial.RelativeDirection.LEFT));
 				break;
 			default:
 				opt = null;

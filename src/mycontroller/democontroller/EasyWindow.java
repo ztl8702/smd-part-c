@@ -1,11 +1,9 @@
-package mycontroller.easycontroller;
+package mycontroller.democontroller;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.concurrent.Callable;
 
-import javax.swing.*;
 import javax.swing.BoxLayout;
 
 public class EasyWindow implements ActionListener {

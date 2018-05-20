@@ -18,4 +18,8 @@ public abstract class BaseAutoPilot implements AutoPilot {
 		return TILE_WIDTH * (tileY);
 	}
 
+    @Override
+    public boolean canBeSwappedOut() {
+        return true;
+    }
 }

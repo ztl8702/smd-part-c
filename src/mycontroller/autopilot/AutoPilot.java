@@ -29,6 +29,8 @@ public interface AutoPilot {
      * @return true if it is ready to take over control.
      */
 	public boolean canTakeCharge();
+
+	public boolean canBeSwappedOut();
 	
 	
 }

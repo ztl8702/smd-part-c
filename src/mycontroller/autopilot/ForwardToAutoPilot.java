@@ -14,22 +14,24 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
     public enum State {Idle, On, Finished}
 
     private TrackingAxis trackingAxis;
-    private float fromPos, toPos;
+    private float fromPos, toPos, otherAxis;
     private State state;
     private float targetSpeed;
 
 
-    public ForwardToAutoPilot(Coordinate from, Coordinate to, float targetSpeed ) {
+    public ForwardToAutoPilot(Coordinate from, Coordinate to, float targetSpeed) {
 
         if (from.x == to.x) {
             // tracking y
             trackingAxis = TrackingAxis.Y;
             fromPos = from.y;
             toPos = to.y;
+            otherAxis = from.x;
         } else if (from.y == to.y) {
             trackingAxis = TrackingAxis.X;
             fromPos = from.x;
             toPos = to.x;
+            otherAxis = from.y;
         } else {
             throw new InvalidParameterException();
         }
@@ -39,10 +41,11 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
 
     @Override
     public AutoPilotAction handle(float delta, Car car) {
+        Coordinate coord = new Coordinate(car.getPosition());
         switch (state) {
             case Idle:
-                if ((trackingAxis==TrackingAxis.X && (int)car.getX() == (int)fromPos)
-                        || (trackingAxis==TrackingAxis.Y && (int)car.getY() == (int)fromPos)) {
+                if ((trackingAxis==TrackingAxis.X && inRange(car.getX(), fromPos,toPos) && coord.y== Math.round(otherAxis))
+                        || (trackingAxis==TrackingAxis.Y && inRange(car.getY(), fromPos,toPos) && coord.x==Math.round(otherAxis)) ) {
                     changeState(State.On);
                 }
                 break;
