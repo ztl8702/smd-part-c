@@ -35,7 +35,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
     private RelativeDirection turningMode;
 
     public TurningAutoPilot(Coordinate fromTile, Coordinate toTile, RelativeDirection turningMode) {
-        // prototype, only support one turning type
+        // figure out which direction we are turning from and which direction we are turning to
         if (fromTile.x + 1 == toTile.x && fromTile.y + 1 == toTile.y && turningMode == RelativeDirection.LEFT) {
             fromDirection = Direction.EAST;
             toDirection = Direction.NORTH;
@@ -68,7 +68,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
         this.toTile = toTile;
         this.turningMode = turningMode;
 
-        // let someone else care about the speed
+        // let some other AutoPilot care about the speed
         maintainSpeedOpt = new MaintainSpeedAutoPilot(MAINTAIN_SPEED);
         state = State.Waiting;
     }
@@ -114,8 +114,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
             }
             // Overwrite the backward attribute:
             // We should never reverse+turn at the same time, otherwise the turning
-            // trajectory will
-            // be weird.
+            // trajectory will be weird.
             output.backward = false;
             return output;
         case FinishedTurning:
@@ -125,6 +124,11 @@ public class TurningAutoPilot extends BaseAutoPilot {
         }
     }
 
+    /**
+     * Has the car reached the "buffer area", where we need to start adjusting the speed.
+     * @param coord
+     * @return
+     */
     private boolean reachedBufferArea(Coordinate coord) {
         switch (fromDirection) {
         case WEST:
@@ -140,6 +144,12 @@ public class TurningAutoPilot extends BaseAutoPilot {
         }
     }
 
+    /**
+     * Has the car reached the position where we need to start applying turnLeft/turnRight
+     * @param x
+     * @param y
+     * @return
+     */
     private boolean reachedTurningPoint(float x, float y) {
         switch (fromDirection) {
         case WEST:
@@ -156,6 +166,11 @@ public class TurningAutoPilot extends BaseAutoPilot {
 
     }
 
+    /**
+     * Has the car turned to the desired orientation?
+     * @param a
+     * @return
+     */
     private boolean reachedTargetAngle(float a) {
         switch (toDirection) {
         case NORTH:

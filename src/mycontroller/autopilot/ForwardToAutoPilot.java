@@ -96,11 +96,18 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
         }
     }
 
+    /**
+     * Whether x is in range [a,b] or [b,a]
+     *
+     * @param x
+     * @param a
+     * @param b
+     * @return
+     */
     private boolean inRange(double x, double a, double b) {
         double upper = Math.max(a, b);
         double lower = Math.min(a, b);
         return lower <= x && x <= upper;
-
     }
 
     @Override
