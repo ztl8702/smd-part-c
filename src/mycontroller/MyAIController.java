@@ -1,5 +1,6 @@
 package mycontroller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import controller.CarController;
@@ -56,7 +57,15 @@ public class MyAIController extends CarController {
 		
 		// have not found solution, keep exploring
 		if(this.currentState == State.Explore) {
-			ExplorerPathFinder explorerPathFinder = new ExplorerPathFinder();
+			//ExplorerPathFinder explorerPathFinder = new ExplorerPathFinder();
+			PathFinder wallFollower = new WallFollowingPathFinder();
+			System.out.println("\n\n\n\n\n\n====================================\n");
+
+			ArrayList<Coordinate> path = wallFollower.getPath(mapManager.getMap(),
+					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
+			System.out.println("\n====================================\n\n\n\n\n");
+
+
 			startedMoving = true;
 			
 		}

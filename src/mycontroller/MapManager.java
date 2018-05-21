@@ -56,7 +56,10 @@ public class MapManager {
 		mapWindow = new MapWindow();
 		cWindow = new ColoursWindow();
 	}
-	
+
+	public HashMap<Coordinate,Cell> getMap() {
+		return this.map;
+	}
 	public boolean foundSolution() {
 		return this.foundSolution;
 	}
