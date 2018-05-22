@@ -18,7 +18,7 @@ public class ColoursWindow {
 		tC = new JTextPane();
 		tC.setFont(new Font("Consolas",Font.PLAIN,16));
 		Frame fC = new Frame();
-		fC.setTitle("StateManager - Colours");
+		fC.setTitle("MapManager - Colours");
 		fC.setSize(1000,1200);
 		fC.add(tC);
 		fC.show();

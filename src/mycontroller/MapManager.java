@@ -15,34 +15,52 @@ import utilities.Coordinate;
 
 import java.awt.Color;
 
-public class StateManager {
-	public HashMap<Coordinate, Cell> map = new HashMap<Coordinate, Cell>();
-	public int xStart = Integer.MAX_VALUE;
-	public int xEnd = Integer.MIN_VALUE;
-	public int yStart = Integer.MAX_VALUE;
-	public int yEnd = Integer.MIN_VALUE;
-	public static Coordinate[] DIRECTIONS = {
+
+public class MapManager {
+	
+	
+	private boolean foundSolution = false;
+	
+	//TODO check if all keys have been found and update as well
+	
+	private HashMap<Coordinate, Cell> map = new HashMap<Coordinate, Cell>();
+	private int xStart = Integer.MAX_VALUE;
+	private int xEnd = Integer.MIN_VALUE;
+	private int yStart = Integer.MAX_VALUE;
+	private int yEnd = Integer.MIN_VALUE;
+	private static Coordinate[] DIRECTIONS = {
 			new Coordinate(-1,0),
 			new Coordinate(+1,0),
 			new Coordinate(0,-1),
 			new Coordinate(0,+1)
 	};
 	
-	public HashSet<Coordinate> unseen = new HashSet<Coordinate>();
-	public HashSet<Coordinate> reachable = new HashSet<Coordinate>();
-	public HashMap<Integer, Coordinate> keys = new HashMap<Integer, Coordinate>();
+	private HashSet<Coordinate> unseen = new HashSet<Coordinate>();
+	public HashSet<Coordinate> getUnseen() {
+		return unseen;
+	}
+
+
+	private HashSet<Coordinate> reachable = new HashSet<Coordinate>();
+	private HashMap<Integer, Coordinate> keys = new HashMap<Integer, Coordinate>();
 	
 	private int colourCount = 0;
-	public HashMap<Coordinate, Integer> colour = new HashMap<>();
-	public HashMap<Integer ,ColoredRegion> areas = new HashMap<>();
+	private HashMap<Coordinate, Integer> colour = new HashMap<>();
+	private HashMap<Integer ,ColoredRegion> areas = new HashMap<>();
 	
 	private MapWindow mapWindow;
 	private ColoursWindow cWindow;
-	public StateManager() {
+	
+	public MapManager() {
 		mapWindow = new MapWindow();
 		cWindow = new ColoursWindow();
-		
-		
+	}
+
+	public HashMap<Coordinate,Cell> getMap() {
+		return this.map;
+	}
+	public boolean foundSolution() {
+		return this.foundSolution;
 	}
 	
 	public void initialMap(HashMap<Coordinate, MapTile> tiles) {
@@ -207,7 +225,7 @@ public class StateManager {
 		}
 	}
 	
-	private boolean isWithinBoard(Coordinate coord) {
+	public boolean isWithinBoard(Coordinate coord) {
 		return (xStart <= coord.x && coord.x <= xEnd) && (yStart <= coord.y && coord.y <= yEnd);
 	}
 	

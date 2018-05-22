@@ -1,10 +1,11 @@
 package mycontroller.scanningcontroller;
 
 public class Cell {
+	
 	public enum CellType {ROAD, WALL, START, FINISH, TRAP, UNREACHABLE}
 	public int key;
-	//boolean unseen = true;
 	public CellType type;
+	
 	public String getCellTypeHash() {
 		return String.format("(%s,%d)",this.type.toString(),this.key);
 	}
@@ -44,4 +45,13 @@ public class Cell {
 		return newCell;
 	}
 	
+	// This method allows us to decide which node is better. 
+	// We can say current node is better if this method returns negative number,
+	// which means current node has lower cost than the other node being compared.
+	public static int compareTo(Cell currentCell, Cell otherCell) {
+//		if (currentCell.type == CellType.)
+//		TODO
+		return 1;
+		
+	}
 }

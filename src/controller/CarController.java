@@ -13,7 +13,7 @@ import world.WorldSpatial;
 
 public abstract class CarController {
 	
-	protected Car car;
+	private Car car;
 	
 	/**
 	 * Instantiates the car
@@ -27,7 +27,6 @@ public abstract class CarController {
 	 * Slows the car down
 	 */
 	public void applyBrake(){
-		System.out.println("brake");
 		this.car.brake();
 	}
 	
@@ -35,7 +34,6 @@ public abstract class CarController {
 	 * Speeds the car up in the forward direction
 	 */
 	public void applyForwardAcceleration(){
-		System.out.println("Acce");
 		this.car.applyForwardAcceleration();
 	}
 	
@@ -43,7 +41,6 @@ public abstract class CarController {
 	 * Speeds the car up in the backwards direction
 	 */
 	public void applyReverseAcceleration(){
-		System.out.println("Rev");
 		this.car.applyReverseAcceleration();
 	}
 	
@@ -52,7 +49,6 @@ public abstract class CarController {
 	 * @param delta refers to the value passed in by the update call
 	 */
 	public void turnLeft(float delta){
-		System.out.println("left");
 		this.car.turnLeft(delta);
 	}
 	
@@ -61,7 +57,6 @@ public abstract class CarController {
 	 * @param delta refers to the value passed in by the update call
 	 */
 	public void turnRight(float delta){
-		System.out.println("right");
 		this.car.turnRight(delta);
 	}
 	

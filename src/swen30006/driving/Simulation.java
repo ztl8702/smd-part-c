@@ -146,7 +146,7 @@ public class Simulation extends ApplicationAdapter implements InputProcessor {
 
 			font.draw(batch, layout, fontX, fontY);
 			String timeText = gameWon ? "You escaped and it took: " : "You failed and it took: ";
-			System.out.println(timeText + ((System.currentTimeMillis() - startTime) / 1000+" seconds!"));
+//			System.out.println(timeText + ((System.currentTimeMillis() - startTime) / 1000+" seconds!"));
 			batch.end();
 			/*
 			try {
@@ -245,12 +245,6 @@ public class Simulation extends ApplicationAdapter implements InputProcessor {
 	public static void endGame(boolean won){
 		gameEnded = true;
 		gameWon = won;
-		/*try {
-			System.in.read();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		};*/
 	}
 
 }
