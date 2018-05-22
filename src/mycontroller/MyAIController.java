@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import controller.CarController;
+import mycontroller.autopilot.AutoPilotAction;
+import mycontroller.navigator.DefaultNavigator;
+import mycontroller.navigator.Navigator;
 import mycontroller.pathfinder.*;
-import mycontroller.routecompiler.DefaultRouteCompiler;
-import mycontroller.routecompiler.RouteCompiler;
 import world.Car;
 import tiles.MapTile;
 import utilities.Coordinate;
 
-import static java.lang.System.exit;
 
 
 public class MyAIController extends CarController {
@@ -26,10 +26,14 @@ public class MyAIController extends CarController {
 	
 	private MapManager mapManager;
 	private State currentState;
-	
+	private Navigator navigator;
+
+	private Car car; //TODO: refactor and remove this
+
 	public MyAIController(Car car) {
 		super(car);
-		
+		this.car = car;
+
 		this.startedMoving = false;
 		
 		this.currentState = State.Explore;
@@ -37,6 +41,8 @@ public class MyAIController extends CarController {
 		mapManager = new MapManager();
 		mapManager.initialMap(this.getMap());
 		mapManager.markReachable();
+
+		navigator = new DefaultNavigator();
 		
 		
 		HashMap<Coordinate, MapTile> m = getMap();
@@ -59,7 +65,7 @@ public class MyAIController extends CarController {
 		
 		
 		// have not found solution, keep exploring
-		if(this.currentState == State.Explore) {
+		if(!startedMoving) {
 			//ExplorerPathFinder explorerPathFinder = new ExplorerPathFinder();
 			PathFinder wallFollower = new WallFollowingPathFinder();
 			System.out.println("\n\n\n\n\n\n====================================\n");
@@ -68,13 +74,35 @@ public class MyAIController extends CarController {
 					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
 			System.out.println("\n====================================\n\n\n\n\n");
 
-			RouteCompiler compiler = new DefaultRouteCompiler();
+			navigator.loadNewPath(path);
+			//RouteCompiler compiler = new DefaultRouteCompiler();
 
-			compiler.compile(path);
-			exit(-1);
+			//compiler.compile(path);
+			//exit(-1);
 			startedMoving = true;
 			
+		} else {
+			AutoPilotAction action = navigator.update(delta,car);
+			if (action.brake) {
+				this.applyBrake();
+			}
+			if (action.forward) {
+				this.applyForwardAcceleration();
+			}
+			if (action.backward) {
+				this.applyReverseAcceleration();
+			}
+			if (action.turnLeft) {
+				this.turnLeft(delta);
+			}
+			if (action.turnRight) {
+				this.turnRight(delta);
+			}
 		}
+
+
+
+		/**
 		// car hit a wall
 		//TODO maybe make a method to check ifCollided
 		if(getSpeed() == 0 && startedMoving) {
@@ -97,7 +125,7 @@ public class MyAIController extends CarController {
 		
 		
 		if (DEBUG) System.out.printf("current unseen count: %d\n", mapManager.getUnseen().size());	
-		
+		**/
 	}
 
 }

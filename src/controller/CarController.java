@@ -27,6 +27,7 @@ public abstract class CarController {
 	 * Slows the car down
 	 */
 	public void applyBrake(){
+		System.out.print("brake");
 		this.car.brake();
 	}
 	
@@ -34,14 +35,14 @@ public abstract class CarController {
 	 * Speeds the car up in the forward direction
 	 */
 	public void applyForwardAcceleration(){
-		this.car.applyForwardAcceleration();
+		System.out.print("forward");this.car.applyForwardAcceleration();
 	}
 	
 	/**
 	 * Speeds the car up in the backwards direction
 	 */
 	public void applyReverseAcceleration(){
-		this.car.applyReverseAcceleration();
+		System.out.print("reverse");this.car.applyReverseAcceleration();
 	}
 	
 	/**
@@ -49,7 +50,7 @@ public abstract class CarController {
 	 * @param delta refers to the value passed in by the update call
 	 */
 	public void turnLeft(float delta){
-		this.car.turnLeft(delta);
+		System.out.print("left");this.car.turnLeft(delta);
 	}
 	
 	/**
@@ -57,7 +58,7 @@ public abstract class CarController {
 	 * @param delta refers to the value passed in by the update call
 	 */
 	public void turnRight(float delta){
-		this.car.turnRight(delta);
+		System.out.print("right");this.car.turnRight(delta);
 	}
 	
 	/**

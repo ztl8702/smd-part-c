@@ -45,7 +45,7 @@ public class DemoController extends CarController {
         upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(2,3), new Coordinate(4,3), 0));
         upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(4,3), new Coordinate(6,3), 2));
         upcomingOpts.add(new TurningAutoPilot(new Coordinate(6,3), new Coordinate(7,4), WorldSpatial.RelativeDirection.LEFT));
-        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(7,4), new Coordinate(7,12), 0));
+        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(7,3), new Coordinate(7,12), 0));
         upcomingOpts.add(new TurningAutoPilot(new Coordinate(7,12), new Coordinate(6,13), WorldSpatial.RelativeDirection.LEFT));
         upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(6,13), new Coordinate(2,13), 0));
         upcomingOpts.add(new TurningAutoPilot(new Coordinate(2,13), new Coordinate(1,14), WorldSpatial.RelativeDirection.RIGHT));
