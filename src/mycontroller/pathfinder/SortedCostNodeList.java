@@ -1,4 +1,7 @@
-package mycontroller;
+package mycontroller.pathfinder;
+
+import mycontroller.pathfinder.Node;
+import mycontroller.pathfinder.NodeComparator;
 
 import java.util.ArrayList;
 import java.util.Collections;

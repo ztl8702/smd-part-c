@@ -1,4 +1,4 @@
-package mycontroller.scanningcontroller;
+package mycontroller.common;
 
 public class Cell {
 	

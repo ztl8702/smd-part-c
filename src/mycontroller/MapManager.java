@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import mycontroller.scanningcontroller.Cell;
-import mycontroller.scanningcontroller.ColoredRegion;
+import mycontroller.common.Cell;
+import mycontroller.common.ColoredRegion;
 import mycontroller.scanningcontroller.ColoursWindow;
 import mycontroller.scanningcontroller.MapWindow;
 import tiles.MapTile;
@@ -36,9 +36,6 @@ public class MapManager {
 	};
 	
 	private HashSet<Coordinate> unseen = new HashSet<Coordinate>();
-	public HashSet<Coordinate> getUnseen() {
-		return unseen;
-	}
 
 
 	private HashSet<Coordinate> reachable = new HashSet<Coordinate>();
@@ -59,6 +56,8 @@ public class MapManager {
 	public HashMap<Coordinate,Cell> getMap() {
 		return this.map;
 	}
+
+	public HashSet<Coordinate> getUnseen() {return this.unseen; }
 	public boolean foundSolution() {
 		return this.foundSolution;
 	}

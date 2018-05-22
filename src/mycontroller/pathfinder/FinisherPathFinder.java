@@ -1,5 +1,6 @@
-package mycontroller;
+package mycontroller.pathfinder;
 
+import mycontroller.common.Cell;
 import utilities.Coordinate;
 
 import java.util.ArrayList;
@@ -96,6 +97,7 @@ public class FinisherPathFinder implements PathFinder {
 		
 		return solutionPath;
 	}
+
 
 	@Override
 	public ArrayList<Coordinate> getPath(HashMap<Coordinate, Cell> map, Coordinate currentPosition, float currentSpeed, float currentDirection) {

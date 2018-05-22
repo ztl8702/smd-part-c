@@ -4,11 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import controller.CarController;
+import mycontroller.pathfinder.*;
 import world.Car;
-import world.World;
 import tiles.MapTile;
 import utilities.Coordinate;
-import world.WorldSpatial;
 
 
 public class MyAIController extends CarController {
@@ -77,7 +76,7 @@ public class MyAIController extends CarController {
 		
 		// health is lower than danger threshold
 		if(getHealth() <= DANGER_THRESHOLD) {
-			RecoveryPathFinder recoveryPathFinder = new RecoveryPathFinder();		
+			RecoveryPathFinder recoveryPathFinder = new RecoveryPathFinder();
 		}
 		
 		

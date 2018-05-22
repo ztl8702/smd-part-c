@@ -20,8 +20,13 @@ public class DemoController extends CarController {
 
 	//private Queue<String> pendingActions = new LinkedList<String>();
 	String theAction = "";
+
+	private Car car;
+
 	public DemoController(Car car) {
 		super(car);
+		this.car = car; // TODO: this is a hack, refactor later
+
 		controls = new EasyWindow();
 		controls.onSetSpeed1 = () ->{
 			System.out.println("\n\n\nSpeed1\n\n\n");

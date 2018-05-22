@@ -1,7 +1,8 @@
-package mycontroller;
+package mycontroller.pathfinder;
 
 import java.util.*;
 
+import mycontroller.common.Cell;
 import utilities.Coordinate;
 import world.WorldSpatial;
 
@@ -20,7 +21,7 @@ public class WallFollowingPathFinder implements PathFinder {
         this.startingPosition = currentPosition;
         startingSpeed = currentSpeed;
 
-        //......
+        // figure out the direction
 
         if (currentAngle <= 90) {
             startingDirection = WorldSpatial.Direction.EAST;

@@ -1,8 +1,9 @@
-package mycontroller;
+package mycontroller.pathfinder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import mycontroller.common.Cell;
 import utilities.Coordinate;
 
 public interface PathFinder {

@@ -1,7 +1,8 @@
-package mycontroller;
+package mycontroller.pathfinder;
 
 import java.util.ArrayList;
 
+import mycontroller.MapManager;
 import utilities.Coordinate;
 
 public class Node implements Comparable<Node> {

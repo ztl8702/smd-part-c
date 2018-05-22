@@ -1,5 +1,6 @@
-package mycontroller;
+package mycontroller.pathfinder;
 
+import mycontroller.common.Cell;
 import utilities.Coordinate;
 
 import java.util.ArrayList;

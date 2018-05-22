@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import controller.CarController;
-import mycontroller.StateManager;
+import mycontroller.MapManager;
 import tiles.MapTile;
 import utilities.Coordinate;
 import world.Car;
@@ -27,7 +27,7 @@ public class ScanningController extends CarController {
 	
 	// Offset used to differentiate between 0 and 360 degrees
 	private int EAST_THRESHOLD = 3;
-	private StateManager stateMan;
+	private MapManager stateMan;
 	public ScanningController(Car car) {
 		super(car);
 		HashMap<Coordinate, MapTile> m = getMap();
@@ -40,7 +40,7 @@ public class ScanningController extends CarController {
 			
 		}
 		
-		stateMan = new StateManager();
+		stateMan = new MapManager();
 		stateMan.initialMap(this.getMap());
 		stateMan.markReachable();
 		
@@ -55,7 +55,7 @@ public class ScanningController extends CarController {
 		HashMap<Coordinate, MapTile> currentView = getView();
 		stateMan.updateView(currentView);
 		
-		System.out.printf("current unseen count: %d\n", stateMan.unseen.size());
+		System.out.printf("current unseen count: %d\n", stateMan.getUnseen().size());
 		checkStateChange();
 
 		// If you are not following a wall initially, find a wall to stick to!
