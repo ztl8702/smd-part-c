@@ -100,9 +100,7 @@ public class WallFollowingPathFinder implements PathFinder {
                 for (int yDelta = -1; yDelta <= 1; yDelta += 1) {
                     if ((xDelta == 0 && yDelta != 0) || (xDelta != 0 && yDelta == 0)) {
                         Coordinate newCoord = new Coordinate(head.x + xDelta, head.y + yDelta);
-                        if (newCoord.x == 2&&newCoord.y==2) {
-                            throw new Exception("head = "+head+" xDelta= "+xDelta+" yDelta="+yDelta);
-                        }
+
                         if (!visited.contains(newCoord)) {
                             Cell mapTile = map.get(newCoord);
                             if (mapTile != null && mapTile.type != Cell.CellType.WALL) {

@@ -14,22 +14,28 @@ import java.util.Queue;
 
 /**
  * Naive RouteCompiler
- *
+ * <p>
  * Does the basic stuff, assumes speed is always 1.
- *
+ * <p>
  * Optimisations can be added later.
  */
 public class DefaultRouteCompiler implements RouteCompiler {
 
     // some dirty ad-hoc data structures, meant for internal use
     // don't need to be reflected in UML (i guess)
-    enum ActionType {GoStraight, TurnLeft, TurnRight};
+    enum ActionType {
+        GoStraight, TurnLeft, TurnRight
+    }
+
+    ;
+
     private class Action {
         public ActionType type;
         public Coordinate start;
         public Coordinate finish;
         public WorldSpatial.Direction goStraightDirection;
     }
+
     @Override
     public Queue<AutoPilot> compile(ArrayList<Coordinate> path) {
         LinkedList<AutoPilot> output = new LinkedList<>();
@@ -38,7 +44,7 @@ public class DefaultRouteCompiler implements RouteCompiler {
         ArrayList<Action> actionList = new ArrayList<>();
         for (int i = 0; i < path.size(); ++i) {
             Coordinate thisCoord = path.get(i);
-            Coordinate lastCoord = i-1>=0 ? path.get(i-1) : null;
+            Coordinate lastCoord = i - 1 >= 0 ? path.get(i - 1) : null;
 
             if (lastCoord == null) {
                 // this is the first coordinate
@@ -49,7 +55,7 @@ public class DefaultRouteCompiler implements RouteCompiler {
                 lastAction.goStraightDirection = null;
                 // we don't know the direction yet
             } else {
-                if ( lastAction.type == ActionType.GoStraight ) {
+                if (lastAction.type == ActionType.GoStraight) {
                     if (lastAction.goStraightDirection == null) {
                         // now we know the direction
                         WorldSpatial.Direction drt = getDirection(thisCoord, lastAction.finish);
@@ -74,13 +80,13 @@ public class DefaultRouteCompiler implements RouteCompiler {
                             // lastAction back off by one tile
                             switch (lastAction.goStraightDirection) {
                                 case EAST:
-                                    lastAction.finish.x -=1;
+                                    lastAction.finish.x -= 1;
                                     break;
                                 case WEST:
-                                    lastAction.finish.x +=1;
+                                    lastAction.finish.x += 1;
                                     break;
                                 case NORTH:
-                                    lastAction.finish.y -=1;
+                                    lastAction.finish.y -= 1;
                                     break;
                                 case SOUTH:
                                     lastAction.finish.y += 1;
@@ -96,7 +102,7 @@ public class DefaultRouteCompiler implements RouteCompiler {
                                 lastAction.type = ActionType.TurnRight;
                             }
 
-                            lastAction.start = cloneCoordinate(actionList.get(actionList.size()-1).finish);
+                            lastAction.start = cloneCoordinate(actionList.get(actionList.size() - 1).finish);
                             lastAction.finish = cloneCoordinate(thisCoord);
 
                             actionList.add(lastAction);
@@ -128,12 +134,18 @@ public class DefaultRouteCompiler implements RouteCompiler {
 
         // convert to autopilots
 
-        for (Action a: actionList
-             ) {
+        for (Action a : actionList
+                ) {
 
             switch (a.type) {
                 case GoStraight:
-                    output.add(new ForwardToAutoPilot(a.start, a.finish, 1));
+                    if (actionList.indexOf(a) == actionList.size() - 1) {
+                        // last action => stop
+                        output.add(new ForwardToAutoPilot(a.start, a.finish, 0f));
+                    } else {
+                        output.add(new ForwardToAutoPilot(a.start, a.finish, 1.1f));
+                    }
+
                     break;
                 case TurnLeft:
                     output.add(new TurningAutoPilot(a.start, a.finish, WorldSpatial.RelativeDirection.LEFT));
@@ -168,14 +180,14 @@ public class DefaultRouteCompiler implements RouteCompiler {
         }
     }
 
-    private WorldSpatial.RelativeDirection whichWayToTurn(WorldSpatial.Direction now, WorldSpatial.Direction prev){
+    private WorldSpatial.RelativeDirection whichWayToTurn(WorldSpatial.Direction now, WorldSpatial.Direction prev) {
         switch (prev) {
             case EAST:
                 if (now == WorldSpatial.Direction.NORTH) {
                     return WorldSpatial.RelativeDirection.LEFT;
                 } else if (now == WorldSpatial.Direction.SOUTH) { // be explicit in "else" condition,
-                                                                  // so that if there is a bug lurking elsewhere,
-                                                                  // we can find it.
+                    // so that if there is a bug lurking elsewhere,
+                    // we can find it.
                     return WorldSpatial.RelativeDirection.RIGHT;
                 }
                 break;
@@ -204,6 +216,7 @@ public class DefaultRouteCompiler implements RouteCompiler {
         return null;
 
     }
+
     /**
      * For debug
      */
@@ -214,7 +227,7 @@ public class DefaultRouteCompiler implements RouteCompiler {
 
         AutoPilot tmp[] = autoPilots.toArray(new AutoPilot[autoPilots.size()]);
 
-        for (int i = 0; i<tmp.length; ++i) {
+        for (int i = 0; i < tmp.length; ++i) {
             System.out.printf("\t%d:\t%s\n", i, tmp[i]);
         }
 
@@ -223,6 +236,6 @@ public class DefaultRouteCompiler implements RouteCompiler {
     }
 
     private Coordinate cloneCoordinate(Coordinate a) {
-        return new Coordinate(a.x,a.y);
+        return new Coordinate(a.x, a.y);
     }
 }
