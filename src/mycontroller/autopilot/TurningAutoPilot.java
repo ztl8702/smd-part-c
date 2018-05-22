@@ -13,7 +13,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
 
     // TODO: Handle situation where the MAINTAIN_SPEED cannot be reached before
     // turning
-    public static final float MAINTAIN_SPEED = 2f;
+    public static final float MAINTAIN_SPEED = 1f;
 
     private enum TurningType {
         EastToNorth, EastToSouth
@@ -203,7 +203,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
 
     @Override
     public boolean canBeSwappedOut() {
-        if (this.state == State.StartTurning) {
+        if (this.state == State.StartTurning||this.state==State.ReachTurningSpeed) {
             return false;
         }
         return true;

@@ -51,12 +51,14 @@ public class DemoController extends CarController {
         upcomingOpts.add(new TurningAutoPilot(new Coordinate(2,13), new Coordinate(1,14), WorldSpatial.RelativeDirection.RIGHT));
         upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(1,14), new Coordinate(1,17), 0));
         upcomingOpts.add(new TurningAutoPilot(new Coordinate(1,17), new Coordinate(2,18), WorldSpatial.RelativeDirection.RIGHT));
-        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(2,18), new Coordinate(9,18), 0));
-        upcomingOpts.add(new TurningAutoPilot(new Coordinate(10,18), new Coordinate(11,17), WorldSpatial.RelativeDirection.RIGHT));
-        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(11,17), new Coordinate(11,15), 0));
-        upcomingOpts.add(new TurningAutoPilot(new Coordinate(11,15), new Coordinate(12,14), WorldSpatial.RelativeDirection.LEFT));
-        upcomingOpts.add(new TurningAutoPilot(new Coordinate(12,14), new Coordinate(13,15), WorldSpatial.RelativeDirection.LEFT));
-        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(13,15), new Coordinate(13,17), 0));
+        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(2,18), new Coordinate(8,18), 0));
+        upcomingOpts.add(new TurningAutoPilot(new Coordinate(9,18), new Coordinate(10,17), WorldSpatial.RelativeDirection.RIGHT));
+        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(10,17), new Coordinate(10,15), 1));
+        // U Turn
+		// currently U-turn only works at speed 1
+        upcomingOpts.add(new TurningAutoPilot(new Coordinate(10,15), new Coordinate(11,14), WorldSpatial.RelativeDirection.LEFT));
+        upcomingOpts.add(new TurningAutoPilot(new Coordinate(10,14), new Coordinate(11,15), WorldSpatial.RelativeDirection.LEFT));
+        upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(11,15), new Coordinate(11,17), 0));
 	}
 
 	@Override
