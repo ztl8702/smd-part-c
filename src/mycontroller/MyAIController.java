@@ -5,9 +5,13 @@ import java.util.HashMap;
 
 import controller.CarController;
 import mycontroller.pathfinder.*;
+import mycontroller.routecompiler.DefaultRouteCompiler;
+import mycontroller.routecompiler.RouteCompiler;
 import world.Car;
 import tiles.MapTile;
 import utilities.Coordinate;
+
+import static java.lang.System.exit;
 
 
 public class MyAIController extends CarController {
@@ -64,7 +68,10 @@ public class MyAIController extends CarController {
 					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
 			System.out.println("\n====================================\n\n\n\n\n");
 
+			RouteCompiler compiler = new DefaultRouteCompiler();
 
+			compiler.compile(path);
+			exit(-1);
 			startedMoving = true;
 			
 		}
