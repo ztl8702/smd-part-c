@@ -33,10 +33,16 @@ public class DefaultNavigator implements Navigator {
             action = opt.handle(delta, car);
         }
         System.out.println(opt);
-        for (AutoPilot o : this.upcomingOpts) {
+
+        /*for (AutoPilot o : this.upcomingOpts) {
             System.out.println(o);
             o.handle(delta, car);
+        }*/
+        // only look ahead by one
+        if (!this.upcomingOpts.isEmpty()){
+            this.upcomingOpts.peek().handle(delta,car);
         }
+
         return action;
     }
 

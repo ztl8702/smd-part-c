@@ -13,7 +13,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
 
     // TODO: Handle situation where the MAINTAIN_SPEED cannot be reached before
     // turning
-    public static final float MAINTAIN_SPEED = 1f;
+    public static final float MAINTAIN_SPEED = 1.1f;
 
     private enum TurningType {
         EastToNorth, EastToSouth
@@ -76,114 +76,119 @@ public class TurningAutoPilot extends BaseAutoPilot {
     @Override
     public AutoPilotAction handle(float delta, Car car) {
         Coordinate coord = new Coordinate(car.getPosition());
+
         System.out.printf("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x,
                 this.getCentreLineX(toTile.x), d(), this.getCentreLineX(toTile.x) - d(), car.getX());
 
         switch (this.state) {
-        case Waiting:
-            if (reachedBufferArea(coord)) {
-                changeState(State.ReachTurningSpeed);
-            }
-            break;
-        case ReachTurningSpeed:
-            if (reachedTurningPoint(car.getX(), car.getY())) {
-                changeState(State.StartTurning);
-            }
-            break;
-        case StartTurning:
-            float a = car.getAngle();
-            if (reachedTargetAngle(a)) {
-                changeState(State.FinishedTurning);
-            }
-            break;
+            case Waiting:
+                if (reachedBufferArea(coord, car.getOrientation())) {
+                    changeState(State.ReachTurningSpeed);
+                }
+                break;
+            case ReachTurningSpeed:
+                if (reachedTurningPoint(car.getX(), car.getY())) {
+                    changeState(State.StartTurning);
+                }
+                break;
+            case StartTurning:
+                float a = car.getAngle();
+                if (reachedTargetAngle(a)) {
+                    changeState(State.FinishedTurning);
+                }
+                break;
 
         }
         AutoPilotAction speedOpt = this.maintainSpeedOpt.handle(delta, car);
 
         switch (state) {
-        case Waiting:
-            return AutoPilotAction.nothing();
-        case ReachTurningSpeed:
-            return speedOpt;
-        case StartTurning:
-            AutoPilotAction output;
-            if (turningMode == RelativeDirection.LEFT) {
-                output = AutoPilotAction.combine(speedOpt, AutoPilotAction.turnLeft());
-            } else {
-                output = AutoPilotAction.combine(speedOpt, AutoPilotAction.turnRight());
-            }
-            // Overwrite the backward attribute:
-            // We should never reverse+turn at the same time, otherwise the turning
-            // trajectory will be weird.
-            output.backward = false;
-            return output;
-        case FinishedTurning:
-            return speedOpt;
-        default:
-            return AutoPilotAction.nothing();
+            case Waiting:
+                return AutoPilotAction.nothing();
+            case ReachTurningSpeed:
+                return speedOpt;
+            case StartTurning:
+                AutoPilotAction output;
+                if (turningMode == RelativeDirection.LEFT) {
+                    output = AutoPilotAction.combine(speedOpt, AutoPilotAction.turnLeft());
+                } else {
+                    output = AutoPilotAction.combine(speedOpt, AutoPilotAction.turnRight());
+                }
+                // Overwrite the backward attribute:
+                // We should never reverse+turn at the same time, otherwise the turning
+                // trajectory will be weird.
+                output.backward = false;
+                return output;
+            case FinishedTurning:
+                return speedOpt;
+            default:
+                return AutoPilotAction.nothing();
         }
     }
 
     /**
      * Has the car reached the "buffer area", where we need to start adjusting the speed.
+     *
      * @param coord
      * @return
      */
-    private boolean reachedBufferArea(Coordinate coord) {
+    private boolean reachedBufferArea(Coordinate coord, Direction currentOrientation) {
+        if (fromDirection != currentOrientation) return false;
         switch (fromDirection) {
-        case WEST:
-            return coord.x <= fromTile.x + 2 && coord.y == fromTile.y;
-        case EAST:
-            return coord.x >= fromTile.x - 2 && coord.y == fromTile.y;
-        case NORTH:
-            return coord.y >= fromTile.y - 2 && coord.x == fromTile.x;
-        case SOUTH:
-            return coord.y <= fromTile.y + 2 && coord.x == fromTile.x;
-        default:
-            return false;
+            case WEST:
+                return coord.x <= fromTile.x + 2 && coord.y == fromTile.y;
+            case EAST:
+                return coord.x >= fromTile.x - 2 && coord.y == fromTile.y;
+            case NORTH:
+                return coord.y >= fromTile.y - 2 && coord.x == fromTile.x;
+            case SOUTH:
+                return coord.y <= fromTile.y + 2 && coord.x == fromTile.x;
+            default:
+                return false;
         }
     }
 
     /**
      * Has the car reached the position where we need to start applying turnLeft/turnRight
+     *
      * @param x
      * @param y
      * @return
      */
     private boolean reachedTurningPoint(float x, float y) {
         switch (fromDirection) {
-        case WEST:
-            return x <= this.getCentreLineX(toTile.x) + d();
-        case EAST:
-            return x >= this.getCentreLineX(toTile.x) - d();
-        case NORTH:
-            return y >= this.getCentreLineY(toTile.y) - d();
-        case SOUTH:
-            return y <= this.getCentreLineY(toTile.y) + d();
-        default:
-            return false;
+            case WEST:
+                return x <= this.getCentreLineX(toTile.x) + d() - 0.01f; // overrun a little bit to avoid hitting the wall
+            case EAST:
+                return x >= this.getCentreLineX(toTile.x) - d() + 0.01f;
+            case NORTH:
+                return y >= this.getCentreLineY(toTile.y) - d() + 0.01f;
+            case SOUTH:
+                return y <= this.getCentreLineY(toTile.y) + d() - 0.01f;
+            default:
+                return false;
         }
 
     }
 
     /**
      * Has the car turned to the desired orientation?
+     *
      * @param a
      * @return
      */
     private boolean reachedTargetAngle(float a) {
         switch (toDirection) {
-        case NORTH:
-            return WorldSpatial.NORTH_DEGREE - 0.05f <= a && a <= WorldSpatial.NORTH_DEGREE + 0.05f;
-        case SOUTH:
-            return WorldSpatial.SOUTH_DEGREE - 0.05f <= a && a <= WorldSpatial.SOUTH_DEGREE + 0.05f;
-        case WEST:
-            return WorldSpatial.WEST_DEGREE - 0.05f <= a && a <= WorldSpatial.WEST_DEGREE + 0.05f;
-        case EAST:
-            return (WorldSpatial.EAST_DEGREE_MAX - 0.05f <= a && a <= WorldSpatial.EAST_DEGREE_MAX + 0.05f)
-                    || (WorldSpatial.EAST_DEGREE_MIN - 0.05f <= a && a <= WorldSpatial.EAST_DEGREE_MIN + 0.05f);
-        default:
-            return false;
+            case NORTH:
+                return WorldSpatial.NORTH_DEGREE - 0.05f <= a && a <= WorldSpatial.NORTH_DEGREE + 0.05f;
+            case SOUTH:
+                return WorldSpatial.SOUTH_DEGREE - 0.05f <= a && a <= WorldSpatial.SOUTH_DEGREE + 0.05f;
+            case WEST:
+                return WorldSpatial.WEST_DEGREE - 0.05f <= a && a <= WorldSpatial.WEST_DEGREE + 0.05f;
+            case EAST:
+                return (WorldSpatial.EAST_DEGREE_MAX - 0.05f <= a && a <= WorldSpatial.EAST_DEGREE_MAX + 0.05f)
+                        || (WorldSpatial.EAST_DEGREE_MIN - 0.05f <= a && a <= WorldSpatial.EAST_DEGREE_MIN + 0.05f);
+            default:
+                return false;
         }
     }
 
@@ -203,7 +208,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
 
     @Override
     public boolean canBeSwappedOut() {
-        if (this.state == State.StartTurning||this.state==State.ReachTurningSpeed) {
+        if (this.state == State.StartTurning || this.state == State.ReachTurningSpeed) {
             return false;
         }
         return true;
@@ -220,7 +225,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
 
     @Override
     public String toString() {
-        return "TurningOperator [fromTile=" + fromTile + ", toTile=" + toTile + ", state=" + this.state + "]";
+        return "TurningOperator [fromTile=" + fromTile + ", toTile=" + toTile + ", state=" + this.state + " turn " + fromDirection + "->" + toDirection + "]";
     }
 
 }

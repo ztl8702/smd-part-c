@@ -61,7 +61,7 @@ public class MyAIController extends CarController {
 		HashMap<Coordinate, MapTile> currentView = getView();
 		
 		// update the mapManager
-		mapManager.updateView(currentView);
+		//mapManager.updateView(currentView);
 		
 		
 		// have not found solution, keep exploring
