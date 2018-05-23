@@ -3,10 +3,12 @@ package mycontroller;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import mycontroller.common.Cell;
+import mycontroller.common.Cell.CellType;
 import mycontroller.common.ColoredRegion;
 import mycontroller.scanningcontroller.ColoursWindow;
 import mycontroller.scanningcontroller.MapWindow;
@@ -57,15 +59,42 @@ public class MapManager {
 	public HashMap<Coordinate,Cell> getMap() {
 		return this.map;
 	}
-
-	public HashSet<Coordinate> getUnseen() {return this.unseen; }
 	
-	// check if we have found all the keys	
-	public boolean foundSolution() {
+	public HashMap<Integer,Coordinate> getKeys() {
+		return this.keys;
+	}
+
+	public HashSet<Coordinate> getUnseen() {
+		return this.unseen; 
+	}
+	
+	public Coordinate getFinishTile() {
+		Iterator<Map.Entry<Coordinate, Cell>> it = map.entrySet().iterator();
+	    while (it.hasNext()) {
+	        Map.Entry<Coordinate, Cell> pair = (Map.Entry<Coordinate, Cell>)it.next();
+	        
+	        // get the location of "finish" tile
+	        if (pair != null && ((Cell)pair.getValue()).type == CellType.FINISH) {
+	        	return (Coordinate) pair.getKey();
+	        }
+	        it.remove(); // avoids a ConcurrentModificationException
+	    }      
+	    return null;
+	}
+	
+	public Coordinate findKey(int key) {
 		List<Integer> keyList = new ArrayList<Integer>(keys.keySet());
 		
+		if (keyList.contains(key)) {
+			return keys.get(key);
+		}
+		return null;
+	}
+	// check if we have found all the keys	
+	public boolean foundAllKeys() {
+		
 		for (int i=1; i<currentKey; i++) {
-			if (!keyList.contains(i)) {
+			if (findKey(i) == null) {
 				return false;
 			}
 		}
@@ -140,8 +169,8 @@ public class MapManager {
 		}
 
 		if (hasUpdate) {
-			this.printBoard();
-			this.printColours(getConnectedComponents());
+//			this.printBoard();
+//			this.printColours(getConnectedComponents());
 		}
 	}
 	

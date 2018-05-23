@@ -15,7 +15,7 @@ public class MapWindow {
 		f.add(t);
 		f.setTitle("MapManager - Map");
 		f.setSize(1000, 1000);
-		f.show();
+//		f.show();
 //		f.setVisible(true);
 	}
 	

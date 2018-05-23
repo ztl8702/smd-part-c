@@ -76,6 +76,7 @@ public class MyAIController extends CarController {
 
 			ArrayList<Coordinate> path = wallFollower.getPath(mapManager.getMap(),
 					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
+			System.out.println(path.toString());
 //			System.out.println("\n====================================\n\n\n\n\n");
 
 			navigator.loadNewPath(path);
@@ -106,14 +107,70 @@ public class MyAIController extends CarController {
 		
 		
 		// once all keys have been found
-		if (mapManager.foundSolution()) {
-			PathFinder finisher = new FinisherPathFinder();
+		if (mapManager.foundAllKeys()) {
+			//TODO: is no longer using the interface
+			AStarPathFinder finisher = new AStarPathFinder(mapManager.getMap(), 500, 
+					this.getKey(), new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
+			
 			
 			System.out.println("\n\n\n\n\n\n====================================\n");
+			
+			ArrayList<Coordinate> finalPath = new ArrayList<>();
+	        ArrayList<Coordinate> subPath = null;
+	        
+	        Coordinate currentPosition = new Coordinate(this.getPosition());
+	        // initial position before search
+	        int cX = currentPosition.x;
+	        int cY = currentPosition.y;
+	        		
+			/* loop through all the keys and set key coordinate end location */
+			for( int i = this.getKey()-1; i>=1; i-- ) {
+				
+				Coordinate keyPosition = mapManager.findKey(i);
+				if (keyPosition == null) {
+					System.err.println("cant locate key position" + i);
+				} else {
+//					System.out.println("finding key number" + i);
+				}
+//				System.out.println("from" + cX+cY+"to"+keyPosition.toString());
+				subPath = finisher.findPath(cX, cY, keyPosition.x, keyPosition.y);
+				
+				if (subPath != null) {
+//					System.out.println("found path for :" + "from" + cX+cY+"to"+keyPosition.toString());
+					finalPath.addAll(subPath);
+//					System.out.println(finalPath.toString());
+					cX = keyPosition.x;
+					cY = keyPosition.y;
+				}
+				else {
+					System.err.println("Problem finding path with astar" + "from" + cX + "," + cY + "to" + keyPosition.x + "," + keyPosition.y);
+				}
+			}
+			// done with getting all keys, now go to finish tile
+			Coordinate finalKeyPosition = mapManager.findKey(1);
+			Coordinate finishTile = mapManager.getFinishTile();
+			subPath = finisher.findPath(finalKeyPosition.x, finalKeyPosition.y, finishTile.x, finishTile.y);
+			
+//			System.out.println("managed to get final subpath");
+			if (subPath != null) {
+				finalPath.addAll(subPath);
+			}
+			
+//			System.out.println(finalPath.toString());
+			
+			
+			// print out the result		
+			System.out.println("*****ASTAR***** Path found!!!!");
+			System.out.println(finalPath.toString());
+//			for (Coordinate c : finalPath) {
+//				System.out.printf("(%d,%d)->", c.x, c.y);
+//			}
+			
 
-			ArrayList<Coordinate> path1 = finisher.getPath(mapManager.getMap(),
-					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
+//			ArrayList<Coordinate> path = finisher.getPath(mapManager.getMap(),
+//					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
 			System.out.println("\n====================================\n\n\n\n\n");
+
 		}
 
 

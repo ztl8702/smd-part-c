@@ -1,4 +1,4 @@
-package mycontroller;
+package mycontroller.pathfinder;
 
 import java.util.HashMap;
 

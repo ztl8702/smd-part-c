@@ -21,7 +21,7 @@ public class ColoursWindow {
 		fC.setTitle("MapManager - Colours");
 		fC.setSize(1000,1200);
 		fC.add(tC);
-		fC.show();
+//		fC.show();
 //		fC.setVisible(true);
 	}
 	

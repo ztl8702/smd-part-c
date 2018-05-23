@@ -1,4 +1,4 @@
-package mycontroller;
+package mycontroller.pathfinder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,18 +8,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool.ManagedBlocker;
 
+import mycontroller.MapManager;
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
-import mycontroller.pathfinder.PathFinder;
 import utilities.Coordinate;
 import world.World;
 
 public class AStarPathFinder implements PathFinder {
 	
-	private int initialKey;
-	
-	
+
 	/** The map being searched */
 	private HashMap<Coordinate, Cell> map;
 	/** The maximum depth of search we're willing to accept before giving up */
@@ -47,7 +46,6 @@ public class AStarPathFinder implements PathFinder {
 		this.map = map;
 		this.maxSearchDistance = maxSearchDistance;
 		
-		this.initialKey = initialKey;
 		
 		//TODO need to think about it again as if this is the search we are using to explore 
 		
@@ -58,89 +56,14 @@ public class AStarPathFinder implements PathFinder {
 				nodes[x][y] = new Node(x,y);
 			}
 		}
-
-		
-
 	}
 		
 	
 	@Override
 	public ArrayList<Coordinate> getPath(HashMap<Coordinate, Cell> map, Coordinate currentPosition, 
 			float currentSpeed,float currentDirection) {
-		
-		ArrayList<Coordinate> finalPath = new ArrayList<>();
-        ArrayList<Coordinate> subPath = null;
-        
-        // initial position before search
-        int cX = currentPosition.x;
-        int cY = currentPosition.y;
-        		
-		/* loop through all the keys and set key coordinate end location */
-		for( int i = initialKey-1; i>=1; i-- ) {
-			
-			Coordinate keyPosition = getKeyPosition(i);
-			
-			subPath = findPath(cX, cY, keyPosition.x, keyPosition.y);
-			if (!subPath.isEmpty()) {
-				finalPath.addAll(subPath);
-				
-				cX = keyPosition.x;
-				cY = keyPosition.y;
-			}
-			else {
-				System.err.println("Problem finding path with astar" + "from" + cX + "," + cY + "to" + keyPosition.x + "," + keyPosition.y);
-			}
-		}
-		// done with getting all keys, now go to finish tile
-		subPath = findPath(getKeyPosition(1).x, getKeyPosition(1).y, getPosition(CellType.FINISH).x, getPosition(CellType.FINISH).y);
-		if (!subPath.isEmpty()) {
-			finalPath.addAll(subPath);
-		}
-		
-		
-		// print out the result		
-		System.out.println("*****ASTAR***** Path found!!!!");
-		for (Coordinate c : finalPath) {
-			System.out.printf("(%d,%d)->", c.x, c.y);
-		}
-		
-		return finalPath;
+		return null;
 	}
-	
-	private Coordinate getPosition(CellType cellType) {
-		Iterator it = map.entrySet().iterator();
-	    while (it.hasNext()) {
-	        Map.Entry pair = (Map.Entry)it.next();
-	        
-	        // get the location of "finish" tile
-	        if (pair != null && ((Cell)pair.getValue()).type == cellType) {
-	        	return (Coordinate) pair.getKey();
-	        }
-	        it.remove(); // avoids a ConcurrentModificationException
-	    }      
-	    return null;
-	}
-	
-	private CellType getCellType(int x, int y) {
-		Coordinate coord = new Coordinate(x, y);
-		
-		return ((Cell)map.get(coord)).type;
-	}
-	
-	private Coordinate getKeyPosition(int key) {
-		Iterator it = map.entrySet().iterator();
-	    while (it.hasNext()) {
-	        Map.Entry pair = (Map.Entry)it.next();
-	        
-	        // this is the current location of the specified key
-	        if (pair != null && ((Cell)pair.getValue()).key == key) {
-	        	return (Coordinate) pair.getKey();
-	        }
-	        it.remove(); // avoids a ConcurrentModificationException
-	    }
-	    return null;
-	}
-	
 
 	/**
 	 * Get the heuristic cost for the given location. This determines in which 
@@ -172,18 +95,8 @@ public class AStarPathFinder implements PathFinder {
 	
 
 	public ArrayList<Coordinate> findPath(int sx, int sy, int tx, int ty) {
-		
-//		Set<Coordinate> visited = new HashSet<Coordinate>();
-		
-		/* The set of nodes that have been searched through */
-		ArrayList closed = new ArrayList();
-		/* The set of nodes that we do not yet consider fully searched */
+		ArrayList<Node> closed = new ArrayList<Node>();
 		SortedList open = new SortedList();
-		
-		// easy first check, if the destination is blocked, we can't get there
-		if (getCellType(tx, ty) == CellType.UNREACHABLE) {
-			return null;
-		}
 		
 		// initial state for A*. The closed group is empty. Only the starting
 		// tile is in the open list and it's cost is zero, i.e. we're already there
@@ -230,7 +143,10 @@ public class AStarPathFinder implements PathFinder {
 					int xp = x + current.x;
 					int yp = y + current.y;
 					
-					if (true) { //isValidLocation(mover,sx,sy,xp,yp)) {
+					
+					if (!isWall(sx, sy, xp, yp)) {
+//					if (getCellType(new Coordinate(xp, yp)) != CellType.WALL) {
+//					if (true) { //isValidLocation(mover,sx,sy,xp,yp)) {
 						// the cost to get to this node is cost the current plus the movement
 						// cost to reach this node. Note that the heursitic value is only used
 						// in the sorted open list
@@ -268,14 +184,12 @@ public class AStarPathFinder implements PathFinder {
 		
 		
 		
-		
-		
 		// since we've got an empty open list or we've run out of search 
 		// there was no path. Just return null
 		if (nodes[tx][ty].parent == null) {
 			return null;
 		}
-				
+		
 		// At this point we've definitely found a path so we can uses the parent
 		// references of the nodes to find out way from the target location back
 		// to the start recording the nodes on the way.
@@ -296,9 +210,30 @@ public class AStarPathFinder implements PathFinder {
 	
 	
 	
+	public boolean isWall(int sx, int sy, int x, int y) {
+		Coordinate coord = new Coordinate(x, y);
+		boolean inMap = map.containsKey(coord);
+//		boolean invalid = (x < 0) || (y < 0) || (x >= World.MAP_WIDTH) || (y >= World.MAP_HEIGHT);
+
+		if (inMap && ((sx != x) || (sy != y))) {
+//			invalid = map.get(new Coordinate(x, y)).type == CellType.WALL;
+//		if (inMap) {
+			if (map.get(coord).type == CellType.WALL) {
+				return true;
+			}
+		}
+		return false;
+//		return invalid;
+	}
 	
-	
-	
+//	public CellType getCellType(Coordinate coord) {
+//		if (map.containsKey(coord)) {
+//			return map.get(coord).type;
+//		}
+//		System.out.println("no such coordinate in map: getCellType(Coordinate)");
+//		
+//		return null;
+//	}
 	
 	
 	
