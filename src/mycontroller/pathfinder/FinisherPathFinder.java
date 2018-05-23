@@ -1,20 +1,47 @@
 package mycontroller.pathfinder;
 
 import mycontroller.common.Cell;
+import mycontroller.common.Cell.CellType;
 import utilities.Coordinate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class FinisherPathFinder implements PathFinder {
 	
-	
-	public FinisherPathFinder() {
+	@Override
+	public ArrayList<Coordinate> getPath(HashMap<Coordinate, Cell> map, Coordinate currentPosition, float currentSpeed, float currentDirection) {
 		
+		Node start = new Node(null, null, 0, currentPosition.x, currentPosition.y);
+		Node goal= null;
+		
+		// get goal node
+		Iterator it = map.entrySet().iterator();
+	    while (it.hasNext()) {
+	        Map.Entry pair = (Map.Entry)it.next();
+	        if(pair.getValue() == CellType.FINISH) {
+	        	Coordinate coord = (Coordinate) pair.getKey();
+	        	goal =  new Node(null, null, 0, coord.x, coord.y);
+	        }
+//	        System.out.println(pair.getKey() + " = " + pair.getValue());
+	        it.remove(); // avoids a ConcurrentModificationException
+	    }
+		
+		ArrayList<Coordinate> finalPath = this.aStarSearch(start, goal);
+		
+		System.out.println("A Star Path found!!!!");
+        for (Coordinate c : finalPath) {
+            System.out.printf(c.toString());
+
+        }
+		
+		return finalPath;
 	}
 	
-	private ArrayList<Node> aStarSearch(Node startNode, Node goalNode) {
-		ArrayList<Node> solutionPath = new ArrayList<Node>();
+	private ArrayList<Coordinate> aStarSearch(Node startNode, Node goalNode) {
+		ArrayList<Coordinate> solutionPath = new ArrayList<Coordinate>();
 		
 		SortedCostNodeList openList = new SortedCostNodeList();
 		SortedCostNodeList closedList = new SortedCostNodeList();
@@ -91,7 +118,7 @@ public class FinisherPathFinder implements PathFinder {
 		//follow the parentNode from goal to start node to find solution
 		Node p = goalNode;
 		while(p != null) {
-			solutionPath.add(p);
+			solutionPath.add(new Coordinate(p.getX(), p.getY()));
 			p = p.getParentNode();
 		}
 		
@@ -99,8 +126,4 @@ public class FinisherPathFinder implements PathFinder {
 	}
 
 
-	@Override
-	public ArrayList<Coordinate> getPath(HashMap<Coordinate, Cell> map, Coordinate currentPosition, float currentSpeed, float currentDirection) {
-		return null;
-	}
 }

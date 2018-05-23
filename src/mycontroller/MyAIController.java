@@ -3,6 +3,8 @@ package mycontroller;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.badlogic.gdx.math.Path;
+
 import controller.CarController;
 import mycontroller.autopilot.AutoPilotAction;
 import mycontroller.navigator.DefaultNavigator;
@@ -35,7 +37,6 @@ public class MyAIController extends CarController {
 		this.car = car;
 
 		this.startedMoving = false;
-		
 		this.currentState = State.Explore;
 		
 		mapManager = new MapManager();
@@ -45,12 +46,12 @@ public class MyAIController extends CarController {
 		navigator = new DefaultNavigator();
 		
 		
-		HashMap<Coordinate, MapTile> m = getMap();
-		
-		if (DEBUG) {
-			System.out.printf("\n\n\n tiles = %d \n\n\n",m.size());
-			m.forEach((k,v) -> System.out.println("key: "+k+" value:"+v+" type"+v.getType()));
-		}
+//		HashMap<Coordinate, MapTile> m = getMap();
+//		
+//		if (DEBUG) {
+//			System.out.printf("\n\n\n tiles = %d \n\n\n",m.size());
+//			m.forEach((k,v) -> System.out.println("key: "+k+" value:"+v+" type"+v.getType()));
+//		}
 		
 	}
 
@@ -60,19 +61,22 @@ public class MyAIController extends CarController {
 		// gets what the car can see
 		HashMap<Coordinate, MapTile> currentView = getView();
 		
+		// update key to mapManager
+		mapManager.updateKey(this.getKey());
+
 		// update the mapManager
-		//mapManager.updateView(currentView);
+		mapManager.updateView(currentView);
 		
 		
 		// have not found solution, keep exploring
-		if(!startedMoving) {
+		if(!startedMoving && currentState == State.Explore) {
 			//ExplorerPathFinder explorerPathFinder = new ExplorerPathFinder();
 			PathFinder wallFollower = new WallFollowingPathFinder();
-			System.out.println("\n\n\n\n\n\n====================================\n");
+//			System.out.println("\n\n\n\n\n\n====================================\n");
 
 			ArrayList<Coordinate> path = wallFollower.getPath(mapManager.getMap(),
 					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
-			System.out.println("\n====================================\n\n\n\n\n");
+//			System.out.println("\n====================================\n\n\n\n\n");
 
 			navigator.loadNewPath(path);
 			//RouteCompiler compiler = new DefaultRouteCompiler();
@@ -98,6 +102,18 @@ public class MyAIController extends CarController {
 			if (action.turnRight) {
 				this.turnRight(delta);
 			}
+		}
+		
+		
+		// once all keys have been found
+		if (mapManager.foundSolution()) {
+			PathFinder finisher = new FinisherPathFinder();
+			
+			System.out.println("\n\n\n\n\n\n====================================\n");
+
+			ArrayList<Coordinate> path1 = finisher.getPath(mapManager.getMap(),
+					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
+			System.out.println("\n====================================\n\n\n\n\n");
 		}
 
 

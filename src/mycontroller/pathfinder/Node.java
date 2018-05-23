@@ -15,6 +15,14 @@ public class Node implements Comparable<Node> {
 	
 	private int x, y;
 	
+	public int getX() {
+		return this.x;
+	}
+	
+	public int getY() {
+		return this.y;
+	}
+	
 	private Node goalNode, parentNode;
 	
 	private int gCost;

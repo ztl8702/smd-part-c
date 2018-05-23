@@ -22,6 +22,7 @@ public class ColoursWindow {
 		fC.setSize(1000,1200);
 		fC.add(tC);
 		fC.show();
+//		fC.setVisible(true);
 	}
 	
 	public void setText(String s) {

@@ -12,6 +12,8 @@ public class WallFollowingPathFinder implements PathFinder {
     private Coordinate startingPosition;
     private float startingSpeed;
     private WorldSpatial.Direction startingDirection;
+    
+    private boolean isWallLeft = false;
 
     @Override
     public ArrayList<Coordinate> getPath(HashMap<Coordinate, Cell> map, Coordinate currentPosition, float currentSpeed,
@@ -100,9 +102,10 @@ public class WallFollowingPathFinder implements PathFinder {
                 for (int yDelta = -1; yDelta <= 1; yDelta += 1) {
                     if ((xDelta == 0 && yDelta != 0) || (xDelta != 0 && yDelta == 0)) {
                         Coordinate newCoord = new Coordinate(head.x + xDelta, head.y + yDelta);
-                        if (newCoord.x == 2&&newCoord.y==2) {
-                            throw new Exception("head = "+head+" xDelta= "+xDelta+" yDelta="+yDelta);
-                        }
+//                        TODO REMOVE
+//                        if (newCoord.x == 2&&newCoord.y==2) {
+//                            throw new Exception("head = "+head+" xDelta= "+xDelta+" yDelta="+yDelta);
+//                        }
                         if (!visited.contains(newCoord)) {
                             Cell mapTile = map.get(newCoord);
                             if (mapTile != null && mapTile.type != Cell.CellType.WALL) {
@@ -140,8 +143,10 @@ public class WallFollowingPathFinder implements PathFinder {
     private boolean dfs(Coordinate currentLocation, Set<Coordinate> visited) {
 
         boolean isFound = false;
+        // goes through W -> S -> N -> E
         for (int xDelta = -1; xDelta <= 1; xDelta += 1) {
             for (int yDelta = -1; yDelta <= 1; yDelta += 1) {
+            	// at least one of x or y is zero, avoid going diagonally            	
                 if ((xDelta == 0 && yDelta != 0) || (xDelta != 0 && yDelta == 0)) {
                     Coordinate newCoord = new Coordinate(currentLocation.x + xDelta, currentLocation.y + yDelta);
                     Cell mapTile = map.get(newCoord);

@@ -3,6 +3,7 @@ package mycontroller;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import mycontroller.common.Cell;
@@ -19,7 +20,7 @@ import java.awt.Color;
 public class MapManager {
 	
 	
-	private boolean foundSolution = false;
+	private int currentKey;
 	
 	//TODO check if all keys have been found and update as well
 	
@@ -58,8 +59,21 @@ public class MapManager {
 	}
 
 	public HashSet<Coordinate> getUnseen() {return this.unseen; }
+	
+	// check if we have found all the keys	
 	public boolean foundSolution() {
-		return this.foundSolution;
+		List<Integer> keyList = new ArrayList<Integer>(keys.keySet());
+		
+		for (int i=1; i<currentKey; i++) {
+			if (!keyList.contains(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public void updateKey(int currentKey) {
+		this.currentKey = currentKey;
 	}
 	
 	public void initialMap(HashMap<Coordinate, MapTile> tiles) {

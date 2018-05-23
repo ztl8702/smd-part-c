@@ -1,7 +1,13 @@
 package controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
+import mycontroller.AStarPathFinder;
+import mycontroller.MapManager;
+import mycontroller.MyAIController.State;
+import mycontroller.pathfinder.FinisherPathFinder;
+import mycontroller.pathfinder.PathFinder;
 import tiles.MapTile;
 import utilities.Coordinate;
 import world.Car;
@@ -9,9 +15,10 @@ import world.WorldSpatial;
 
 public class AIController extends CarController {
 	
+	private MapManager mapManager;
+	
 	// How many minimum units the wall is away from the player.
 	private int wallSensitivity = 2;
-	
 	
 	private boolean isFollowingWall = false; // This is initialized when the car sticks to a wall.
 	private WorldSpatial.RelativeDirection lastTurnDirection = null; // Shows the last turn direction the car takes.
@@ -27,6 +34,10 @@ public class AIController extends CarController {
 	
 	public AIController(Car car) {
 		super(car);
+				
+		mapManager = new MapManager();
+		mapManager.initialMap(this.getMap());
+		mapManager.markReachable();
 	}
 	
 	Coordinate initialGuess;
@@ -36,6 +47,12 @@ public class AIController extends CarController {
 		
 		// Gets what the car can see
 		HashMap<Coordinate, MapTile> currentView = getView();
+		
+		// update key to mapManager
+		mapManager.updateKey(this.getKey());
+
+		// update the mapManager
+		mapManager.updateView(currentView);
 		
 		checkStateChange();
 
@@ -100,6 +117,17 @@ public class AIController extends CarController {
 		}
 		
 		
+		if (mapManager.foundSolution()) {
+			PathFinder finisher = new AStarPathFinder(mapManager.getMap(), 500, 
+					this.getKey(), new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
+			
+			
+			System.out.println("\n\n\n\n\n\n====================================\n");
+
+			ArrayList<Coordinate> path = finisher.getPath(mapManager.getMap(),
+					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
+			System.out.println("\n====================================\n\n\n\n\n");
+		}
 
 	}
 	
