@@ -9,7 +9,6 @@ import world.Car;
  */
 public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 	public static float SPEED_EPS = 0.005f;
-	private Random random = new Random();
 	private float target;
 
 	public enum State {
@@ -32,9 +31,8 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 	private float recoveringReverseTime = 0;
 
 	@Override
-	public ActuatorAction handle(float delta, Car car) {
+	public ActuatorAction handle(float delta, SensorInfo car) {
 		float currentSpeed = car.getSpeed();
-		System.out.printf("[%.4f] %.6f %.6f\n", delta, currentSpeed, car.getVelocity().len());
 
 		switch (this.state) {
 		case Accelerating:

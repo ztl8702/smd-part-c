@@ -1,5 +1,6 @@
 package mycontroller.autopilot;
 
+import sun.management.Sensor;
 import world.Car;
 
 /**
@@ -21,7 +22,7 @@ public interface AutoPilot {
      * @param car
      * @return
      */
-    public ActuatorAction handle(float delta, Car car);
+    public ActuatorAction handle(float delta, SensorInfo carStatus);
 
     /**
      * Lets the caller know whether this AutoPilot can take over the control. Some

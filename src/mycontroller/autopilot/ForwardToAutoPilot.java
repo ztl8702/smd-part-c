@@ -53,8 +53,8 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
     }
 
     @Override
-    public ActuatorAction handle(float delta, Car car) {
-        Coordinate coord = new Coordinate(car.getPosition());
+    public ActuatorAction handle(float delta, SensorInfo car) {
+        Coordinate coord = new Coordinate(car.getTileX(), car.getTileY());
         switch (state) {
         case Idle:
             if ((trackingAxis == TrackingAxis.X && inRange(car.getX(), fromPos, toPos)

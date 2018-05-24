@@ -5,6 +5,7 @@ import java.util.Queue;
 
 import controller.CarController;
 import mycontroller.autopilot.*;
+import sun.management.Sensor;
 import utilities.Coordinate;
 import world.Car;
 import world.WorldSpatial;
@@ -21,11 +22,9 @@ public class DemoController extends CarController {
 	//private Queue<String> pendingActions = new LinkedList<String>();
 	String theAction = "";
 
-	private Car car;
 
 	public DemoController(Car car) {
 		super(car);
-		this.car = car; // TODO: this is a hack, refactor later
 
 		controls = new EasyWindow();
 		controls.onSetSpeed1 = () ->{
@@ -68,9 +67,11 @@ public class DemoController extends CarController {
 			System.out.println(upcomingOpts.peek()+"taking charge");
 			this.opt = upcomingOpts.remove();
 		}
-		System.out.printf("delta=%.6f (%.6f, %.6f)\n", delta,car.getX(),car.getY());
+		System.out.printf("delta=%.6f (%.6f, %.6f)\n", delta,this.getX(),this.getY());
+		SensorInfo carInfo = SensorInfo.fromController(this);
+
 		if (opt!=null) {
-			ActuatorAction action = opt.handle(delta, this.car);
+			ActuatorAction action = opt.handle(delta, carInfo);
 			if (action.brake) {
 				this.applyBrake();
 			}
@@ -91,7 +92,7 @@ public class DemoController extends CarController {
 		System.out.println(opt);
 		for (AutoPilot o : this.upcomingOpts) {
 			System.out.println(o);
-			o.handle(delta, car);
+			o.handle(delta, carInfo);
 		}
 		
 	}

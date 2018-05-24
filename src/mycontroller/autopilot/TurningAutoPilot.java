@@ -73,8 +73,8 @@ public class TurningAutoPilot extends BaseAutoPilot {
     }
 
     @Override
-    public ActuatorAction handle(float delta, Car car) {
-        Coordinate coord = new Coordinate(car.getPosition());
+    public ActuatorAction handle(float delta, SensorInfo car) {
+        Coordinate coord = new Coordinate(car.getTileX(), car.getTileY());
 
         System.out.printf("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x,
                 this.getCentreLineX(toTile.x), d(), this.getCentreLineX(toTile.x) - d(), car.getX());

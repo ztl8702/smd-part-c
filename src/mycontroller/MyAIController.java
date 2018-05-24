@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import controller.CarController;
 import mycontroller.autopilot.ActuatorAction;
+import mycontroller.autopilot.SensorInfo;
 import mycontroller.navigator.DefaultNavigator;
 import mycontroller.navigator.Navigator;
 import mycontroller.pathfinder.*;
@@ -28,11 +29,8 @@ public class MyAIController extends CarController {
 	private State currentState;
 	private Navigator navigator;
 
-	private Car car; //TODO: refactor and remove this
-
 	public MyAIController(Car car) {
 		super(car);
-		this.car = car;
 
 		this.startedMoving = false;
 		
@@ -70,8 +68,10 @@ public class MyAIController extends CarController {
 			PathFinder wallFollower = new WallFollowingPathFinder();
 			System.out.println("\n\n\n\n\n\n====================================\n");
 
-			ArrayList<Coordinate> path = wallFollower.getPath(mapManager.getMap(),
-					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
+			ArrayList<Coordinate> path = wallFollower.getPath(
+					mapManager.getMap(),
+					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle(),
+					mapManager.getUnseen());
 			System.out.println("\n====================================\n\n\n\n\n");
 
 			navigator.loadNewPath(path);
@@ -82,7 +82,7 @@ public class MyAIController extends CarController {
 			startedMoving = true;
 			
 		} else {
-			ActuatorAction action = navigator.update(delta,car);
+			ActuatorAction action = navigator.update(delta,SensorInfo.fromController(this));
 			if (action.brake) {
 				this.applyBrake();
 			}
