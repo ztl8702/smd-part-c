@@ -80,21 +80,24 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
                 changeState(State.Finished);
             }
 
-            if (trackingAxis == TrackingAxis.X) {
-                double newCentreLineY = getCentreLineY(car.getTileX(), car.getTileY());
-                if (Math.abs(car.getY() - newCentreLineY ) > RECENTER_EPS) {
-                    changeState(State.Recentering);
-                    mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, (float) car.getSpeed());
-                    recentringAutoPilot = new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.Y, (float)newCentreLineY);
-                }
-            } else if (trackingAxis == TrackingAxis.Y) {
-                double newCentreLineX = getCentreLineX(car.getTileX(), car.getTileY());
-                if (Math.abs(car.getX() - newCentreLineX) > RECENTER_EPS ){
-                    changeState(State.Recentering);
-                    mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, (float) car.getSpeed());
-                    recentringAutoPilot = new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.X, (float)newCentreLineX);
+            if (car.getSpeed() > 1.0) {
+                if (trackingAxis == TrackingAxis.X) {
+                    double newCentreLineY = getCentreLineY(car.getTileX(), car.getTileY());
+                    if (Math.abs(car.getY() - newCentreLineY ) > RECENTER_EPS) {
+                        changeState(State.Recentering);
+                        mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, (float) car.getSpeed());
+                        recentringAutoPilot = new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.Y, (float)newCentreLineY);
+                    }
+                } else if (trackingAxis == TrackingAxis.Y) {
+                    double newCentreLineX = getCentreLineX(car.getTileX(), car.getTileY());
+                    if (Math.abs(car.getX() - newCentreLineX) > RECENTER_EPS ){
+                        changeState(State.Recentering);
+                        mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, (float) car.getSpeed());
+                        recentringAutoPilot = new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.X, (float)newCentreLineX);
+                    }
                 }
             }
+
 
             break;
         case Recentering:
@@ -120,7 +123,7 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
         case Recentering:
             ActuatorAction speedOps = mainTainSpeedAutoPilot.handle(delta, car);
             speedOps.backward = false;
-
+            System.out.printf("\t%s\n", recentringAutoPilot);
             return ActuatorAction.combine(speedOps, recentringAutoPilot.handle(delta,car));
         case Finished:
             if (Math.abs(car.getSpeed() - targetSpeed) < 0.1f) {

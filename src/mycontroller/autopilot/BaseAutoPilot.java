@@ -2,6 +2,7 @@ package mycontroller.autopilot;
 
 import mycontroller.common.Cell;
 import mycontroller.mapmanager.MapManagerInterface;
+import utilities.Coordinate;
 
 /**
  * Base implementation of AutoPilot, providing some helper methods for its
@@ -20,16 +21,23 @@ public abstract class BaseAutoPilot implements AutoPilot {
         this.mapManager = mapManager;
     }
 
+
+    private boolean isWall(int x, int y) {
+        if (!mapManager.isWithinBoard(new Coordinate(x,y))) {
+            return true;
+        } else {
+            Cell c = mapManager.getCell(x,y);
+            return c.type == Cell.CellType.WALL;
+        }
+
+    }
     // Helper methods
     protected double getCentreLineX(int tileX, int tileY) {
+        //TODO: check bound
         double offset = 0;
-        if (mapManager.getCell(tileX+1, tileY).type == Cell.CellType.WALL ||
-        mapManager.getCell(tileX+1, tileY+1).type == Cell.CellType.WALL ||
-        mapManager.getCell(tileX+1, tileY-1).type == Cell.CellType.WALL){
+        if (isWall(tileX+1, tileY) || isWall(tileX+1, tileY+1) || isWall(tileX+1, tileY-1)){
             offset = -WALL_BUFFER;
-        } else if (mapManager.getCell(tileX-1, tileY).type == Cell.CellType.WALL ||
-                mapManager.getCell(tileX-1, tileY+1).type == Cell.CellType.WALL ||
-                mapManager.getCell(tileX-1, tileY-1).type == Cell.CellType.WALL) {
+        } else if (isWall(tileX-1, tileY) || isWall(tileX-1, tileY+1) || isWall(tileX-1, tileY-1)) {
             offset  = WALL_BUFFER;
         }
 
@@ -38,13 +46,9 @@ public abstract class BaseAutoPilot implements AutoPilot {
 
     protected double getCentreLineY(int tileX, int tileY) {
         double offset = 0;
-        if (mapManager.getCell(tileX, tileY-1).type == Cell.CellType.WALL ||
-                mapManager.getCell(tileX+1, tileY-1).type == Cell.CellType.WALL ||
-                mapManager.getCell(tileX-1, tileY-1).type == Cell.CellType.WALL){
+        if (isWall(tileX, tileY-1) || isWall(tileX+1, tileY-1) || isWall(tileX-1, tileY-1)){
             offset = +WALL_BUFFER;
-        } else if (mapManager.getCell(tileX, tileY+1).type == Cell.CellType.WALL ||
-                mapManager.getCell(tileX+1, tileY+1).type == Cell.CellType.WALL ||
-                mapManager.getCell(tileX-1, tileY+1).type == Cell.CellType.WALL) {
+        } else if (isWall(tileX, tileY+1) || isWall(tileX+1, tileY+1) || isWall(tileX-1, tileY+1)) {
             offset  = -WALL_BUFFER;
         }
 

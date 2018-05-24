@@ -13,7 +13,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
 
     // TODO: Handle situation where the MAINTAIN_SPEED cannot be reached before
     // turning
-    public static final float MAINTAIN_SPEED = 1.1f;
+    public static final float MAINTAIN_SPEED = 1.5f;
 
     private enum TurningType {
         EastToNorth, EastToSouth
@@ -157,15 +157,16 @@ public class TurningAutoPilot extends BaseAutoPilot {
      * @return
      */
     private boolean reachedTurningPoint(float x, float y) {
+        double offset = 0.05;
         switch (fromDirection) {
             case WEST:
-                return (double)x <= this.getCentreLineX(toTile.x, toTile.y) + d();
+                return (double)x <= this.getCentreLineX(toTile.x, toTile.y) + d() - offset;
             case EAST:
-                return (double)x >= this.getCentreLineX(toTile.x, toTile.y) - d();
+                return (double)x >= this.getCentreLineX(toTile.x, toTile.y) - d() + offset;
             case NORTH:
-                return (double)y >= this.getCentreLineY(toTile.x, toTile.y) - d();
+                return (double)y >= this.getCentreLineY(toTile.x, toTile.y) - d() + offset;
             case SOUTH:
-                return (double)y <= this.getCentreLineY(toTile.x, toTile.y) + d();
+                return (double)y <= this.getCentreLineY(toTile.x, toTile.y) + d() - offset;
             default:
                 return false;
         }

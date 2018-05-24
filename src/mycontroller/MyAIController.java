@@ -3,6 +3,7 @@ package mycontroller;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import mycontroller.autopilot.AutoPilotFactory;
 import org.apache.logging.log4j.core.util.SystemNanoClock;
 
 import controller.CarController;
@@ -38,12 +39,14 @@ public class MyAIController extends CarController {
 	public MyAIController(Car car) {
 		super(car);
 
+
 		this.startedMoving = false;
 		this.currentState = State.Explore;
 		
 		mapManager = new MapManager();
 		mapManager.initialMap(this.getMap());
 		navigator = new DefaultNavigator();
+		AutoPilotFactory.initialise(mapManager);
 
 	}
 
@@ -152,7 +155,6 @@ public class MyAIController extends CarController {
 				finalPath.addAll(subPath);
 
 			}
-		
 			// print out the result		
 			System.err.println("************************ASTAR***************** Path found!!!!");
 			System.err.println(finalPath.toString());
