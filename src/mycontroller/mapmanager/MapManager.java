@@ -2,6 +2,8 @@ package mycontroller.mapmanager;
 
 import java.util.*;
 
+import org.apache.logging.log4j.core.util.SystemNanoClock;
+
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
 import tiles.MapTile;
@@ -44,9 +46,15 @@ public class MapManager implements MapManagerInterface {
 
     @Override
     public Cell getCell(int x, int y) {
+    	if (x==2 && y==19) {
+    		
+    		System.out.println("================" + this.map.get(new Coordinate(x, y)));
+    	}
+    	
     	if (isWithinBoard(new Coordinate(x, y))) {
     		return this.map.get(new Coordinate(x, y));
     	}
+    	
         return null;
     }
 
@@ -77,6 +85,9 @@ public class MapManager implements MapManagerInterface {
 
     @Override
     public Coordinate getKeyCoordinate(int keyNumber) {
+    	if (this.keys.get(keyNumber) == null) {
+    		return null;
+    	}
         return this.keys.get(keyNumber);
     }
 
@@ -100,18 +111,18 @@ public class MapManager implements MapManagerInterface {
         tiles.forEach((coord,tile) -> {
             switch (tile.getType()) {
                 case ROAD:
-                    this.map.put(coord, Cell.newRoadCell());
-                    this.unseen.add(coord);
+                    this.map.put(new Coordinate(coord.x, coord.y), Cell.newRoadCell());
+                    this.unseen.add(new Coordinate(coord.x, coord.y));
                     break;
                 case WALL:
-                    this.map.put(coord, Cell.newWallCell());
+                    this.map.put(new Coordinate(coord.x, coord.y), Cell.newWallCell());
                     // no need to see
                     break;
                 case START:
-                    this.map.put(coord, Cell.newStartCell());
+                    this.map.put(new Coordinate(coord.x, coord.y), Cell.newStartCell());
                     break;
                 case FINISH:
-                    this.map.put(coord, Cell.newFinishCell());
+                    this.map.put(new Coordinate(coord.x, coord.y), Cell.newFinishCell());
                     break;
                 default:
                     System.err.println("Unexpected cell type in initial map.");
@@ -135,10 +146,10 @@ public class MapManager implements MapManagerInterface {
                             this.unseen.remove(coord);
                             if (tile instanceof LavaTrap) {
                                 LavaTrap t = (LavaTrap)tile;
-                                this.map.put(coord, Cell.newLavaCell(t.getKey()));
-                                this.keys.put(t.getKey(), coord);
+                                this.map.put(new Coordinate(coord.x, coord.y), Cell.newLavaCell(t.getKey()));
+                                this.keys.put(t.getKey(), new Coordinate(coord.x, coord.y));
                             } else {
-                                this.map.put(coord, Cell.newHealthCell());
+                                this.map.put(new Coordinate(coord.x, coord.y), Cell.newHealthCell());
                             }
                             break;
                         case ROAD:
@@ -162,7 +173,8 @@ public class MapManager implements MapManagerInterface {
         String output  ="";
         for (int y = yEnd; y>=yStart; --y) {
             for (int x = xStart; x<=xEnd; ++x) {
-                Cell cell = this.map.get(new Coordinate(x,y));
+                Cell cell = this.getCell(x,y);
+//                System.err.printf("%d %d %s\n", x,y,cell);
                 if (cell == null) {
                     return null;
                 }
@@ -228,7 +240,7 @@ public class MapManager implements MapManagerInterface {
         dfs_visited = new HashSet<>();
         for (int y = yEnd; y>=yStart; --y) {
             for (int x = xStart; x<=xEnd; ++x) {
-                if (map.get(new Coordinate(x,y)).type == Cell.CellType.START) {
+                if (this.getCell(x,y).type == Cell.CellType.START) {
                     dfsConnectedArea(new Coordinate(x,y));
                     break;
                 }
@@ -257,7 +269,7 @@ public class MapManager implements MapManagerInterface {
             Coordinate newCoord = new Coordinate(newX,newY);
 
             if (this.isWithinBoard(newCoord)) {
-                if (this.map.get(newCoord).type!=Cell.CellType.WALL) {
+                if (this.getCell(newCoord.x, newCoord.y).type!=Cell.CellType.WALL) {
                     dfsConnectedArea(newCoord);
                 }
             }

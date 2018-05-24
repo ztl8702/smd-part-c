@@ -3,6 +3,8 @@ package mycontroller;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.apache.logging.log4j.core.util.SystemNanoClock;
+
 import controller.CarController;
 
 import mycontroller.autopilot.ActuatorAction;
@@ -47,6 +49,8 @@ public class MyAIController extends CarController {
 
 	@Override
 	public void update(float delta) {
+		
+		
 		
 		// gets what the car can see
 		HashMap<Coordinate, MapTile> currentView = getView();
@@ -108,21 +112,25 @@ public class MyAIController extends CarController {
 			for( int i = this.getKey()-1; i>=1; i-- ) {
 				
 				Coordinate k = mapManager.getKeyCoordinate(i);
-//				if (k == null) {
-//					System.err.println("cant locate key position" + i);
-//				} else {
-////					System.out.println("finding key number" + i);
-//				}
+				if (k == null) {
+					System.err.println("00000000000000000000cant locate key position" + i);
+				} else {
+//					System.out.println("finding key number" + i);
+				}
 
 				subPath = finisher.getPath(new Coordinate(cX, cY), 
 						new Coordinate(k.x, k.y), this.getSpeed(), this.getAngle());
 				
-//				System.err.println(mapManager.printBoard());
-				
 				if (subPath != null) {
+					System.err.println(cX);System.err.println(cY);
+					System.err.println("to");
+					System.err.println(k.x);System.err.println(k.y);
+					System.err.println(mapManager);
+
+					System.err.println(((MapManager) mapManager).printBoard().toString());
 //					System.out.println("found path for :" + "from" + cX+cY+"to"+keyPosition.toString());
 					finalPath.addAll(subPath);
-					System.out.println(finalPath.toString());
+					System.err.println(finalPath.toString());
 					cX = k.x;
 					cY = k.y;
 				}
@@ -130,25 +138,47 @@ public class MyAIController extends CarController {
 					System.err.println("Problem finding path with astar" + "from" + cX + "," + cY + "to" + k.x + "," + k.y);
 				}
 			}
+			
+//			navigator.loadNewPath(finalPath);
 			// done with getting all keys, now go to finish tile
 			Coordinate finalKeyPosition = mapManager.getKeyCoordinate(1);
-			Coordinate finishTile = mapManager.getFinishTile();
-			subPath = finisher.getPath(new Coordinate(finalKeyPosition.x, finalKeyPosition.y), 
-					new Coordinate(finishTile.x, finishTile.y), this.getSpeed(), this.getAngle());
-//			System.err.println(mapManager.printBoard());
 			
-//			System.out.println("managed to get final subpath");
-			if (subPath != null) {
-				finalPath.addAll(subPath);
-				System.out.println("FINAL PATH: " + finalPath.toString());
+			if (finalKeyPosition != null) {
+				System.err.println("==FINAL KEY====" + finalKeyPosition.toString());
+			} else {
+				System.err.println("&&&&&&&&&& KEY 1 is VERY NULL");
+			}
+			Coordinate finishTile = mapManager.getFinishTile();
+			
+			if (finalKeyPosition != null) {
+				System.err.println("==FINISH====" + finishTile.toString());
+			} else {
+				System.err.println("&&&&&&&&&& FINISH TILE is VERY NULL");
+			}
+			
+//			System.exit(-1);
+			ArrayList<Coordinate> finalSubPath = finisher.getPath(new Coordinate(finalKeyPosition.x, finalKeyPosition.y), 
+					new Coordinate(finishTile.x, finishTile.y), this.getSpeed(), this.getAngle());
+
+			if (finalSubPath != null) {
+				System.err.println(finalKeyPosition.x);System.err.println(finalKeyPosition.y);
+				System.err.println("to");
+				System.err.println(finishTile.x);System.err.println(finishTile.y);
+				System.err.println(mapManager);
+				//if ((MapManager) mapManager).printBoard()) {
+					
+				//}
+				System.err.println(((MapManager) mapManager).printBoard().toString());
+				finalPath.addAll(finalSubPath);
+				System.err.println("FINAL PATH: " + finalPath.toString());
 			}
 			
 			
 			
 			
 			// print out the result		
-			System.out.println("************************ASTAR***************** Path found!!!!");
-			System.out.println(finalPath.toString());
+			System.err.println("************************ASTAR***************** Path found!!!!");
+			System.err.println(finalPath.toString());
 		}
 
 
