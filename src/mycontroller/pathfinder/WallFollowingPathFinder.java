@@ -55,11 +55,11 @@ public class WallFollowingPathFinder implements PathFinder {
         finalPath.addAll(path2);
 
 
-        System.out.println("Path found!!!!, path1 len= "+path1.size());
-        for (Coordinate c : finalPath) {
-            System.out.printf("(%d,%d)->", c.x, c.y);
-
-        }
+//        System.out.println("Path found!!!!, path1 len= "+path1.size());
+//        for (Coordinate c : finalPath) {
+//            System.out.printf("(%d,%d)->", c.x, c.y);
+//
+//        }
 
         return finalPath;
     }

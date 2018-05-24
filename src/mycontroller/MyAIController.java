@@ -12,6 +12,7 @@ import mycontroller.navigator.DefaultNavigator;
 import mycontroller.navigator.Navigator;
 import mycontroller.pathfinder.*;
 import world.Car;
+import world.World;
 import tiles.MapTile;
 import utilities.Coordinate;
 
@@ -42,18 +43,7 @@ public class MyAIController extends CarController {
 		
 		mapManager = new MapManager();
 		mapManager.initialMap(this.getMap());
-		mapManager.markReachable();
-
 		navigator = new DefaultNavigator();
-		
-		
-//		HashMap<Coordinate, MapTile> m = getMap();
-//		
-//		if (DEBUG) {
-//			System.out.printf("\n\n\n tiles = %d \n\n\n",m.size());
-//			m.forEach((k,v) -> System.out.println("key: "+k+" value:"+v+" type"+v.getType()));
-//		}
-		
 	}
 
 	@Override
@@ -108,10 +98,7 @@ public class MyAIController extends CarController {
 		if (mapManager.foundAllKeys()) {
 			
 			int maxSearchDepth = 500;
-			PathFinder finisher = new AStarPathFinder(maxSearchDepth);
-			
-			
-			System.out.println("\n\n\n\n\n\n====================================\n");
+			PathFinder finisher = new AStarPathFinder(maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
 			
 			ArrayList<Coordinate> finalPath = new ArrayList<>();
 	        ArrayList<Coordinate> subPath = null;
@@ -121,25 +108,25 @@ public class MyAIController extends CarController {
 	        int cX = currentPosition.x;
 	        int cY = currentPosition.y;
 	        		
-			/* loop through all the keys and set key coordinate end location */
+			// loop through all the keys and set key coordinate end location
 			for( int i = this.getKey()-1; i>=1; i-- ) {
 				
 				Coordinate k = mapManager.findKey(i);
-				if (k == null) {
-					System.err.println("cant locate key position" + i);
-				} else {
-//					System.out.println("finding key number" + i);
-				}
+//				if (k == null) {
+//					System.err.println("cant locate key position" + i);
+//				} else {
+////					System.out.println("finding key number" + i);
+//				}
 
 				subPath = finisher.getPath(mapManager.getMap(), new Coordinate(cX, cY), 
 						new Coordinate(k.x, k.y), this.getSpeed(), this.getAngle());
 				
-				System.err.println(mapManager.printBoard());
+//				System.err.println(mapManager.printBoard());
 				
 				if (subPath != null) {
 //					System.out.println("found path for :" + "from" + cX+cY+"to"+keyPosition.toString());
 					finalPath.addAll(subPath);
-//					System.out.println(finalPath.toString());
+					System.out.println(finalPath.toString());
 					cX = k.x;
 					cY = k.y;
 				}
@@ -152,24 +139,25 @@ public class MyAIController extends CarController {
 			Coordinate finishTile = mapManager.getFinishTile();
 			subPath = finisher.getPath(mapManager.getMap(), new Coordinate(finalKeyPosition.x, finalKeyPosition.y), 
 					new Coordinate(finishTile.x, finishTile.y), this.getSpeed(), this.getAngle());
-			System.err.println(mapManager.printBoard());
+//			System.err.println(mapManager.printBoard());
 			
 //			System.out.println("managed to get final subpath");
 			if (subPath != null) {
 				finalPath.addAll(subPath);
+				System.out.println("FINAL PATH: " + finalPath.toString());
 			}
 			
-//			System.out.println(finalPath.toString());
+			
 			
 			
 			// print out the result		
-			System.out.println("*****ASTAR***** Path found!!!!");
+			System.out.println("************************ASTAR***************** Path found!!!!");
 			System.out.println(finalPath.toString());
 //			for (Coordinate c : finalPath) {
 //				System.out.printf("(%d,%d)->", c.x, c.y);
 //			}
 
-			System.out.println("\n====================================\n\n\n\n\n");
+//			System.out.println("\n====================================\n\n\n\n\n");
 
 		}
 

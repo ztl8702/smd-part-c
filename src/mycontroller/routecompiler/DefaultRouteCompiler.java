@@ -144,7 +144,7 @@ public class DefaultRouteCompiler implements RouteCompiler {
             }
         }
 
-        printOutput(output);
+//        printOutput(output);
 
         return output;
     }

@@ -11,6 +11,7 @@ import mycontroller.pathfinder.PathFinder;
 import tiles.MapTile;
 import utilities.Coordinate;
 import world.Car;
+import world.World;
 import world.WorldSpatial;
 
 public class AIController extends CarController {
@@ -37,7 +38,7 @@ public class AIController extends CarController {
 				
 		mapManager = new MapManager();
 		mapManager.initialMap(this.getMap());
-		mapManager.markReachable();
+//		mapManager.markReachable();
 	}
 	
 	Coordinate initialGuess;
@@ -132,7 +133,7 @@ public class AIController extends CarController {
 		if (mapManager.foundAllKeys()) {
 			
 			int maxSearchDepth = 500;
-			PathFinder finisher = new AStarPathFinder(maxSearchDepth);
+			PathFinder finisher = new AStarPathFinder(maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
 			
 			
 			System.out.println("\n\n\n\n\n\n====================================\n");

@@ -42,7 +42,7 @@ public class ScanningController extends CarController {
 		
 		stateMan = new MapManager();
 		stateMan.initialMap(this.getMap());
-		stateMan.markReachable();
+//		stateMan.markReachable();
 		
 	}
 	

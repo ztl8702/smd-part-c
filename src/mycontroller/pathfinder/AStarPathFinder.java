@@ -9,10 +9,10 @@ import java.util.List;
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
 import utilities.Coordinate;
-import world.World;
 
 public class AStarPathFinder implements PathFinder {
 	
+	private boolean DEBUG_GET_TILE_BEHIND = false;
 
 	/** The maximum depth of search we're willing to accept before giving up */
 	private int maxSearchDistance;
@@ -21,13 +21,14 @@ public class AStarPathFinder implements PathFinder {
 	private Node[][] nodes;
 
 	/** The heuristic we're applying to determine which nodes to search first */
-	private AStarHeuristic heuristic;
+	private AStarHeuristic heuristic1;
+	private AStarHeuristic heuristic2;
 	
 	public static final List<Coordinate> ANTICLOCKWISE_DIRECTION = Arrays.asList(
-			new Coordinate(0,1), //N
+			new Coordinate(0,1),  //N
 			new Coordinate(-1,0), //W
 			new Coordinate(0,-1), //S
-			new Coordinate(1,0) //E
+			new Coordinate(1,0)   //E
 			);
 	
 	
@@ -39,53 +40,24 @@ public class AStarPathFinder implements PathFinder {
 	 * @param maxSearchDistance The maximum depth we'll search before giving up
 	 * @param allowDiagMovement True if the search should try diaganol movement
 	 */
-	public AStarPathFinder(int maxSearchDistance) {
-		this.heuristic = new ClosestHeuristic();
+	public AStarPathFinder(int maxSearchDistance, int width, int height) {
+		
 		this.maxSearchDistance = maxSearchDistance;
-
+		
+		
+		this.heuristic1 = new ClosestHeuristic();
+		this.heuristic2 = new TileTypeHeuristic();
+		
+		
 		
 		//TODO need to think about it again as if this is the search we are using to explore 
-		
-		
-		nodes = new Node[World.MAP_WIDTH][World.MAP_HEIGHT];
-		for (int x=0;x<World.MAP_WIDTH;x++) {
-			for (int y=0;y<World.MAP_HEIGHT;y++) {
+		nodes = new Node[width][height];
+		for (int x=0;x<width;x++) {
+			for (int y=0;y<height;y++) {
 				nodes[x][y] = new Node(x,y);
 			}
 		}
 	}
-		
-	
-
-
-	/**
-	 * Get the heuristic cost for the given location. This determines in which 
-	 * order the locations are processed.
-	 * 
-	 * @param x The x coordinate of the tile whose cost is being determined
-	 * @param y The y coordiante of the tile whose cost is being determined
-	 * @param tx The x coordinate of the target location
-	 * @param ty The y coordinate of the target location
-	 * @return The heuristic cost assigned to the tile
-	 */
-	public float getHeuristicCost(HashMap<Coordinate, Cell> map, int x, int y, int tx, int ty) {
-		return heuristic.getCost(map, x, y, tx, ty);
-	}
-	
-	/**
-	 * Get the cost to move through a given location
-	 * 
-	 * @param sx The x coordinate of the tile whose cost is being determined
-	 * @param sy The y coordiante of the tile whose cost is being determined
-	 * @param tx The x coordinate of the target location
-	 * @param ty The y coordinate of the target location
-	 * @return The cost of movement through the given tile
-	 */
-	public float getMovementCost(int sx, int sy, int tx, int ty) {
-//		return map.getCost(sx, sy, tx, ty);
-		return 1;
-	}
-	
 	
 	@Override
 	public ArrayList<Coordinate> getPath(HashMap<Coordinate, Cell> map, Coordinate currentPosition, 
@@ -104,11 +76,13 @@ public class AStarPathFinder implements PathFinder {
 		// tile is in the open list and it's cost is zero, i.e. we're already there
 		nodes[sx][sy].cost = 0;
 		nodes[sx][sy].depth = 0;
+		nodes[sx][sy].direction = currentDirection;
 		closed.clear();
 		open.clear();
 		open.add(nodes[sx][sy]);
 		
 		nodes[tx][ty].parent = null;
+		
 		
 		// while we haven't found the goal and haven't exceeded our max search depth
 		int maxDepth = 0;
@@ -127,48 +101,34 @@ public class AStarPathFinder implements PathFinder {
 			// search through all the neighbours of the current node evaluating
 			// them as next steps
 			
-			for (Coordinate d : ANTICLOCKWISE_DIRECTION ) {
+			for (Coordinate d : ANTICLOCKWISE_DIRECTION) {
 					
 				// determine the location of the neighbour and evaluate it
 				int xp = d.x + current.x;
 				int yp = d.y + current.y;
 				
-				if (isWall(map, xp, yp) != true) {
-					// the cost to get to this node is cost the current plus the movement
-					// cost to reach this node. Note that the heursitic value is only used
-					// in the sorted open list
-					float nextStepCost = current.cost + getMovementCost(current.x, current.y, xp, yp);
-					Node neighbour = nodes[xp][yp];
-//						map.pathFinderVisited(xp, yp);
-					
-					// if the new cost we've determined for this node is lower than 
-					// it has been previously makes sure the node hasn't been discarded. We've
-					// determined that there might have been a better path to get to
-					// this node so it needs to be re-evaluated
-					if (nextStepCost < neighbour.cost) {
-						
-						if (open.contains(neighbour)) {
-							open.remove(neighbour);
-						}
-						if (closed.contains(neighbour)) {
-							closed.remove(neighbour);
-						}
+				
+				// if we are exploring from original position
+				// need to avoid providing a solution that involves reversing the car
+				if (currentPosition.x == current.x && currentPosition.y == current.y) {
+					if (DEBUG_GET_TILE_BEHIND) {
+						System.out.println("maxdepth is " + maxDepth);
+						System.out.println(current.x);System.out.println(current.y);
 					}
-					
-					// if the node hasn't already been processed and discarded then
-					// reset it's cost to our current cost and add it as a next possible
-					// step (i.e. to the open list)
-					if ( (!open.contains(neighbour)) && !(closed.contains(neighbour)) ) {
-						neighbour.cost = nextStepCost;
-						neighbour.heuristic = getHeuristicCost(map, xp, yp, tx, ty);
-						maxDepth = Math.max(maxDepth, neighbour.setParent(current));
-						open.add(neighbour);
+					Coordinate tileBehind = getTileBehind(current.direction, current.x, current.y);
+					if (DEBUG_GET_TILE_BEHIND) {
+						System.out.println("tileBehind is " + tileBehind.toString());
+						System.out.println(xp); System.out.println(yp);
 					}
+					if ( !(tileBehind.x == xp && tileBehind.y == yp) ) {
+						innerLoop(map, xp, yp, tx, ty, current, closed, open, maxDepth);
+					}
+				} else {
+					innerLoop(map, xp, yp, tx, ty, current, closed, open, maxDepth);
 				}
 			}
 		}
-		
-		
+
 		
 		// since we've got an empty open list or we've run out of search 
 		// there was no path. Just return null
@@ -191,12 +151,97 @@ public class AStarPathFinder implements PathFinder {
 		// thats it, we have our path 
 		return path;
 	}
+	
+	private void innerLoop(HashMap<Coordinate, Cell> map, int xp, int yp, int tx, int ty, 
+			Node current, ArrayList<Node> closed, SortedList open, int maxDepth) {
+		if ( !isWall(map, xp, yp) ) {
+			// the cost to get to this node is cost the current plus the movement
+			// cost to reach this node. Note that the heursitic value is only used
+			// in the sorted open list
+			float nextStepCost = current.cost + getMovementCost(current.x, current.y, xp, yp);
+			Node neighbour = nodes[xp][yp];
+//				map.pathFinderVisited(xp, yp);
+			
+			// if the new cost we've determined for this node is lower than 
+			// it has been previously makes sure the node hasn't been discarded. We've
+			// determined that there might have been a better path to get to
+			// this node so it needs to be re-evaluated
+			if (nextStepCost < neighbour.cost) {
+				
+				if (open.contains(neighbour)) {
+					open.remove(neighbour);
+				}
+				if (closed.contains(neighbour)) {
+					closed.remove(neighbour);
+				}
+			}
+			
+			// if the node hasn't already been processed and discarded then
+			// reset it's cost to our current cost and add it as a next possible
+			// step (i.e. to the open list)
+			if ( (!open.contains(neighbour)) && !(closed.contains(neighbour)) ) {
+				neighbour.cost = nextStepCost;
+				neighbour.heuristic = getHeuristicCost(map, xp, yp, tx, ty);
+				neighbour.direction = getDirection(xp, yp, tx, ty);
+				maxDepth = Math.max(maxDepth, neighbour.setParent(current));
+				open.add(neighbour);
+			}
+		}
+	}
 
 	
 	
+	/**
+	 * @param currentAngle
+	 * @param x current x position
+	 * @param y current y position
+	 * @return
+	 */
+	private Coordinate getTileBehind(float currentAngle, int x, int y) {
+		if (currentAngle <= 90) {
+			// facing east, give west tile
+			return new Coordinate(x-1, y);
+        } else if (currentAngle <= 180) {
+        	// facing north
+        	return new Coordinate(x, y-1);
+        } else if (currentAngle <= 270) {
+        	// facing west
+        	return new Coordinate(x+1, y);
+        } else {
+        	// facing south
+        	return new Coordinate(x, y+1);
+        }
+	}
 	
 	
-	public boolean isWall(HashMap<Coordinate, Cell> map, int x, int y) {
+	/**
+	 * Get direction based on previous step
+	 * @param xp from point x
+	 * @param yp from point y
+	 * @param tx to point x
+	 * @param ty to point y
+	 * @return
+	 */
+	private float getDirection(int xp, int yp, int tx, int ty) {
+		int diffX = tx - xp;
+		int diffY = ty - yp;
+		
+		if (diffX == 1 && diffY == 0) {
+			// going East
+			return 0;
+		} else if (diffX == -1 && diffY == 0) {
+			// going West
+			return 180;
+		} else if (diffX == 0 && diffY == 1) {
+			// going North
+			return 90;
+		} else {
+			// going South
+			return 270;
+		}
+	}
+	
+	private boolean isWall(HashMap<Coordinate, Cell> map, int x, int y) {
 		Coordinate coord = new Coordinate(x, y);
 		boolean inMap = map.containsKey(coord);
 
@@ -208,7 +253,39 @@ public class AStarPathFinder implements PathFinder {
 		return false;
 	}
 
+
+
+	/**
+	 * Get the heuristic cost for the given location. This determines in which 
+	 * order the locations are processed.
+	 * 
+	 * @param x The x coordinate of the tile whose cost is being determined
+	 * @param y The y coordiante of the tile whose cost is being determined
+	 * @param tx The x coordinate of the target location
+	 * @param ty The y coordinate of the target location
+	 * @return The heuristic cost assigned to the tile
+	 */
+	private float getHeuristicCost(HashMap<Coordinate, Cell> map, int x, int y, int tx, int ty) {
+		float h1 = heuristic1.getCost(map, x, y, tx, ty);
+		float h2 = heuristic2.getCost(map, x, y, tx, ty);
+		
+		float heuristics = h1+h2;
+		return heuristics;
+	}
 	
+	/**
+	 * Get the cost to move through a given location
+	 * 
+	 * @param sx The x coordinate of the tile whose cost is being determined
+	 * @param sy The y coordiante of the tile whose cost is being determined
+	 * @param tx The x coordinate of the target location
+	 * @param ty The y coordinate of the target location
+	 * @return The cost of movement through the given tile
+	 */
+	private float getMovementCost(int sx, int sy, int tx, int ty) {
+//		return map.getCost(sx, sy, tx, ty);
+		return 1;
+	}
 	
 	
 	
@@ -300,6 +377,8 @@ public class AStarPathFinder implements PathFinder {
 		private float heuristic;
 		/** The search depth of this node */
 		private int depth;
+		/** The current direction of this node */
+		private float direction;
 		
 		/**
 		 * Create a new node
@@ -316,7 +395,7 @@ public class AStarPathFinder implements PathFinder {
 		 * Set the parent of this node
 		 * 
 		 * @param parent The parent node which lead us to this node
-		 * @return The depth we have no reached in searching
+		 * @return The depth we have not reached in searching
 		 */
 		public int setParent(Node parent) {
 			depth = parent.depth + 1;

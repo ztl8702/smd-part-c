@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class DefaultNavigator implements Navigator {
+	private boolean DEBUG = false;
     private AutoPilot opt = null;
     private Queue<AutoPilot> upcomingOpts = new LinkedList<AutoPilot>();
     @Override
@@ -24,15 +25,15 @@ public class DefaultNavigator implements Navigator {
     @Override
     public AutoPilotAction update(float delta, Car car) {
         while (!upcomingOpts.isEmpty() && upcomingOpts.peek().canTakeCharge() && (this.opt ==null || this.opt.canBeSwappedOut()) ) {
-            System.out.println(upcomingOpts.peek()+"taking charge");
+        	if (DEBUG) System.out.println(upcomingOpts.peek()+"taking charge");
             this.opt = upcomingOpts.remove();
         }
-        System.out.printf("delta=%.6f (%.6f, %.6f)\n", delta,car.getX(),car.getY());
+        if (DEBUG) System.out.printf("delta=%.6f (%.6f, %.6f)\n", delta,car.getX(),car.getY());
         AutoPilotAction action = AutoPilotAction.nothing();
         if (opt!=null) {
             action = opt.handle(delta, car);
         }
-        System.out.println(opt);
+        if (DEBUG) System.out.println(opt);
 
         /*for (AutoPilot o : this.upcomingOpts) {
             System.out.println(o);

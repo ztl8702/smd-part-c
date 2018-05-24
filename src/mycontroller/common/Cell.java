@@ -2,7 +2,7 @@ package mycontroller.common;
 
 public class Cell {
 	
-	public enum CellType {ROAD, WALL, START, FINISH, TRAP, UNREACHABLE}
+	public enum CellType {ROAD, WALL, START, FINISH, LAVA, HEALTH, UNREACHABLE}
 	public int key;
 	public CellType type;
 	
@@ -38,20 +38,17 @@ public class Cell {
 		return newCell;
 	}
 	
-	public static Cell newTrapCell(int key) {
+	public static Cell newLavaCell(int key) {
 		Cell newCell = new Cell();
-		newCell.type = CellType.TRAP;
+		newCell.type = CellType.LAVA;
 		newCell.key = key;
 		return newCell;
 	}
 	
-	// This method allows us to decide which node is better. 
-	// We can say current node is better if this method returns negative number,
-	// which means current node has lower cost than the other node being compared.
-	public static int compareTo(Cell currentCell, Cell otherCell) {
-//		if (currentCell.type == CellType.)
-//		TODO
-		return 1;
-		
+	public static Cell newHealthCell() {
+		Cell newCell = new Cell();
+		newCell.type = CellType.HEALTH;
+		newCell.key = 0;
+		return newCell; 
 	}
 }

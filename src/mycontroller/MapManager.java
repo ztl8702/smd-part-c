@@ -9,14 +9,11 @@ import java.util.Map;
 
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
-import mycontroller.common.ColoredRegion;
-import mycontroller.scanningcontroller.ColoursWindow;
-import mycontroller.scanningcontroller.MapWindow;
 import tiles.MapTile;
 import tiles.LavaTrap;
 import utilities.Coordinate;
+import world.World;
 
-import java.awt.Color;
 
 
 public class MapManager {
@@ -27,10 +24,12 @@ public class MapManager {
 	//TODO check if all keys have been found and update as well
 	
 	private HashMap<Coordinate, Cell> map = new HashMap<Coordinate, Cell>();
-	private int xStart = Integer.MAX_VALUE;
-	private int xEnd = Integer.MIN_VALUE;
-	private int yStart = Integer.MAX_VALUE;
-	private int yEnd = Integer.MIN_VALUE;
+	
+	
+	private int xStart = 0;
+	private int xEnd = World.MAP_WIDTH - 1;
+	private int yStart = 0;
+	private int yEnd = World.MAP_HEIGHT - 1;
 	private static Coordinate[] DIRECTIONS = {
 			new Coordinate(-1,0),
 			new Coordinate(+1,0),
@@ -44,16 +43,16 @@ public class MapManager {
 	private HashSet<Coordinate> reachable = new HashSet<Coordinate>();
 	private HashMap<Integer, Coordinate> keys = new HashMap<Integer, Coordinate>();
 	
-	private int colourCount = 0;
-	private HashMap<Coordinate, Integer> colour = new HashMap<>();
-	private HashMap<Integer ,ColoredRegion> areas = new HashMap<>();
+//	private int colourCount = 0;
+//	private HashMap<Coordinate, Integer> colour = new HashMap<>();
+//	private HashMap<Integer ,ColoredRegion> areas = new HashMap<>();
 	
-	private MapWindow mapWindow;
-	private ColoursWindow cWindow;
+//	private MapWindow mapWindow;
+//	private ColoursWindow cWindow;
 	
 	public MapManager() {
-		mapWindow = new MapWindow();
-		cWindow = new ColoursWindow();
+//		mapWindow = new MapWindow();
+//		cWindow = new ColoursWindow();
 	}
 
 	public HashMap<Coordinate,Cell> getMap() {
@@ -67,6 +66,8 @@ public class MapManager {
 	public HashSet<Coordinate> getUnseen() {
 		return this.unseen; 
 	}
+	
+	
 	
 	public Coordinate getFinishTile() {
 		Iterator<Map.Entry<Coordinate, Cell>> it = map.entrySet().iterator();
@@ -83,9 +84,7 @@ public class MapManager {
 	}
 	
 	public Coordinate findKey(int key) {
-		List<Integer> keyList = new ArrayList<Integer>(keys.keySet());
-		
-		if (keyList.contains(key)) {
+		if (keys.get(key) != null) {
 			return keys.get(key);
 		}
 		return null;
@@ -101,18 +100,19 @@ public class MapManager {
 		return true;
 	}
 	
+	
+	
+	
+	
 	public void updateKey(int currentKey) {
 		this.currentKey = currentKey;
 	}
 	
+	
+	
+	// TODO: maybe issue here, as ur mutating ???
 	public void initialMap(HashMap<Coordinate, MapTile> tiles) {
 		tiles.forEach((coord,tile) -> {
-			xStart = Math.min(xStart, coord.x);
-			xEnd = Math.max(xEnd, coord.x);
-			yStart = Math.min(yStart, coord.y);
-			yEnd = Math.max(yEnd, coord.y);
-			
-			this.colour.put(coord, 0);
 			switch (tile.getType()) {
 			case ROAD:
 				this.map.put(coord, Cell.newRoadCell());
@@ -133,12 +133,13 @@ public class MapManager {
 				break;
 			}
 		});
+		markReachable();
 	}
 
 
 	
 	public void updateView(HashMap<Coordinate, MapTile> tiles) {
-		boolean hasUpdate = false;
+		boolean hasUpdate = false; // update window frame
 		for(Map.Entry<Coordinate, MapTile> entry : tiles.entrySet()) {
 			Coordinate coord = entry.getKey();
 			MapTile tile = entry.getValue();
@@ -151,10 +152,10 @@ public class MapManager {
 						this.unseen.remove(coord);
 						if (tile instanceof LavaTrap) {
 							LavaTrap t = (LavaTrap)tile;
-							this.map.put(coord, Cell.newTrapCell(t.getKey()));
+							this.map.put(coord, Cell.newLavaCell(t.getKey()));
 							this.keys.put(t.getKey(), coord);
 						} else {
-							this.map.put(coord, Cell.newTrapCell(0));						
+							this.map.put(coord, Cell.newHealthCell());						
 						}
 						break;
 					case ROAD:
@@ -193,7 +194,10 @@ public class MapManager {
 				case FINISH:
 					str = "F";
 					break;
-				case TRAP:
+				case HEALTH:
+					str = "H";
+					break;
+				case LAVA:
 					if (cell.key!=0) {
 						str = new Integer(cell.key).toString();
 					} else {
@@ -228,49 +232,49 @@ public class MapManager {
 //		this.mapWindow.setText(output);
 	}
 	
-	public void printColours(ColoredRegion[] regions) {
-		Color colors[] = new Color[] {
-			Color.BLACK,
-			Color.RED,
-			Color.GREEN,
-			Color.BLUE,
-			Color.YELLOW,
-			Color.PINK,
-			Color.GRAY,
-			Color.ORANGE,
-			Color.MAGENTA
-		};
-		
-		int[][] colorMap = new int[xEnd+1][yEnd+1];
-		//colorMap.
-		for (int x = xStart; x<=xEnd; ++x) {
-			for (int y = yStart; y<=yEnd; ++y) {
-				colorMap[x][y]=0;
-			}
-		}
-		int i = 0;
-		for (ColoredRegion r:regions) {
-			++i;
-			for (Coordinate c: r.coordinates) {
-				colorMap[c.x][c.y] = i;
-			}
-		}
-
-		cWindow.clear();
-		for (int y = yEnd; y>=yStart; --y) {
-			for (int x = xStart; x<=xEnd; ++x) {
-				int theC = colorMap[x][y];
-				String tt = String.format("%d ", theC);
-				if (theC>9) {
-					cWindow.appendText("+ ", colors[theC% colors.length]);
-					
-				} else {
-					cWindow.appendText(tt, colors[theC% colors.length]);
-				}
-			}
-			cWindow.appendText("\n", Color.BLACK);
-		}
-	}
+//	public void printColours(ColoredRegion[] regions) {
+//		Color colors[] = new Color[] {
+//			Color.BLACK,
+//			Color.RED,
+//			Color.GREEN,
+//			Color.BLUE,
+//			Color.YELLOW,
+//			Color.PINK,
+//			Color.GRAY,
+//			Color.ORANGE,
+//			Color.MAGENTA
+//		};
+//		
+//		int[][] colorMap = new int[xEnd+1][yEnd+1];
+//		//colorMap.
+//		for (int x = xStart; x<=xEnd; ++x) {
+//			for (int y = yStart; y<=yEnd; ++y) {
+//				colorMap[x][y]=0;
+//			}
+//		}
+//		int i = 0;
+//		for (ColoredRegion r:regions) {
+//			++i;
+//			for (Coordinate c: r.coordinates) {
+//				colorMap[c.x][c.y] = i;
+//			}
+//		}
+//
+//		cWindow.clear();
+//		for (int y = yEnd; y>=yStart; --y) {
+//			for (int x = xStart; x<=xEnd; ++x) {
+//				int theC = colorMap[x][y];
+//				String tt = String.format("%d ", theC);
+//				if (theC>9) {
+//					cWindow.appendText("+ ", colors[theC% colors.length]);
+//					
+//				} else {
+//					cWindow.appendText(tt, colors[theC% colors.length]);
+//				}
+//			}
+//			cWindow.appendText("\n", Color.BLACK);
+//		}
+//	}
 	
 	public boolean isWithinBoard(Coordinate coord) {
 		return (xStart <= coord.x && coord.x <= xEnd) && (yStart <= coord.y && coord.y <= yEnd);
@@ -281,7 +285,7 @@ public class MapManager {
 	
 
 	
-	public void markReachable() {
+	private void markReachable() {
 		dfs_visited = new HashSet<>();
 		for (int y = yEnd; y>=yStart; --y) {
 			for (int x = xStart; x<=xEnd; ++x) {
@@ -322,45 +326,45 @@ public class MapManager {
 			}
 		}
 	}
-	
-	public ColoredRegion[] getConnectedComponents() {
-		int colouredCount = 0;
-		dfs_visited = new HashSet<Coordinate>();
-		ArrayList<ColoredRegion> regions = new ArrayList<ColoredRegion>();
-		for (int y = yEnd; y>=yStart; --y) {
-			for (int x = xStart; x<=xEnd; ++x) {
-				Coordinate coord = new Coordinate(x,y);
-				if (reachable.contains(coord) && !dfs_visited.contains(coord) && !(map.get(coord).type == Cell.CellType.WALL)) {
-					++colouredCount;
-					ColoredRegion newRegion = new ColoredRegion(map.get(coord));
-					dfsColour(newRegion, coord, colouredCount);
-					regions.add(newRegion);
-				}
-			}
-		
-		}
-		return regions.toArray(new ColoredRegion[regions.size()]);
-	}
-	
-	private void dfsColour(ColoredRegion region, Coordinate currentLocation, int colour) {
-		if (dfs_visited.contains(currentLocation)) {
-			return;
-		}
-		dfs_visited.add(currentLocation);
-		region.coordinates.add(currentLocation);
-		
-		
-		for (Coordinate direction : DIRECTIONS) {
-			int newX = currentLocation.x + direction.x;
-			int newY = currentLocation.y + direction.y;
-			Coordinate newCoord = new Coordinate(newX,newY);
-			
-			if (this.isWithinBoard(newCoord)) {
-				if (this.map.get(newCoord).getCellTypeHash().equals(this.map.get(currentLocation).getCellTypeHash())
-						&& !this.unseen.contains(newCoord)) {					
-					dfsColour(region, newCoord, colour);
-				}
-			}
-		}
-	}
+//	
+//	public ColoredRegion[] getConnectedComponents() {
+//		int colouredCount = 0;
+//		dfs_visited = new HashSet<Coordinate>();
+//		ArrayList<ColoredRegion> regions = new ArrayList<ColoredRegion>();
+//		for (int y = yEnd; y>=yStart; --y) {
+//			for (int x = xStart; x<=xEnd; ++x) {
+//				Coordinate coord = new Coordinate(x,y);
+//				if (reachable.contains(coord) && !dfs_visited.contains(coord) && !(map.get(coord).type == Cell.CellType.WALL)) {
+//					++colouredCount;
+//					ColoredRegion newRegion = new ColoredRegion(map.get(coord));
+//					dfsColour(newRegion, coord, colouredCount);
+//					regions.add(newRegion);
+//				}
+//			}
+//		
+//		}
+//		return regions.toArray(new ColoredRegion[regions.size()]);
+//	}
+//	
+//	private void dfsColour(ColoredRegion region, Coordinate currentLocation, int colour) {
+//		if (dfs_visited.contains(currentLocation)) {
+//			return;
+//		}
+//		dfs_visited.add(currentLocation);
+//		region.coordinates.add(currentLocation);
+//		
+//		
+//		for (Coordinate direction : DIRECTIONS) {
+//			int newX = currentLocation.x + direction.x;
+//			int newY = currentLocation.y + direction.y;
+//			Coordinate newCoord = new Coordinate(newX,newY);
+//			
+//			if (this.isWithinBoard(newCoord)) {
+//				if (this.map.get(newCoord).getCellTypeHash().equals(this.map.get(currentLocation).getCellTypeHash())
+//						&& !this.unseen.contains(newCoord)) {					
+//					dfsColour(region, newCoord, colour);
+//				}
+//			}
+//		}
+//	}
 }
