@@ -7,8 +7,8 @@ import java.util.Map;
 
 import mycontroller.common.Cell;
 import mycontroller.common.ColoredRegion;
-import mycontroller.scanningcontroller.ColoursWindow;
-import mycontroller.scanningcontroller.MapWindow;
+import mycontroller.testing.scanningcontroller.ColoursWindow;
+import mycontroller.testing.scanningcontroller.MapWindow;
 import tiles.MapTile;
 import tiles.LavaTrap;
 import utilities.Coordinate;

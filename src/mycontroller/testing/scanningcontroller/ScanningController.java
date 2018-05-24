@@ -1,6 +1,5 @@
-package mycontroller.scanningcontroller;
+package mycontroller.testing.scanningcontroller;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 import controller.CarController;

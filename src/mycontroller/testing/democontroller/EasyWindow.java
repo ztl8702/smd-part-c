@@ -1,4 +1,4 @@
-package mycontroller.democontroller;
+package mycontroller.testing.democontroller;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
