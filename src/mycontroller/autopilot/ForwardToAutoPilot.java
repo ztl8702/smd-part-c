@@ -2,17 +2,14 @@ package mycontroller.autopilot;
 
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
-import world.Car;
 
 import java.security.InvalidParameterException;
-
-import com.badlogic.gdx.utils.compression.lzma.Base;
 
 /**
  * An AutoPilot that knows how to go from tile A to tile B going straight forward.
  * 
  */
-public class ForwardToAutoPilot extends BaseAutoPilot {
+public class ForwardToAutoPilot extends AutoPilotBase {
     private static float CRUISING_SPEED = 5.0f;
     /**
      * Our (estimated) deceleration due to braking. The lower the value, the earlier the car starts braking,

@@ -2,18 +2,17 @@ package mycontroller.autopilot;
 
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
-import world.Car;
 import world.WorldSpatial;
 import world.WorldSpatial.RelativeDirection;
 import world.WorldSpatial.Direction;
 
 import java.security.InvalidParameterException;
 
-public class TurningAutoPilot extends BaseAutoPilot {
+public class TurningAutoPilot extends AutoPilotBase {
 
     // TODO: Handle situation where the MAINTAIN_SPEED cannot be reached before
     // turning
-    public static final float MAINTAIN_SPEED = 1.5f;
+    public static final float MAINTAIN_SPEED = 1.1f;
 
     private enum TurningType {
         EastToNorth, EastToSouth

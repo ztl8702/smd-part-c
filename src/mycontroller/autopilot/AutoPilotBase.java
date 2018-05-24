@@ -8,7 +8,7 @@ import utilities.Coordinate;
  * Base implementation of AutoPilot, providing some helper methods for its
  * subclasses.
  */
-public abstract class BaseAutoPilot implements AutoPilot {
+public abstract class AutoPilotBase implements AutoPilot {
     public static final double TILE_WIDTH = 1; // 32;
     
     public static boolean DEBUG_AUTOPILOT = false;
@@ -17,7 +17,7 @@ public abstract class BaseAutoPilot implements AutoPilot {
 
     protected MapManagerInterface mapManager;
 
-    public BaseAutoPilot(MapManagerInterface mapManager) {
+    public AutoPilotBase(MapManagerInterface mapManager) {
         this.mapManager = mapManager;
     }
 

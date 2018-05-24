@@ -1,14 +1,12 @@
 package mycontroller.autopilot;
 
 import mycontroller.mapmanager.MapManagerInterface;
-import world.Car;
-import world.World;
 import world.WorldSpatial;
 
 /**
  * Recentres a moving car to a certain position along the X or Y axis.
  */
-public class ReCentreAutoPilot extends BaseAutoPilot {
+public class ReCentreAutoPilot extends AutoPilotBase {
     public enum CentringAxis {
         X, Y
     }
