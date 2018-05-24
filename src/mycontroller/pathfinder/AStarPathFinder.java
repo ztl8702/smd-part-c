@@ -10,6 +10,8 @@ import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
+import world.World;
+import world.WorldSpatial;
 
 public class AStarPathFinder implements PathFinder {
 	
@@ -115,7 +117,7 @@ public class AStarPathFinder implements PathFinder {
 		nodes[sx][sy].cost = 0;
 		nodes[sx][sy].depth = 0;
 
-		nodes[sx][sy].direction = currentDirection;
+		nodes[sx][sy].direction = angleToDirection(currentDirection);
 		closed.clear();
 		open.clear();
 		open.add(nodes[sx][sy]);
@@ -152,7 +154,9 @@ public class AStarPathFinder implements PathFinder {
 						System.out.println("maxdepth is " + maxDepth);
 						System.out.println(current.x);System.out.println(current.y);
 					}
+					
 					Coordinate tileBehind = getTileBehind(current.direction, current.x, current.y);
+					
 					if (DEBUG_GET_TILE_BEHIND) {
 						System.out.println("tileBehind is " + tileBehind.toString());
 						System.out.println(xp); System.out.println(yp);
@@ -227,26 +231,41 @@ public class AStarPathFinder implements PathFinder {
 
 	
 	
-	/**
-	 * @param currentAngle
-	 * @param x current x position
-	 * @param y current y position
-	 * @return
-	 */
-	private Coordinate getTileBehind(float currentAngle, int x, int y) {
-		if (currentAngle <= 90) {
+
+	private WorldSpatial.Direction angleToDirection(float currentAngle) {
+		if (currentAngle <= 45 && currentAngle>=360-45) {
 			// facing east, give west tile
-			return new Coordinate(x-1, y);
-        } else if (currentAngle <= 180) {
+			return WorldSpatial.Direction.EAST;
+        } else if (currentAngle >=45 &&currentAngle <= 135) {
         	// facing north
-        	return new Coordinate(x, y-1);
-        } else if (currentAngle <= 270) {
+        	return WorldSpatial.Direction.NORTH;
+        } else if (currentAngle >= 135 &&currentAngle <= 180+45) {
         	// facing west
-        	return new Coordinate(x+1, y);
+        	return WorldSpatial.Direction.WEST;
         } else {
         	// facing south
-        	return new Coordinate(x, y+1);
+        	return WorldSpatial.Direction.SOUTH;
         }
+	}
+
+	
+	private Coordinate getTileBehind(WorldSpatial.Direction direction, int x, int y) {
+		if (direction == WorldSpatial.Direction.EAST) {
+			// facing east, give west tile
+			return new Coordinate(x-1, y);
+		}
+		else if (direction == WorldSpatial.Direction.EAST) {
+			// facing north
+        	return new Coordinate(x, y-1);
+		}
+		else if (direction == WorldSpatial.Direction.EAST) {
+			// facing west
+        	return new Coordinate(x+1, y);
+		}
+		else {
+			// facing south
+        	return new Coordinate(x, y+1);
+		}
 	}
 	
 	
@@ -258,22 +277,25 @@ public class AStarPathFinder implements PathFinder {
 	 * @param ty to point y
 	 * @return
 	 */
-	private float getDirection(int xp, int yp, int tx, int ty) {
+	private WorldSpatial.Direction getDirection(int xp, int yp, int tx, int ty) {
 		int diffX = tx - xp;
 		int diffY = ty - yp;
 		
 		if (diffX == 1 && diffY == 0) {
 			// going East
-			return 0;
+			return WorldSpatial.Direction.EAST;
+
 		} else if (diffX == -1 && diffY == 0) {
 			// going West
-			return 180;
+			return WorldSpatial.Direction.WEST;
+
 		} else if (diffX == 0 && diffY == 1) {
 			// going North
-			return 90;
+			return WorldSpatial.Direction.NORTH;
+
 		} else {
 			// going South
-			return 270;
+			return WorldSpatial.Direction.SOUTH;
 		}
 	}
 	
@@ -414,7 +436,7 @@ public class AStarPathFinder implements PathFinder {
 		/** The search depth of this node */
 		private int depth;
 		/** The current direction of this node */
-		private float direction;
+		private WorldSpatial.Direction direction;
 		
 		/**
 		 * Create a new node
