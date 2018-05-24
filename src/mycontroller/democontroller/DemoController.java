@@ -70,7 +70,7 @@ public class DemoController extends CarController {
 		}
 		System.out.printf("delta=%.6f (%.6f, %.6f)\n", delta,car.getX(),car.getY());
 		if (opt!=null) {
-			AutoPilotAction action = opt.handle(delta, this.car);
+			ActuatorAction action = opt.handle(delta, this.car);
 			if (action.brake) {
 				this.applyBrake();
 			}

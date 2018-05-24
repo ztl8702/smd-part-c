@@ -53,7 +53,7 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
     }
 
     @Override
-    public AutoPilotAction handle(float delta, Car car) {
+    public ActuatorAction handle(float delta, Car car) {
         Coordinate coord = new Coordinate(car.getPosition());
         switch (state) {
         case Idle:
@@ -76,7 +76,7 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
 
         switch (state) {
         case Idle:
-            return AutoPilotAction.nothing();
+            return ActuatorAction.nothing();
         case On:
             double d = getDistanceToTarget(car.getX(), car.getY());
             double speedLimit = getSpeedLimit(d - delta * car.getSpeed() - 0.03, targetSpeed);
@@ -85,14 +85,14 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
             return ap.handle(delta, car);
         case Finished:
             if (Math.abs(car.getSpeed() - targetSpeed) < 0.1f) {
-                return AutoPilotAction.nothing();
+                return ActuatorAction.nothing();
             } else {
                 AutoPilot ap2 = new MaintainSpeedAutoPilot(targetSpeed);
                 return ap2.handle(delta, car);
             }
 
         default:
-            return AutoPilotAction.nothing();
+            return ActuatorAction.nothing();
         }
     }
 

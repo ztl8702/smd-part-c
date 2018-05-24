@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import controller.CarController;
-import mycontroller.autopilot.AutoPilotAction;
+import mycontroller.autopilot.ActuatorAction;
 import mycontroller.navigator.DefaultNavigator;
 import mycontroller.navigator.Navigator;
 import mycontroller.pathfinder.*;
@@ -82,7 +82,7 @@ public class MyAIController extends CarController {
 			startedMoving = true;
 			
 		} else {
-			AutoPilotAction action = navigator.update(delta,car);
+			ActuatorAction action = navigator.update(delta,car);
 			if (action.brake) {
 				this.applyBrake();
 			}

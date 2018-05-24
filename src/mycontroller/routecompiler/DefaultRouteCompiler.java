@@ -143,7 +143,7 @@ public class DefaultRouteCompiler implements RouteCompiler {
                         // last action => stop
                         output.add(new ForwardToAutoPilot(a.start, a.finish, 0f));
                     } else {
-                        output.add(new ForwardToAutoPilot(a.start, a.finish, 1.1f));
+                        output.add(new ForwardToAutoPilot(a.start, a.finish, TurningAutoPilot.MAINTAIN_SPEED));
                     }
 
                     break;

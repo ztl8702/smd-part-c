@@ -25,7 +25,7 @@ public class ReCentreAutoPilot extends BaseAutoPilot {
     }
 
     @Override
-    public AutoPilotAction handle(float delta, Car car) {
+    public ActuatorAction handle(float delta, Car car) {
         double x = car.getX();
         double y = car.getY();
         double angle = car.getAngle();
@@ -37,7 +37,7 @@ public class ReCentreAutoPilot extends BaseAutoPilot {
         case Turning:
             break;
         }
-        return AutoPilotAction.nothing();
+        return ActuatorAction.nothing();
     }
 
     @Override

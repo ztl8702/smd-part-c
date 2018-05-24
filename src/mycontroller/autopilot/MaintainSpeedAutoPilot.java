@@ -32,7 +32,7 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 	private float recoveringReverseTime = 0;
 
 	@Override
-	public AutoPilotAction handle(float delta, Car car) {
+	public ActuatorAction handle(float delta, Car car) {
 		float currentSpeed = car.getSpeed();
 		System.out.printf("[%.4f] %.6f %.6f\n", delta, currentSpeed, car.getVelocity().len());
 
@@ -50,14 +50,14 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 						break;
 					}
 				}
-				return AutoPilotAction.forward();
+				return ActuatorAction.forward();
 			} else {
 				changeState(State.Idle);
 			}
 			break;
 		case Decelerating:
 			if (currentSpeed - SPEED_EPS > target) {
-				return AutoPilotAction.brake();
+				return ActuatorAction.brake();
 			} else {
 				changeState(State.Idle);
 			}
@@ -65,12 +65,12 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 		case Idle:
 			if (currentSpeed + SPEED_EPS < target) {
 				changeState(State.Accelerating);
-				return AutoPilotAction.forward();
+				return ActuatorAction.forward();
 			} else if (currentSpeed - SPEED_EPS - 0.2f > target) {
 				changeState(State.Decelerating);
-				return AutoPilotAction.brake();
+				return ActuatorAction.brake();
 			} else {
-				return AutoPilotAction.nothing();
+				return ActuatorAction.nothing();
 			}
 		case RecoveringWait:
 			recoveringWaitTime += delta;
@@ -81,10 +81,10 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 		case RecoveringReverse:
 			changeState(State.Idle);
 			System.err.println("!!!!!!!!!!!!!!!!!!RECOVERED!!!!!!!!!!!!!!!!!");
-			return AutoPilotAction.backward();
+			return ActuatorAction.backward();
 		// break;
 		}
-		return AutoPilotAction.nothing();
+		return ActuatorAction.nothing();
 	}
 
 	private void changeState(State newState) {

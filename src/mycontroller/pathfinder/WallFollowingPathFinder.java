@@ -41,7 +41,9 @@ public class WallFollowingPathFinder implements PathFinder {
             e.printStackTrace();
         }
 
-        ArrayList<Coordinate> path2 = findPathFollowingWallDFS(path1.get(path1.size() - 1), new HashSet<>(path1));
+        ArrayList<Coordinate> path2 = findPathFollowingWallDFS(
+                path1.isEmpty() ? currentPosition : path1.get(path1.size() - 1),
+                new HashSet<>(path1));
         //path1.remove(path1.size() - 1);
         finalPath.addAll(path1);
         finalPath.addAll(path2);

@@ -62,7 +62,7 @@ public class Car extends Sprite{
 	private static int CAR_HEIGHT;
 
 	private float health;
-	private static final float MAX_HEALTH = 10000;
+	private static final float MAX_HEALTH = 100;
 	
 	private int key = 1; // If no keys elsewhere, we have the exit key
 
@@ -86,7 +86,8 @@ public class Car extends Sprite{
 		CAR_WIDTH = (int) sprite.getWidth();
 		CAR_HEIGHT = (int) sprite.getHeight();
 
-		this.currentOrientation = WorldSpatial.Direction.EAST;
+		this.currentOrientation = WorldSpatial.Direction.NORTH;
+		this.rotation =90;
 	}
 
 	public void update(float delta) {

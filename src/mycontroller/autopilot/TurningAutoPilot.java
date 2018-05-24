@@ -2,7 +2,6 @@ package mycontroller.autopilot;
 
 import utilities.Coordinate;
 import world.Car;
-import world.World;
 import world.WorldSpatial;
 import world.WorldSpatial.RelativeDirection;
 import world.WorldSpatial.Direction;
@@ -74,7 +73,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
     }
 
     @Override
-    public AutoPilotAction handle(float delta, Car car) {
+    public ActuatorAction handle(float delta, Car car) {
         Coordinate coord = new Coordinate(car.getPosition());
 
         System.out.printf("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x,
@@ -99,19 +98,19 @@ public class TurningAutoPilot extends BaseAutoPilot {
                 break;
 
         }
-        AutoPilotAction speedOpt = this.maintainSpeedOpt.handle(delta, car);
+        ActuatorAction speedOpt = this.maintainSpeedOpt.handle(delta, car);
 
         switch (state) {
             case Waiting:
-                return AutoPilotAction.nothing();
+                return ActuatorAction.nothing();
             case ReachTurningSpeed:
                 return speedOpt;
             case StartTurning:
-                AutoPilotAction output;
+                ActuatorAction output;
                 if (turningMode == RelativeDirection.LEFT) {
-                    output = AutoPilotAction.combine(speedOpt, AutoPilotAction.turnLeft());
+                    output = ActuatorAction.combine(speedOpt, ActuatorAction.turnLeft());
                 } else {
-                    output = AutoPilotAction.combine(speedOpt, AutoPilotAction.turnRight());
+                    output = ActuatorAction.combine(speedOpt, ActuatorAction.turnRight());
                 }
                 // Overwrite the backward attribute:
                 // We should never reverse+turn at the same time, otherwise the turning
@@ -121,7 +120,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
             case FinishedTurning:
                 return speedOpt;
             default:
-                return AutoPilotAction.nothing();
+                return ActuatorAction.nothing();
         }
     }
 
@@ -157,13 +156,13 @@ public class TurningAutoPilot extends BaseAutoPilot {
     private boolean reachedTurningPoint(float x, float y) {
         switch (fromDirection) {
             case WEST:
-                return x <= this.getCentreLineX(toTile.x) + d() - 0.005f; // overrun a little bit to avoid hitting the wall
+                return (double)x <= this.getCentreLineX(toTile.x) + d() - (-0.1); // overrun a little bit to avoid hitting the wall
             case EAST:
-                return x >= this.getCentreLineX(toTile.x) - d() + 0.005f;
+                return (double)x >= this.getCentreLineX(toTile.x) - d() + (-0.1);
             case NORTH:
-                return y >= this.getCentreLineY(toTile.y) - d() + 0.005f;
+                return (double)y >= this.getCentreLineY(toTile.y) - d() + 0.005;
             case SOUTH:
-                return y <= this.getCentreLineY(toTile.y) + d() - 0.005f;
+                return (double)y <= this.getCentreLineY(toTile.y) + d() - 0.005;
             default:
                 return false;
         }

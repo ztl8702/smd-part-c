@@ -1,7 +1,7 @@
 package mycontroller.navigator;
 
 import mycontroller.autopilot.AutoPilot;
-import mycontroller.autopilot.AutoPilotAction;
+import mycontroller.autopilot.ActuatorAction;
 import mycontroller.routecompiler.DefaultRouteCompiler;
 import mycontroller.routecompiler.RouteCompiler;
 import utilities.Coordinate;
@@ -22,13 +22,13 @@ public class DefaultNavigator implements Navigator {
     }
 
     @Override
-    public AutoPilotAction update(float delta, Car car) {
+    public ActuatorAction update(float delta, Car car) {
         while (!upcomingOpts.isEmpty() && upcomingOpts.peek().canTakeCharge() && (this.opt ==null || this.opt.canBeSwappedOut()) ) {
             System.out.println(upcomingOpts.peek()+"taking charge");
             this.opt = upcomingOpts.remove();
         }
         System.out.printf("delta=%.6f (%.6f, %.6f)\n", delta,car.getX(),car.getY());
-        AutoPilotAction action = AutoPilotAction.nothing();
+        ActuatorAction action = ActuatorAction.nothing();
         if (opt!=null) {
             action = opt.handle(delta, car);
         }
