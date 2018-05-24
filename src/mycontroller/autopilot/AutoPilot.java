@@ -22,7 +22,7 @@ public interface AutoPilot {
      * @param car
      * @return
      */
-    public ActuatorAction handle(float delta, SensorInfo carStatus);
+    ActuatorAction handle(float delta, SensorInfo carStatus);
 
     /**
      * Lets the caller know whether this AutoPilot can take over the control. Some
