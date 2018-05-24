@@ -31,6 +31,8 @@ public class AStarPathFinder implements PathFinder {
 	/** The heuristic we're applying to determine which nodes to search first */
 	private AStarHeuristic heuristic;
 	
+	
+	
 	/**
 	 * Create a path finder 
 	 * 
@@ -142,9 +144,10 @@ public class AStarPathFinder implements PathFinder {
 					// determine the location of the neighbour and evaluate it
 					int xp = x + current.x;
 					int yp = y + current.y;
-					
+					System.out.printf("[%d,%d](%d,%d) ", xp,yp,x,y);
 					
 					if (!isWall(sx, sy, xp, yp)) {
+						System.out.printf("(%d,%d is not wall!",xp,yp);//getClass();
 //					if (getCellType(new Coordinate(xp, yp)) != CellType.WALL) {
 //					if (true) { //isValidLocation(mover,sx,sy,xp,yp)) {
 						// the cost to get to this node is cost the current plus the movement
