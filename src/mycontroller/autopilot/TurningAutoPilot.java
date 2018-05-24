@@ -155,16 +155,16 @@ public class TurningAutoPilot extends BaseAutoPilot {
      */
     private boolean reachedTurningPoint(float x, float y) {
     	
-//    	float buffer = 0.01f;
+    	float buffer = 0.01f;
         switch (fromDirection) {
             case WEST:
-                return (double)x <= this.getCentreLineX(toTile.x) + d() - (-0.1); // overrun a little bit to avoid hitting the wall
+                return (double)x <= this.getCentreLineX(toTile.x) + d() - buffer;// (-0.1); // overrun a little bit to avoid hitting the wall
             case EAST:
-                return (double)x >= this.getCentreLineX(toTile.x) - d() + (-0.1);
+                return (double)x >= this.getCentreLineX(toTile.x) - d() + buffer;//(-0.1);
             case NORTH:
-                return (double)y >= this.getCentreLineY(toTile.y) - d() + 0.005;
+                return (double)y >= this.getCentreLineY(toTile.y) - d() + buffer;//0.005;
             case SOUTH:
-                return (double)y <= this.getCentreLineY(toTile.y) + d() - 0.005;
+                return (double)y <= this.getCentreLineY(toTile.y) + d() - buffer;//0.005;
             default:
                 return false;
         }

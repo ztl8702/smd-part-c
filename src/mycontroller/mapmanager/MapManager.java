@@ -44,7 +44,10 @@ public class MapManager implements MapManagerInterface {
 
     @Override
     public Cell getCell(int x, int y) {
-        return this.map.get(new Coordinate(x, y));
+    	if (isWithinBoard(new Coordinate(x, y))) {
+    		return this.map.get(new Coordinate(x, y));
+    	}
+        return null;
     }
 
     @Override
@@ -85,7 +88,6 @@ public class MapManager implements MapManagerInterface {
 
     @Override
     public boolean foundAllKeys(int currentKey) {
-
         for (int i=1; i<currentKey; i++) {
             if (this.getKeyCoordinate(i) == null) {
                 return false;
@@ -94,8 +96,6 @@ public class MapManager implements MapManagerInterface {
         return true;
     }
 
-
-    // TODO: maybe issue here, as ur mutating ???
     public void initialMap(HashMap<Coordinate, MapTile> tiles) {
         tiles.forEach((coord,tile) -> {
             switch (tile.getType()) {
@@ -242,8 +242,6 @@ public class MapManager implements MapManagerInterface {
                 }
             }
         }
-
-
     }
 
     private void dfsConnectedArea (Coordinate currentLocation) {
@@ -265,5 +263,4 @@ public class MapManager implements MapManagerInterface {
             }
         }
     }
-
 }

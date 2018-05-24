@@ -32,9 +32,12 @@ public class AStarPathFinder implements PathFinder {
 			// using current position
 			// check if its a lava tile
 			// or a health tile
+			Cell cell = mapManager.getCell(x, y);
+			CellType cellType = null;
+			if (cell != null) {
+				cellType = cell.type;
+			}
 			
-			
-			CellType cellType = mapManager.getCell(x, y).type;
 			
 			if (cellType == CellType.LAVA) {
 				//TODO: currently HardCoded value, maybe not the best
@@ -278,7 +281,10 @@ public class AStarPathFinder implements PathFinder {
 		
 		boolean inMap = mapManager.isWithinBoard(new Coordinate(x, y));
 		if (inMap) {
-			return (mapManager.getCell(x, y).type == CellType.WALL);
+			Cell cell = mapManager.getCell(x, y);
+			if (cell != null) {
+				return (cell.type == CellType.WALL);
+			}
 		}
 		return false;
 	}

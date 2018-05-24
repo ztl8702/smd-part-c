@@ -28,7 +28,6 @@ public class MyAIController extends CarController {
 	
 	private boolean startedMoving;
 	
-	private final int DANGER_THRESHOLD = 20;
 	
 	private MapManagerInterface mapManager;
 	private State currentState;
@@ -51,9 +50,6 @@ public class MyAIController extends CarController {
 		
 		// gets what the car can see
 		HashMap<Coordinate, MapTile> currentView = getView();
-		
-		// update key to mapManager
-//		mapManager.updateKey(this.getKey());
 
 		// update the mapManager
 		mapManager.updateView(currentView);
@@ -153,12 +149,6 @@ public class MyAIController extends CarController {
 			// print out the result		
 			System.out.println("************************ASTAR***************** Path found!!!!");
 			System.out.println(finalPath.toString());
-//			for (Coordinate c : finalPath) {
-//				System.out.printf("(%d,%d)->", c.x, c.y);
-//			}
-
-//			System.out.println("\n====================================\n\n\n\n\n");
-
 		}
 
 
@@ -174,17 +164,6 @@ public class MyAIController extends CarController {
 		if(getHealth() <= DANGER_THRESHOLD) {
 			RecoveryPathFinder recoveryPathFinder = new RecoveryPathFinder();
 		}
-		
-		
-		
-		if(mapManager.foundSolution()) {
-			FinisherPathFinder finisherPathFinder = new FinisherPathFinder();
-			
-//			new Node(parentNode, goalNode, gCost, x, y)
-//			finisherPathFinder.aStarSearch(Node startNode, Node goalNode);
-		}
-		
-		
 		if (DEBUG) System.out.printf("current unseen count: %d\n", mapManager.getUnseen().size());	
 		**/
 	}
