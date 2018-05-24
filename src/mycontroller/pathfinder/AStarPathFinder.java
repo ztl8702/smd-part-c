@@ -233,13 +233,13 @@ public class AStarPathFinder implements PathFinder {
 	
 
 	private WorldSpatial.Direction angleToDirection(float currentAngle) {
-		if (currentAngle <= 45 && currentAngle>=360-45) {
+		if (currentAngle <= 45 && currentAngle>=315) {
 			// facing east, give west tile
 			return WorldSpatial.Direction.EAST;
-        } else if (currentAngle >=45 &&currentAngle <= 135) {
+        } else if (currentAngle >=45 && currentAngle <= 135) {
         	// facing north
         	return WorldSpatial.Direction.NORTH;
-        } else if (currentAngle >= 135 &&currentAngle <= 180+45) {
+        } else if (currentAngle >= 135 && currentAngle <= 225) {
         	// facing west
         	return WorldSpatial.Direction.WEST;
         } else {
@@ -254,11 +254,11 @@ public class AStarPathFinder implements PathFinder {
 			// facing east, give west tile
 			return new Coordinate(x-1, y);
 		}
-		else if (direction == WorldSpatial.Direction.EAST) {
+		else if (direction == WorldSpatial.Direction.NORTH) {
 			// facing north
         	return new Coordinate(x, y-1);
 		}
-		else if (direction == WorldSpatial.Direction.EAST) {
+		else if (direction == WorldSpatial.Direction.WEST) {
 			// facing west
         	return new Coordinate(x+1, y);
 		}
