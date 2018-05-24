@@ -1,25 +1,17 @@
 package controller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import mycontroller.MyAIController.State;
-import mycontroller.common.Cell.CellType;
-import mycontroller.mapmanager.MapManager;
-import mycontroller.mapmanager.MapManagerInterface;
-import mycontroller.pathfinder.AStarPathFinder;
-import mycontroller.pathfinder.PathFinder;
+
 import tiles.MapTile;
 import utilities.Coordinate;
 import world.Car;
-import world.World;
 import world.WorldSpatial;
 
 public class AIController extends CarController {
 	
-	private MapManagerInterface mapManager;
-	
 	// How many minimum units the wall is away from the player.
 	private int wallSensitivity = 2;
+	
 	
 	private boolean isFollowingWall = false; // This is initialized when the car sticks to a wall.
 	private WorldSpatial.RelativeDirection lastTurnDirection = null; // Shows the last turn direction the car takes.
@@ -35,10 +27,6 @@ public class AIController extends CarController {
 	
 	public AIController(Car car) {
 		super(car);
-				
-		mapManager = new MapManager();
-		mapManager.initialMap(this.getMap());
-//		mapManager.markReachable();
 	}
 	
 	Coordinate initialGuess;
@@ -49,25 +37,7 @@ public class AIController extends CarController {
 		// Gets what the car can see
 		HashMap<Coordinate, MapTile> currentView = getView();
 		
-		// update key to mapManager
-//		mapManager.updateKey(this.getKey());
-
-		// update the mapManager
-		mapManager.updateView(currentView);
-		
 		checkStateChange();
-		
-		
-		
-		
-		if (mapManager.foundAllKeys(this.getKey())) {
-			
-//			HashMap<Integer, Coordinate> keyLocation = mapManager.getKeys();
-			
-//			System.out.println(keyLocation.toString());
-		}
-		
-		
 
 		// If you are not following a wall initially, find a wall to stick to!
 		if(!isFollowingWall){
@@ -130,76 +100,6 @@ public class AIController extends CarController {
 		}
 		
 		
-//		if (mapManager.foundAllKeys()) {
-//			
-//			int maxSearchDepth = 500;
-////			PathFinder finisher = new AStarPathFinder(maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
-//			
-//			
-//			System.out.println("\n\n\n\n\n\n====================================\n");
-//			
-//			ArrayList<Coordinate> finalPath = new ArrayList<>();
-//	        ArrayList<Coordinate> subPath = null;
-//	        
-//	        Coordinate currentPosition = new Coordinate(this.getPosition());
-//	        // initial position before search
-//	        int cX = currentPosition.x;
-//	        int cY = currentPosition.y;
-//	        		
-//			/* loop through all the keys and set key coordinate end location */
-//			for( int i = this.getKey()-1; i>=1; i-- ) {
-//				
-//				Coordinate k = mapManager.findKey(i);
-//				if (k == null) {
-//					System.err.println("cant locate key position" + i);
-//				} else {
-////					System.out.println("finding key number" + i);
-//				}
-//
-////				subPath = finisher.getPath(mapManager.getMap(), new Coordinate(cX, cY), 
-////						new Coordinate(k.x, k.y), this.getSpeed(), this.getAngle());
-//				
-//				System.err.println(mapManager.printBoard());
-//				
-//				if (subPath != null) {
-////					System.out.println("found path for :" + "from" + cX+cY+"to"+keyPosition.toString());
-//					finalPath.addAll(subPath);
-////					System.out.println(finalPath.toString());
-//					cX = k.x;
-//					cY = k.y;
-//				}
-//				else {
-//					System.err.println("Problem finding path with astar" + "from" + cX + "," + cY + "to" + k.x + "," + k.y);
-//				}
-//			}
-//			// done with getting all keys, now go to finish tile
-//			Coordinate finalKeyPosition = mapManager.findKey(1);
-//			Coordinate finishTile = mapManager.getFinishTile();
-////			subPath = finisher.getPath(mapManager.getMap(), new Coordinate(finalKeyPosition.x, finalKeyPosition.y), 
-////					new Coordinate(finishTile.x, finishTile.y), this.getSpeed(), this.getAngle());
-//			System.err.println(mapManager.printBoard());
-//			
-////			System.out.println("managed to get final subpath");
-//			if (subPath != null) {
-//				finalPath.addAll(subPath);
-//			}
-//			
-////			System.out.println(finalPath.toString());
-//			
-//			
-//			// print out the result		
-//			System.out.println("*****ASTAR***** Path found!!!!");
-//			System.out.println(finalPath.toString());
-////			for (Coordinate c : finalPath) {
-////				System.out.printf("(%d,%d)->", c.x, c.y);
-////			}
-//			
-//
-////			ArrayList<Coordinate> path = finisher.getPath(mapManager.getMap(),
-////					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
-//			System.out.println("\n====================================\n\n\n\n\n");
-
-//		}
 
 	}
 	
