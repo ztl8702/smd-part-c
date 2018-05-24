@@ -1,5 +1,6 @@
 package mycontroller.autopilot;
 
+import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
 import world.Car;
 import world.WorldSpatial;
@@ -33,7 +34,9 @@ public class TurningAutoPilot extends BaseAutoPilot {
     private Direction toDirection;
     private RelativeDirection turningMode;
 
-    public TurningAutoPilot(Coordinate fromTile, Coordinate toTile, RelativeDirection turningMode) {
+    public TurningAutoPilot(MapManagerInterface mapManager, Coordinate fromTile, Coordinate toTile, RelativeDirection turningMode) {
+        super(mapManager);
+
         // figure out which direction we are turning from and which direction we are turning to
         if (fromTile.x + 1 == toTile.x && fromTile.y + 1 == toTile.y && turningMode == RelativeDirection.LEFT) {
             fromDirection = Direction.EAST;
@@ -68,7 +71,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
         this.turningMode = turningMode;
 
         // let some other AutoPilot care about the speed
-        maintainSpeedOpt = new MaintainSpeedAutoPilot(MAINTAIN_SPEED);
+        maintainSpeedOpt = new MaintainSpeedAutoPilot(mapManager, MAINTAIN_SPEED);
         state = State.Waiting;
     }
 

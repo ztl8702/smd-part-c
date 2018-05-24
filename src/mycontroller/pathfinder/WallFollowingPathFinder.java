@@ -3,7 +3,6 @@ package mycontroller.pathfinder;
 import java.util.*;
 
 import mycontroller.common.Cell;
-import mycontroller.mapmanager.MapManager;
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
 import world.WorldSpatial;
@@ -22,7 +21,6 @@ public class WallFollowingPathFinder implements PathFinder {
     private float startingSpeed;
     private WorldSpatial.Direction startingDirection;
     
-    private boolean isWallLeft = false;
 
     public WallFollowingPathFinder(MapManagerInterface mapManager) {
 		this.mapManager = mapManager;

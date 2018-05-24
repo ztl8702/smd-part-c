@@ -1,6 +1,8 @@
 package mycontroller.autopilot;
 
 
+import mycontroller.mapmanager.MapManagerInterface;
+
 /**
  * An AutoPilot that maintains the car speed at a given value.
  */
@@ -19,7 +21,8 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 	 * 
 	 * @param target The speed to maintain at.
 	 */
-	public MaintainSpeedAutoPilot(float target) {
+	public MaintainSpeedAutoPilot(MapManagerInterface mapManager, float target) {
+		super(mapManager);
 		this.target = target;
 	}
 

@@ -1,5 +1,6 @@
 package mycontroller.autopilot;
 
+import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
 import world.Car;
 
@@ -14,7 +15,7 @@ import com.badlogic.gdx.utils.compression.lzma.Base;
 public class ForwardToAutoPilot extends BaseAutoPilot {
     private static float CRUISING_SPEED = 5.0f;
     /**
-     * Our (estimated) de-celeration due to braking. The lower the value, the earlier the car starts braking,
+     * Our (estimated) deceleration due to braking. The lower the value, the earlier the car starts braking,
      * but the risk of overruning will also be lower.
      */
     private static float DECELERATION = 1.0f;
@@ -32,7 +33,8 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
     private State state;
     private float targetSpeed;
 
-    public ForwardToAutoPilot(Coordinate from, Coordinate to, float targetSpeed) {
+    public ForwardToAutoPilot(MapManagerInterface mapManager, Coordinate from, Coordinate to, float targetSpeed) {
+        super(mapManager);
         // Either x or y position of the tiles must be identical,
         // i.e. we only allow moving horizontally or vertically.
         if (from.x == to.x) {
@@ -83,13 +85,13 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
             double d = getDistanceToTarget(car.getX(), car.getY());
             double speedLimit = getSpeedLimit(d - delta * car.getSpeed() - 0.03, targetSpeed);
             if (DEBUG_AUTOPILOT) System.out.printf("speedLimit=%.5f\n", speedLimit);
-            AutoPilot ap = new MaintainSpeedAutoPilot((float) speedLimit);
+            AutoPilot ap = new MaintainSpeedAutoPilot(mapManager, (float) speedLimit);
             return ap.handle(delta, car);
         case Finished:
             if (Math.abs(car.getSpeed() - targetSpeed) < 0.1f) {
                 return ActuatorAction.nothing();
             } else {
-                AutoPilot ap2 = new MaintainSpeedAutoPilot(targetSpeed);
+                AutoPilot ap2 = new MaintainSpeedAutoPilot(mapManager, targetSpeed);
                 return ap2.handle(delta, car);
             }
 

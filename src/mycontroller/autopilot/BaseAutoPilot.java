@@ -1,6 +1,6 @@
 package mycontroller.autopilot;
 
-import mycontroller.autopilot.AutoPilot;
+import mycontroller.mapmanager.MapManagerInterface;
 
 /**
  * Base implementation of AutoPilot, providing some helper methods for its
@@ -10,6 +10,12 @@ public abstract class BaseAutoPilot implements AutoPilot {
     public static final double TILE_WIDTH = 1; // 32;
     
     public static boolean DEBUG_AUTOPILOT = false;
+
+    protected MapManagerInterface mapManager;
+
+    public BaseAutoPilot(MapManagerInterface mapManager) {
+        this.mapManager = mapManager;
+    }
 
     // Helper methods
     protected double getCentreLineX(int tileX) {

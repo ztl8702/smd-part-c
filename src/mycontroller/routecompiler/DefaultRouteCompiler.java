@@ -1,6 +1,7 @@
 package mycontroller.routecompiler;
 
 import mycontroller.autopilot.AutoPilot;
+import mycontroller.autopilot.AutoPilotFactory;
 import mycontroller.autopilot.ForwardToAutoPilot;
 import mycontroller.autopilot.TurningAutoPilot;
 import org.apache.logging.log4j.core.util.ArrayUtils;
@@ -25,9 +26,7 @@ public class DefaultRouteCompiler implements RouteCompiler {
     // don't need to be reflected in UML (i guess)
     enum ActionType {
         GoStraight, TurnLeft, TurnRight
-    }
-
-    ;
+    };
 
     private class Action {
         public ActionType type;
@@ -141,17 +140,17 @@ public class DefaultRouteCompiler implements RouteCompiler {
                 case GoStraight:
                     if (actionList.indexOf(a) == actionList.size() - 1) {
                         // last action => stop
-                        output.add(new ForwardToAutoPilot(a.start, a.finish, 0f));
+                        output.add(AutoPilotFactory.forwardTo(a.start, a.finish, 0f));
                     } else {
-                        output.add(new ForwardToAutoPilot(a.start, a.finish, TurningAutoPilot.MAINTAIN_SPEED));
+                        output.add(AutoPilotFactory.forwardTo(a.start, a.finish, TurningAutoPilot.MAINTAIN_SPEED));
                     }
 
                     break;
                 case TurnLeft:
-                    output.add(new TurningAutoPilot(a.start, a.finish, WorldSpatial.RelativeDirection.LEFT));
+                    output.add(AutoPilotFactory.turn(a.start, a.finish, WorldSpatial.RelativeDirection.LEFT));
                     break;
                 case TurnRight:
-                    output.add(new TurningAutoPilot(a.start, a.finish, WorldSpatial.RelativeDirection.RIGHT));
+                    output.add(AutoPilotFactory.turn(a.start, a.finish, WorldSpatial.RelativeDirection.RIGHT));
                     break;
             }
         }
