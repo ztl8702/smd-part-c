@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Path;
 
 import controller.CarController;
 import mycontroller.autopilot.AutoPilotAction;
+import mycontroller.common.Cell;
 import mycontroller.navigator.DefaultNavigator;
 import mycontroller.navigator.Navigator;
 import mycontroller.pathfinder.*;
@@ -70,14 +71,11 @@ public class MyAIController extends CarController {
 		
 		// have not found solution, keep exploring
 		if(!startedMoving && currentState == State.Explore) {
-			//ExplorerPathFinder explorerPathFinder = new ExplorerPathFinder();
+
 			PathFinder wallFollower = new WallFollowingPathFinder();
-//			System.out.println("\n\n\n\n\n\n====================================\n");
 
 			ArrayList<Coordinate> path = wallFollower.getPath(mapManager.getMap(),
-					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
-			System.out.println(path.toString());
-//			System.out.println("\n====================================\n\n\n\n\n");
+					new Coordinate(this.getPosition()), null, this.getSpeed(), this.getAngle());
 
 			navigator.loadNewPath(path);
 			//RouteCompiler compiler = new DefaultRouteCompiler();
@@ -108,9 +106,9 @@ public class MyAIController extends CarController {
 		
 		// once all keys have been found
 		if (mapManager.foundAllKeys()) {
-			//TODO: is no longer using the interface
-			AStarPathFinder finisher = new AStarPathFinder(mapManager.getMap(), 500, 
-					this.getKey(), new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
+			
+			int maxSearchDepth = 500;
+			PathFinder finisher = new AStarPathFinder(maxSearchDepth);
 			
 			
 			System.out.println("\n\n\n\n\n\n====================================\n");
@@ -126,30 +124,35 @@ public class MyAIController extends CarController {
 			/* loop through all the keys and set key coordinate end location */
 			for( int i = this.getKey()-1; i>=1; i-- ) {
 				
-				Coordinate keyPosition = mapManager.findKey(i);
-				if (keyPosition == null) {
+				Coordinate k = mapManager.findKey(i);
+				if (k == null) {
 					System.err.println("cant locate key position" + i);
 				} else {
 //					System.out.println("finding key number" + i);
 				}
-//				System.out.println("from" + cX+cY+"to"+keyPosition.toString());
-				subPath = finisher.findPath(cX, cY, keyPosition.x, keyPosition.y);
+
+				subPath = finisher.getPath(mapManager.getMap(), new Coordinate(cX, cY), 
+						new Coordinate(k.x, k.y), this.getSpeed(), this.getAngle());
+				
+				System.err.println(mapManager.printBoard());
 				
 				if (subPath != null) {
 //					System.out.println("found path for :" + "from" + cX+cY+"to"+keyPosition.toString());
 					finalPath.addAll(subPath);
 //					System.out.println(finalPath.toString());
-					cX = keyPosition.x;
-					cY = keyPosition.y;
+					cX = k.x;
+					cY = k.y;
 				}
 				else {
-					System.err.println("Problem finding path with astar" + "from" + cX + "," + cY + "to" + keyPosition.x + "," + keyPosition.y);
+					System.err.println("Problem finding path with astar" + "from" + cX + "," + cY + "to" + k.x + "," + k.y);
 				}
 			}
 			// done with getting all keys, now go to finish tile
 			Coordinate finalKeyPosition = mapManager.findKey(1);
 			Coordinate finishTile = mapManager.getFinishTile();
-			subPath = finisher.findPath(finalKeyPosition.x, finalKeyPosition.y, finishTile.x, finishTile.y);
+			subPath = finisher.getPath(mapManager.getMap(), new Coordinate(finalKeyPosition.x, finalKeyPosition.y), 
+					new Coordinate(finishTile.x, finishTile.y), this.getSpeed(), this.getAngle());
+			System.err.println(mapManager.printBoard());
 			
 //			System.out.println("managed to get final subpath");
 			if (subPath != null) {
@@ -165,10 +168,7 @@ public class MyAIController extends CarController {
 //			for (Coordinate c : finalPath) {
 //				System.out.printf("(%d,%d)->", c.x, c.y);
 //			}
-			
 
-//			ArrayList<Coordinate> path = finisher.getPath(mapManager.getMap(),
-//					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
 			System.out.println("\n====================================\n\n\n\n\n");
 
 		}

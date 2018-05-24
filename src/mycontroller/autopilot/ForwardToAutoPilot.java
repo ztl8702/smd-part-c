@@ -5,6 +5,8 @@ import world.Car;
 
 import java.security.InvalidParameterException;
 
+import com.badlogic.gdx.utils.compression.lzma.Base;
+
 /**
  * An AutoPilot that knows how to go from tile A to tile B going straight forward.
  * 
@@ -80,7 +82,7 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
         case On:
             double d = getDistanceToTarget(car.getX(), car.getY());
             double speedLimit = getSpeedLimit(d - delta * car.getSpeed() - 0.03, targetSpeed);
-            System.out.printf("speedLimit=%.5f\n", speedLimit);
+            if (DEBUG_AUTOPILOT) System.out.printf("speedLimit=%.5f\n", speedLimit);
             AutoPilot ap = new MaintainSpeedAutoPilot((float) speedLimit);
             return ap.handle(delta, car);
         case Finished:

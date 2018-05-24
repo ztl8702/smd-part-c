@@ -77,7 +77,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
     public AutoPilotAction handle(float delta, Car car) {
         Coordinate coord = new Coordinate(car.getPosition());
 
-        System.out.printf("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x,
+        if (DEBUG_AUTOPILOT) System.out.printf("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x,
                 this.getCentreLineX(toTile.x), d(), this.getCentreLineX(toTile.x) - d(), car.getX());
 
         switch (this.state) {

@@ -34,7 +34,7 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 	@Override
 	public AutoPilotAction handle(float delta, Car car) {
 		float currentSpeed = car.getSpeed();
-		System.out.printf("[%.4f] %.6f %.6f\n", delta, currentSpeed, car.getVelocity().len());
+		if (DEBUG_AUTOPILOT) System.out.printf("[%.4f] %.6f %.6f\n", delta, currentSpeed, car.getVelocity().len());
 
 		switch (this.state) {
 		case Accelerating:
@@ -89,7 +89,7 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 
 	private void changeState(State newState) {
 		if (this.state != newState) {
-			System.out.println("[MaintinSpeedOperator] state change: " + this.state + " -> " + newState);
+			if (DEBUG_AUTOPILOT) System.out.println("[MaintinSpeedOperator] state change: " + this.state + " -> " + newState);
 			this.state = newState;
 
 			if (newState == State.Accelerating) {

@@ -8,6 +8,8 @@ import mycontroller.autopilot.AutoPilot;
  */
 public abstract class BaseAutoPilot implements AutoPilot {
     public static final double TILE_WIDTH = 1; // 32;
+    
+    public static boolean DEBUG_AUTOPILOT = false;
 
     // Helper methods
     protected double getCentreLineX(int tileX) {

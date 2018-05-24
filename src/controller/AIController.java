@@ -7,7 +7,6 @@ import mycontroller.MapManager;
 import mycontroller.MyAIController.State;
 import mycontroller.common.Cell.CellType;
 import mycontroller.pathfinder.AStarPathFinder;
-import mycontroller.pathfinder.FinisherPathFinder;
 import mycontroller.pathfinder.PathFinder;
 import tiles.MapTile;
 import utilities.Coordinate;
@@ -56,6 +55,9 @@ public class AIController extends CarController {
 		mapManager.updateView(currentView);
 		
 		checkStateChange();
+		
+		
+		
 		
 		if (mapManager.foundAllKeys()) {
 			
@@ -129,9 +131,8 @@ public class AIController extends CarController {
 		
 		if (mapManager.foundAllKeys()) {
 			
-			//TODO: is no longer using the interface
-			AStarPathFinder finisher = new AStarPathFinder(mapManager.getMap(), 500, 
-					this.getKey(), new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
+			int maxSearchDepth = 500;
+			PathFinder finisher = new AStarPathFinder(maxSearchDepth);
 			
 			
 			System.out.println("\n\n\n\n\n\n====================================\n");
@@ -147,30 +148,35 @@ public class AIController extends CarController {
 			/* loop through all the keys and set key coordinate end location */
 			for( int i = this.getKey()-1; i>=1; i-- ) {
 				
-				Coordinate keyPosition = mapManager.findKey(i);
-				if (keyPosition == null) {
+				Coordinate k = mapManager.findKey(i);
+				if (k == null) {
 					System.err.println("cant locate key position" + i);
 				} else {
 //					System.out.println("finding key number" + i);
 				}
-//				System.out.println("from" + cX+cY+"to"+keyPosition.toString());
-				subPath = finisher.findPath(cX, cY, keyPosition.x, keyPosition.y);
+
+				subPath = finisher.getPath(mapManager.getMap(), new Coordinate(cX, cY), 
+						new Coordinate(k.x, k.y), this.getSpeed(), this.getAngle());
+				
+				System.err.println(mapManager.printBoard());
 				
 				if (subPath != null) {
 //					System.out.println("found path for :" + "from" + cX+cY+"to"+keyPosition.toString());
 					finalPath.addAll(subPath);
 //					System.out.println(finalPath.toString());
-					cX = keyPosition.x;
-					cY = keyPosition.y;
+					cX = k.x;
+					cY = k.y;
 				}
 				else {
-					System.err.println("Problem finding path with astar" + "from" + cX + "," + cY + "to" + keyPosition.x + "," + keyPosition.y);
+					System.err.println("Problem finding path with astar" + "from" + cX + "," + cY + "to" + k.x + "," + k.y);
 				}
 			}
 			// done with getting all keys, now go to finish tile
 			Coordinate finalKeyPosition = mapManager.findKey(1);
 			Coordinate finishTile = mapManager.getFinishTile();
-			subPath = finisher.findPath(finalKeyPosition.x, finalKeyPosition.y, finishTile.x, finishTile.y);
+			subPath = finisher.getPath(mapManager.getMap(), new Coordinate(finalKeyPosition.x, finalKeyPosition.y), 
+					new Coordinate(finishTile.x, finishTile.y), this.getSpeed(), this.getAngle());
+			System.err.println(mapManager.printBoard());
 			
 //			System.out.println("managed to get final subpath");
 			if (subPath != null) {
@@ -191,6 +197,7 @@ public class AIController extends CarController {
 //			ArrayList<Coordinate> path = finisher.getPath(mapManager.getMap(),
 //					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
 			System.out.println("\n====================================\n\n\n\n\n");
+
 		}
 
 	}

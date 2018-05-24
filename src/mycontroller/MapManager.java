@@ -174,11 +174,14 @@ public class MapManager {
 		}
 	}
 	
-	public void printBoard() {
+	public String printBoard() {
 		String output  ="";
 		for (int y = yEnd; y>=yStart; --y) {
 			for (int x = xStart; x<=xEnd; ++x) {
 				Cell cell = this.map.get(new Coordinate(x,y));
+				if (cell == null) {
+					return null;
+				}
 				boolean isUnseen = this.unseen.contains(new Coordinate(x,y));
 				boolean isReachable = this.reachable.contains(new Coordinate(x,y));
 				
@@ -219,8 +222,10 @@ public class MapManager {
 			}
 			output+="\n";
 		}
+		
+		return output;
 		//output+=String.format"\b"
-		this.mapWindow.setText(output);
+//		this.mapWindow.setText(output);
 	}
 	
 	public void printColours(ColoredRegion[] regions) {

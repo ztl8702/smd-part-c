@@ -1,16 +1,11 @@
 package mycontroller.pathfinder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ForkJoinPool.ManagedBlocker;
 
-import mycontroller.MapManager;
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
 import utilities.Coordinate;
@@ -19,18 +14,21 @@ import world.World;
 public class AStarPathFinder implements PathFinder {
 	
 
-	/** The map being searched */
-	private HashMap<Coordinate, Cell> map;
 	/** The maximum depth of search we're willing to accept before giving up */
 	private int maxSearchDistance;
 	
 	/** The complete set of nodes across the map */
 	private Node[][] nodes;
-	/** True if we allow diaganol movement */
-	private boolean allowDiagMovement = false;
+
 	/** The heuristic we're applying to determine which nodes to search first */
 	private AStarHeuristic heuristic;
 	
+	public static final List<Coordinate> ANTICLOCKWISE_DIRECTION = Arrays.asList(
+			new Coordinate(0,1), //N
+			new Coordinate(-1,0), //W
+			new Coordinate(0,-1), //S
+			new Coordinate(1,0) //E
+			);
 	
 	
 	/**
@@ -41,13 +39,10 @@ public class AStarPathFinder implements PathFinder {
 	 * @param maxSearchDistance The maximum depth we'll search before giving up
 	 * @param allowDiagMovement True if the search should try diaganol movement
 	 */
-	public AStarPathFinder(HashMap<Coordinate, Cell> map, int maxSearchDistance, 
-						   int initialKey, Coordinate currentPosition, 
-						   float currentSpeed,float currentDirection) {
+	public AStarPathFinder(int maxSearchDistance) {
 		this.heuristic = new ClosestHeuristic();
-		this.map = map;
 		this.maxSearchDistance = maxSearchDistance;
-		
+
 		
 		//TODO need to think about it again as if this is the search we are using to explore 
 		
@@ -61,11 +56,7 @@ public class AStarPathFinder implements PathFinder {
 	}
 		
 	
-	@Override
-	public ArrayList<Coordinate> getPath(HashMap<Coordinate, Cell> map, Coordinate currentPosition, 
-			float currentSpeed,float currentDirection) {
-		return null;
-	}
+
 
 	/**
 	 * Get the heuristic cost for the given location. This determines in which 
@@ -77,7 +68,7 @@ public class AStarPathFinder implements PathFinder {
 	 * @param ty The y coordinate of the target location
 	 * @return The heuristic cost assigned to the tile
 	 */
-	public float getHeuristicCost(int x, int y, int tx, int ty) {
+	public float getHeuristicCost(HashMap<Coordinate, Cell> map, int x, int y, int tx, int ty) {
 		return heuristic.getCost(map, x, y, tx, ty);
 	}
 	
@@ -95,8 +86,17 @@ public class AStarPathFinder implements PathFinder {
 		return 1;
 	}
 	
+	
+	@Override
+	public ArrayList<Coordinate> getPath(HashMap<Coordinate, Cell> map, Coordinate currentPosition, 
+			Coordinate goalPosition, float currentSpeed,float currentDirection) {
+		
+		int sx = currentPosition.x;
+		int sy = currentPosition.y;
+		int tx = goalPosition.x;
+		int ty = goalPosition.y;
+			
 
-	public ArrayList<Coordinate> findPath(int sx, int sy, int tx, int ty) {
 		ArrayList<Node> closed = new ArrayList<Node>();
 		SortedList open = new SortedList();
 		
@@ -126,60 +126,43 @@ public class AStarPathFinder implements PathFinder {
 			
 			// search through all the neighbours of the current node evaluating
 			// them as next steps
-			for (int x=-1;x<2;x++) {
-				for (int y=-1;y<2;y++) {
-					// not a neighbour, its the current tile
-					if ((x == 0) && (y == 0)) {
-						continue;
-					}
+			
+			for (Coordinate d : ANTICLOCKWISE_DIRECTION ) {
 					
-					// if we're not allowing diagonal movement then only 
-					// one of x or y can be set
-					if (!allowDiagMovement) {
-						if ((x != 0) && (y != 0)) {
-							continue;
-						}
-					}
-					
-					// determine the location of the neighbour and evaluate it
-					int xp = x + current.x;
-					int yp = y + current.y;
-					System.out.printf("[%d,%d](%d,%d) ", xp,yp,x,y);
-					
-					if (!isWall(sx, sy, xp, yp)) {
-						System.out.printf("(%d,%d is not wall!",xp,yp);//getClass();
-//					if (getCellType(new Coordinate(xp, yp)) != CellType.WALL) {
-//					if (true) { //isValidLocation(mover,sx,sy,xp,yp)) {
-						// the cost to get to this node is cost the current plus the movement
-						// cost to reach this node. Note that the heursitic value is only used
-						// in the sorted open list
-						float nextStepCost = current.cost + getMovementCost(current.x, current.y, xp, yp);
-						Node neighbour = nodes[xp][yp];
+				// determine the location of the neighbour and evaluate it
+				int xp = d.x + current.x;
+				int yp = d.y + current.y;
+				
+				if (isWall(map, xp, yp) != true) {
+					// the cost to get to this node is cost the current plus the movement
+					// cost to reach this node. Note that the heursitic value is only used
+					// in the sorted open list
+					float nextStepCost = current.cost + getMovementCost(current.x, current.y, xp, yp);
+					Node neighbour = nodes[xp][yp];
 //						map.pathFinderVisited(xp, yp);
+					
+					// if the new cost we've determined for this node is lower than 
+					// it has been previously makes sure the node hasn't been discarded. We've
+					// determined that there might have been a better path to get to
+					// this node so it needs to be re-evaluated
+					if (nextStepCost < neighbour.cost) {
 						
-						// if the new cost we've determined for this node is lower than 
-						// it has been previously makes sure the node hasn't been discarded. We've
-						// determined that there might have been a better path to get to
-						// this node so it needs to be re-evaluated
-						if (nextStepCost < neighbour.cost) {
-							
-							if (open.contains(neighbour)) {
-								open.remove(neighbour);
-							}
-							if (closed.contains(neighbour)) {
-								closed.remove(neighbour);
-							}
+						if (open.contains(neighbour)) {
+							open.remove(neighbour);
 						}
-						
-						// if the node hasn't already been processed and discarded then
-						// reset it's cost to our current cost and add it as a next possible
-						// step (i.e. to the open list)
-						if ( (!open.contains(neighbour)) && !(closed.contains(neighbour)) ) {
-							neighbour.cost = nextStepCost;
-							neighbour.heuristic = getHeuristicCost(xp, yp, tx, ty);
-							maxDepth = Math.max(maxDepth, neighbour.setParent(current));
-							open.add(neighbour);
+						if (closed.contains(neighbour)) {
+							closed.remove(neighbour);
 						}
+					}
+					
+					// if the node hasn't already been processed and discarded then
+					// reset it's cost to our current cost and add it as a next possible
+					// step (i.e. to the open list)
+					if ( (!open.contains(neighbour)) && !(closed.contains(neighbour)) ) {
+						neighbour.cost = nextStepCost;
+						neighbour.heuristic = getHeuristicCost(map, xp, yp, tx, ty);
+						maxDepth = Math.max(maxDepth, neighbour.setParent(current));
+						open.add(neighbour);
 					}
 				}
 			}
@@ -213,31 +196,18 @@ public class AStarPathFinder implements PathFinder {
 	
 	
 	
-	public boolean isWall(int sx, int sy, int x, int y) {
+	public boolean isWall(HashMap<Coordinate, Cell> map, int x, int y) {
 		Coordinate coord = new Coordinate(x, y);
 		boolean inMap = map.containsKey(coord);
-//		boolean invalid = (x < 0) || (y < 0) || (x >= World.MAP_WIDTH) || (y >= World.MAP_HEIGHT);
 
-		if (inMap && ((sx != x) || (sy != y))) {
-//			invalid = map.get(new Coordinate(x, y)).type == CellType.WALL;
-//		if (inMap) {
+		if (inMap) {
 			if (map.get(coord).type == CellType.WALL) {
 				return true;
 			}
 		}
 		return false;
-//		return invalid;
 	}
-	
-//	public CellType getCellType(Coordinate coord) {
-//		if (map.containsKey(coord)) {
-//			return map.get(coord).type;
-//		}
-//		System.out.println("no such coordinate in map: getCellType(Coordinate)");
-//		
-//		return null;
-//	}
-	
+
 	
 	
 	
