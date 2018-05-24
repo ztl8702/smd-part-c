@@ -2,6 +2,8 @@ package mycontroller.mapmanager;
 
 import java.util.*;
 
+import org.apache.logging.log4j.core.util.SystemNanoClock;
+
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
 import tiles.MapTile;
@@ -44,7 +46,11 @@ public class MapManager implements MapManagerInterface {
 
     @Override
     public Cell getCell(int x, int y) {
-        return this.map.get(new Coordinate(x, y));
+    	if (isWithinBoard(new Coordinate(x, y))) {
+    		return this.map.get(new Coordinate(x, y));
+    	}
+    	
+        return null;
     }
 
     @Override
@@ -59,21 +65,19 @@ public class MapManager implements MapManagerInterface {
 
     @Override
     public Coordinate getFinishTile() {
-        Iterator<Map.Entry<Coordinate, Cell>> it = map.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<Coordinate, Cell> pair = it.next();
-
-            // get the location of "finish" tile
-            if (pair != null && ((Cell)pair.getValue()).type == CellType.FINISH) {
-                return (Coordinate) pair.getKey();
-            }
-            it.remove(); // avoids a ConcurrentModificationException
-        }
+    	for (Coordinate c : map.keySet()) {
+    		if (map.get(c).type == CellType.FINISH) {
+    			return c;
+    		}
+    	}
         return null;
     }
 
     @Override
     public Coordinate getKeyCoordinate(int keyNumber) {
+    	if (this.keys.get(keyNumber) == null) {
+    		return null;
+    	}
         return this.keys.get(keyNumber);
     }
 
@@ -85,7 +89,6 @@ public class MapManager implements MapManagerInterface {
 
     @Override
     public boolean foundAllKeys(int currentKey) {
-
         for (int i=1; i<currentKey; i++) {
             if (this.getKeyCoordinate(i) == null) {
                 return false;
@@ -94,24 +97,22 @@ public class MapManager implements MapManagerInterface {
         return true;
     }
 
-
-    // TODO: maybe issue here, as ur mutating ???
     public void initialMap(HashMap<Coordinate, MapTile> tiles) {
         tiles.forEach((coord,tile) -> {
             switch (tile.getType()) {
                 case ROAD:
-                    this.map.put(coord, Cell.newRoadCell());
-                    this.unseen.add(coord);
+                    this.map.put(new Coordinate(coord.x, coord.y), Cell.newRoadCell());
+                    this.unseen.add(new Coordinate(coord.x, coord.y));
                     break;
                 case WALL:
-                    this.map.put(coord, Cell.newWallCell());
+                    this.map.put(new Coordinate(coord.x, coord.y), Cell.newWallCell());
                     // no need to see
                     break;
                 case START:
-                    this.map.put(coord, Cell.newStartCell());
+                    this.map.put(new Coordinate(coord.x, coord.y), Cell.newStartCell());
                     break;
                 case FINISH:
-                    this.map.put(coord, Cell.newFinishCell());
+                    this.map.put(new Coordinate(coord.x, coord.y), Cell.newFinishCell());
                     break;
                 default:
                     System.err.println("Unexpected cell type in initial map.");
@@ -135,10 +136,10 @@ public class MapManager implements MapManagerInterface {
                             this.unseen.remove(coord);
                             if (tile instanceof LavaTrap) {
                                 LavaTrap t = (LavaTrap)tile;
-                                this.map.put(coord, Cell.newLavaCell(t.getKey()));
-                                this.keys.put(t.getKey(), coord);
+                                this.map.put(new Coordinate(coord.x, coord.y), Cell.newLavaCell(t.getKey()));
+                                this.keys.put(t.getKey(), new Coordinate(coord.x, coord.y));
                             } else {
-                                this.map.put(coord, Cell.newHealthCell());
+                                this.map.put(new Coordinate(coord.x, coord.y), Cell.newHealthCell());
                             }
                             break;
                         case ROAD:
@@ -162,9 +163,9 @@ public class MapManager implements MapManagerInterface {
         String output  ="";
         for (int y = yEnd; y>=yStart; --y) {
             for (int x = xStart; x<=xEnd; ++x) {
-                Cell cell = this.map.get(new Coordinate(x,y));
+                Cell cell = this.getCell(x,y);
                 if (cell == null) {
-                    return null;
+                    return "";
                 }
                 boolean isUnseen = this.unseen.contains(new Coordinate(x,y));
                 boolean isReachable = this.reachable.contains(new Coordinate(x,y));
@@ -211,8 +212,6 @@ public class MapManager implements MapManagerInterface {
         }
 
         return output;
-        //output+=String.format"\b"
-//		this.mapWindow.setText(output);
     }
 
 
@@ -228,7 +227,7 @@ public class MapManager implements MapManagerInterface {
         dfs_visited = new HashSet<>();
         for (int y = yEnd; y>=yStart; --y) {
             for (int x = xStart; x<=xEnd; ++x) {
-                if (map.get(new Coordinate(x,y)).type == Cell.CellType.START) {
+                if (this.getCell(x,y).type == Cell.CellType.START) {
                     dfsConnectedArea(new Coordinate(x,y));
                     break;
                 }
@@ -242,8 +241,6 @@ public class MapManager implements MapManagerInterface {
                 }
             }
         }
-
-
     }
 
     private void dfsConnectedArea (Coordinate currentLocation) {
@@ -259,11 +256,10 @@ public class MapManager implements MapManagerInterface {
             Coordinate newCoord = new Coordinate(newX,newY);
 
             if (this.isWithinBoard(newCoord)) {
-                if (this.map.get(newCoord).type!=Cell.CellType.WALL) {
+                if (this.getCell(newCoord.x, newCoord.y).type!=Cell.CellType.WALL) {
                     dfsConnectedArea(newCoord);
                 }
             }
         }
     }
-
 }

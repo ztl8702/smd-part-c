@@ -1,9 +1,7 @@
 package mycontroller.autopilot;
 
-import com.badlogic.gdx.math.Vector2;
 import controller.CarController;
 import utilities.Coordinate;
-import world.Car;
 import world.WorldSpatial;
 
 /**
