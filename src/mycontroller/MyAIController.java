@@ -128,13 +128,26 @@ public class MyAIController extends CarController {
 				}
 			}
 			
-			// done with getting all keys, now go to finish tile
+			
+ 			// done with getting all keys, now go to finish tile
 			Coordinate finalKeyPosition = mapManager.getKeyCoordinate(1);
 			Coordinate finishTile = mapManager.getFinishTile();
 			
-			subPath = finisher.getPath(new Coordinate(finalKeyPosition.x, finalKeyPosition.y), 
+			
+			if (finalKeyPosition == null) {			
+
+				subPath = finisher.getPath(new Coordinate(this.getPosition()), 
 					new Coordinate(finishTile.x, finishTile.y), this.getSpeed(), this.getAngle());
 
+			} else {
+				subPath = finisher.getPath(new Coordinate(finalKeyPosition.x, finalKeyPosition.y), 
+					new Coordinate(finishTile.x, finishTile.y), this.getSpeed(), this.getAngle());
+
+			}
+			
+			
+			
+			
 			if (subPath != null) {
 				finalPath.addAll(subPath);
 
