@@ -24,7 +24,7 @@ public abstract class BaseAutoPilot implements AutoPilot {
 
     private boolean isWall(int x, int y) {
         if (!mapManager.isWithinBoard(new Coordinate(x,y))) {
-            return true;
+            return false;
         } else {
             Cell c = mapManager.getCell(x,y);
             return c.type == Cell.CellType.WALL;
@@ -33,7 +33,6 @@ public abstract class BaseAutoPilot implements AutoPilot {
     }
     // Helper methods
     protected double getCentreLineX(int tileX, int tileY) {
-        //TODO: check bound
         double offset = 0;
         if (isWall(tileX+1, tileY) || isWall(tileX+1, tileY+1) || isWall(tileX+1, tileY-1)){
             offset = -WALL_BUFFER;
