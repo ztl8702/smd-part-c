@@ -20,18 +20,22 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
      */
     private static float DECELERATION = 1.0f;
 
+    private static double RECENTER_EPS = 0.02;
+
     public enum TrackingAxis {
         X, Y
     }
 
     public enum State {
-        Idle, On, Finished
+        Idle, On, Recentering, Finished
     }
 
     private TrackingAxis trackingAxis;
     private float fromPos, toPos, otherAxis;
     private State state;
     private float targetSpeed;
+    private AutoPilot recentringAutoPilot = null;
+    private AutoPilot mainTainSpeedAutoPilot = null;
 
     public ForwardToAutoPilot(MapManagerInterface mapManager, Coordinate from, Coordinate to, float targetSpeed) {
         super(mapManager);
@@ -65,7 +69,9 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
                     && coord.y == Math.round(otherAxis))
                     || (trackingAxis == TrackingAxis.Y && inRange(car.getY(), fromPos, toPos)
                             && coord.x == Math.round(otherAxis))) {
-                changeState(State.On);
+                //if (car.getOrientation() == theOrientation){
+                   changeState(State.On);
+                //}
             }
             break;
         case On:
@@ -73,10 +79,34 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
                     || (trackingAxis == TrackingAxis.Y && !(inRange(car.getY(), fromPos, toPos)))) {
                 changeState(State.Finished);
             }
+
+            if (trackingAxis == TrackingAxis.X) {
+                double newCentreLineY = getCentreLineY(car.getTileX(), car.getTileY());
+                if (Math.abs(car.getY() - newCentreLineY ) > RECENTER_EPS) {
+                    changeState(State.Recentering);
+                    mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, (float) car.getSpeed());
+                    recentringAutoPilot = new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.Y, (float)newCentreLineY);
+                }
+            } else if (trackingAxis == TrackingAxis.Y) {
+                double newCentreLineX = getCentreLineX(car.getTileX(), car.getTileY());
+                if (Math.abs(car.getX() - newCentreLineX) > RECENTER_EPS ){
+                    changeState(State.Recentering);
+                    mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, (float) car.getSpeed());
+                    recentringAutoPilot = new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.X, (float)newCentreLineX);
+                }
+            }
+
             break;
+        case Recentering:
+            if (this.recentringAutoPilot.canBeSwappedOut()) {
+                changeState(State.On);
+                recentringAutoPilot = null;
+            }
         case Finished:
             break;
         }
+
+
 
         switch (state) {
         case Idle:
@@ -85,14 +115,19 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
             double d = getDistanceToTarget(car.getX(), car.getY());
             double speedLimit = getSpeedLimit(d - delta * car.getSpeed() - 0.03, targetSpeed);
             if (DEBUG_AUTOPILOT) System.out.printf("speedLimit=%.5f\n", speedLimit);
-            AutoPilot ap = new MaintainSpeedAutoPilot(mapManager, (float) speedLimit);
-            return ap.handle(delta, car);
+            mainTainSpeedAutoPilot= new MaintainSpeedAutoPilot(mapManager, (float) speedLimit);
+            return mainTainSpeedAutoPilot.handle(delta, car);
+        case Recentering:
+            ActuatorAction speedOps = mainTainSpeedAutoPilot.handle(delta, car);
+            speedOps.backward = false;
+
+            return ActuatorAction.combine(speedOps, recentringAutoPilot.handle(delta,car));
         case Finished:
             if (Math.abs(car.getSpeed() - targetSpeed) < 0.1f) {
                 return ActuatorAction.nothing();
             } else {
-                AutoPilot ap2 = new MaintainSpeedAutoPilot(mapManager, targetSpeed);
-                return ap2.handle(delta, car);
+                mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, targetSpeed);
+                return mainTainSpeedAutoPilot.handle(delta, car);
             }
 
         default:
@@ -126,9 +161,19 @@ public class ForwardToAutoPilot extends BaseAutoPilot {
         case Idle:
             return false;
         case On:
+        case Recentering:
             return true;
         default:
             return false;
+        }
+    }
+
+    @Override
+    public boolean canBeSwappedOut() {
+        if (state == State.Recentering) {
+            return false;
+        } else {
+            return true;
         }
     }
 

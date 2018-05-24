@@ -30,12 +30,12 @@ public class DemoController extends CarController {
         upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(4, 3), new Coordinate(6, 3), 2));
         upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(6, 3), new Coordinate(7, 4), WorldSpatial.RelativeDirection.LEFT));
 
-        upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(7, 3), new Coordinate(7, 7), 5));
-        upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(7, 6), new Coordinate(7, 7), 5));
-        upcomingOpts.add(new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.X, 7.4f));
-        upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(7, 7), new Coordinate(7, 12), 0));
+        //upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(7, 3), new Coordinate(7, 12), 0));
+        //upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(7, 6), new Coordinate(7, 7), 5));
+        //upcomingOpts.add(new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.X, 7.4f));
+       // upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(7, 7), new Coordinate(7, 12), 0));
 
-        upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(7, 3), new Coordinate(7, 12), 0));
+        upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(7, 4), new Coordinate(7, 12), 0));
         upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(7, 12), new Coordinate(6, 13), WorldSpatial.RelativeDirection.LEFT));
         upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(6, 13), new Coordinate(2, 13), 0));
         upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(2, 13), new Coordinate(1, 14), WorldSpatial.RelativeDirection.RIGHT));

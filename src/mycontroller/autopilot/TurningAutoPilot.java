@@ -80,7 +80,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
         Coordinate coord = new Coordinate(car.getTileX(), car.getTileY());
 
         if (DEBUG_AUTOPILOT) System.out.printf("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x,
-                this.getCentreLineX(toTile.x), d(), this.getCentreLineX(toTile.x) - d(), car.getX());
+                this.getCentreLineX(toTile.x,toTile.y), d(), this.getCentreLineX(toTile.x, toTile.y) - d(), car.getX());
 
         switch (this.state) {
             case Waiting:
@@ -157,17 +157,15 @@ public class TurningAutoPilot extends BaseAutoPilot {
      * @return
      */
     private boolean reachedTurningPoint(float x, float y) {
-    	
-//    	float buffer = 0.01f;
         switch (fromDirection) {
             case WEST:
-                return (double)x <= this.getCentreLineX(toTile.x) + d() - (-0.1); // overrun a little bit to avoid hitting the wall
+                return (double)x <= this.getCentreLineX(toTile.x, toTile.y) + d();
             case EAST:
-                return (double)x >= this.getCentreLineX(toTile.x) - d() + (-0.1);
+                return (double)x >= this.getCentreLineX(toTile.x, toTile.y) - d();
             case NORTH:
-                return (double)y >= this.getCentreLineY(toTile.y) - d() + 0.005;
+                return (double)y >= this.getCentreLineY(toTile.x, toTile.y) - d();
             case SOUTH:
-                return (double)y <= this.getCentreLineY(toTile.y) + d() - 0.005;
+                return (double)y <= this.getCentreLineY(toTile.x, toTile.y) + d();
             default:
                 return false;
         }
