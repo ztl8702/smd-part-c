@@ -69,4 +69,13 @@ public class DefaultNavigator implements Navigator {
     public void interrupt() {
 
     }
+
+	@Override
+	public boolean isCurrentPathCompleted() {
+		if (this.upcomingOpts.isEmpty() && (this.opt == null || this.opt.canBeSwappedOut())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
