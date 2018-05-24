@@ -46,11 +46,6 @@ public class MapManager implements MapManagerInterface {
 
     @Override
     public Cell getCell(int x, int y) {
-    	if (x==2 && y==19) {
-    		
-    		System.out.println("================" + this.map.get(new Coordinate(x, y)));
-    	}
-    	
     	if (isWithinBoard(new Coordinate(x, y))) {
     		return this.map.get(new Coordinate(x, y));
     	}
@@ -70,16 +65,11 @@ public class MapManager implements MapManagerInterface {
 
     @Override
     public Coordinate getFinishTile() {
-        Iterator<Map.Entry<Coordinate, Cell>> it = map.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<Coordinate, Cell> pair = it.next();
-
-            // get the location of "finish" tile
-            if (pair != null && ((Cell)pair.getValue()).type == CellType.FINISH) {
-                return (Coordinate) pair.getKey();
-            }
-            it.remove(); // avoids a ConcurrentModificationException
-        }
+    	for (Coordinate c : map.keySet()) {
+    		if (map.get(c).type == CellType.FINISH) {
+    			return c;
+    		}
+    	}
         return null;
     }
 
@@ -174,9 +164,8 @@ public class MapManager implements MapManagerInterface {
         for (int y = yEnd; y>=yStart; --y) {
             for (int x = xStart; x<=xEnd; ++x) {
                 Cell cell = this.getCell(x,y);
-//                System.err.printf("%d %d %s\n", x,y,cell);
                 if (cell == null) {
-                    return null;
+                    return "";
                 }
                 boolean isUnseen = this.unseen.contains(new Coordinate(x,y));
                 boolean isReachable = this.reachable.contains(new Coordinate(x,y));
@@ -223,8 +212,6 @@ public class MapManager implements MapManagerInterface {
         }
 
         return output;
-        //output+=String.format"\b"
-//		this.mapWindow.setText(output);
     }
 
 
