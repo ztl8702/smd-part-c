@@ -3,6 +3,8 @@ package mycontroller.pathfinder;
 import java.util.*;
 
 import mycontroller.common.Cell;
+import mycontroller.mapmanager.MapManager;
+import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
 import world.WorldSpatial;
 
@@ -15,17 +17,22 @@ public class WallFollowingPathFinder implements PathFinder {
 			new Coordinate(1,0) //E
 			);
 
-    private HashMap<Coordinate, Cell> map;
+    private MapManagerInterface mapManager;
     private Coordinate startingPosition;
     private float startingSpeed;
     private WorldSpatial.Direction startingDirection;
     
     private boolean isWallLeft = false;
 
+    public WallFollowingPathFinder(MapManagerInterface mapManager) {
+		this.mapManager = mapManager;
+	}
+    
     @Override
-	public ArrayList<Coordinate> getPath(HashMap<Coordinate, Cell> map, Coordinate currentPosition, 
+	public ArrayList<Coordinate> getPath(Coordinate currentPosition, 
 			Coordinate goalPosition, float currentSpeed,float currentAngle) {
-        this.map = map;
+    	
+
         this.startingPosition = currentPosition;
         startingSpeed = currentSpeed;
 
@@ -49,7 +56,9 @@ public class WallFollowingPathFinder implements PathFinder {
             e.printStackTrace();
         }
 
-        ArrayList<Coordinate> path2 = findPathFollowingWallDFS(path1.get(path1.size() - 1), new HashSet<>(path1));
+        ArrayList<Coordinate> path2 = findPathFollowingWallDFS(
+                path1.isEmpty() ? currentPosition : path1.get(path1.size() - 1),
+                new HashSet<>(path1));
         //path1.remove(path1.size() - 1);
         finalPath.addAll(path1);
         finalPath.addAll(path2);
@@ -94,7 +103,7 @@ public class WallFollowingPathFinder implements PathFinder {
 
         }
 
-        assert (map.get(nextLocationInDirection).type != Cell.CellType.WALL);
+        assert (mapManager.getCell(nextLocationInDirection.x, nextLocationInDirection.y).type != Cell.CellType.WALL);
         queue.add(nextLocationInDirection);
         visited.add(nextLocationInDirection);
         parent.put(nextLocationInDirection, startingPosition);
@@ -104,37 +113,30 @@ public class WallFollowingPathFinder implements PathFinder {
         while (!queue.isEmpty()) {
             Coordinate head = queue.remove();
 
-//            for (int xDelta = -1; xDelta <= 1; xDelta += 1) {
-//                for (int yDelta = -1; yDelta <= 1; yDelta += 1) {
-                	
+
             for (Coordinate c : ANTICLOCKWISE_DIRECTION) {
-//                    if ((c.x == 0 && c.y != 0) || (c.x != 0 && c.y == 0)) {
-                        Coordinate newCoord = new Coordinate(head.x + c.x, head.y + c.y);
-                        if (!visited.contains(newCoord)) {
-                            Cell mapTile = map.get(newCoord);
-                            if (mapTile != null && mapTile.type != Cell.CellType.WALL) {
-                                queue.add(newCoord);
-                                visited.add(newCoord);
-                                parent.put(newCoord, head);
-                                if (nextToWall(newCoord)) {
-                                    // found
-                                    ArrayList<Coordinate> path = new ArrayList<>();
+            	Coordinate newCoord = new Coordinate(head.x + c.x, head.y + c.y);
+                if (!visited.contains(newCoord)) {
+                    Cell mapTile = mapManager.getCell(newCoord.x, newCoord.y);
+                    if (mapTile != null && mapTile.type != Cell.CellType.WALL) {
+                        queue.add(newCoord);
+                        visited.add(newCoord);
+                        parent.put(newCoord, head);
+                        if (nextToWall(newCoord)) {
+                            // found
+                            ArrayList<Coordinate> path = new ArrayList<>();
 
-                                    Coordinate tmp = newCoord;
-                                    while (tmp != null) {
-                                        path.add(tmp);
-                                        tmp = parent.get(tmp);
-                                    }
-
-                                    Collections.reverse(path);
-                                    return path;
-                                }
+                            Coordinate tmp = newCoord;
+                            while (tmp != null) {
+                                path.add(tmp);
+                                tmp = parent.get(tmp);
                             }
+
+                            Collections.reverse(path);
+                            return path;
                         }
-
-//                    }
-//                }
-
+                    }
+                }
             }
         }
         return null;
@@ -149,26 +151,20 @@ public class WallFollowingPathFinder implements PathFinder {
         boolean isFound = false;
         // goes through W -> S -> N -> E
         for (Coordinate c : ANTICLOCKWISE_DIRECTION) {
-//        for (int xDelta = -1; xDelta <= 1; xDelta += 1) {
-//            for (int yDelta = -1; yDelta <= 1; yDelta += 1) {
-            	// at least one of x or y is zero, avoid going diagonally            	
-//                if ((xDelta == 0 && yDelta != 0) || (xDelta != 0 && yDelta == 0)) {
-                    Coordinate newCoord = new Coordinate(currentLocation.x + c.x, currentLocation.y + c.y);
-                    Cell mapTile = map.get(newCoord);
-                    if (mapTile != null && mapTile.type != Cell.CellType.WALL && nextToWall(newCoord)) {
-                        if (!visited.contains(newCoord)) {
-                            isFound = true;
-                            visited.add(newCoord);
-                            stack.push(newCoord);
-                            if (dfs(newCoord, visited)) {
-                                return true;
-                            }
-                            stack.pop();
-                            visited.remove(newCoord);
-                        }
+            Coordinate newCoord = new Coordinate(currentLocation.x + c.x, currentLocation.y + c.y);
+            Cell mapTile = mapManager.getCell(newCoord.x, newCoord.y);
+            if (mapTile != null && mapTile.type != Cell.CellType.WALL && nextToWall(newCoord)) {
+                if (!visited.contains(newCoord)) {
+                    isFound = true;
+                    visited.add(newCoord);
+                    stack.push(newCoord);
+                    if (dfs(newCoord, visited)) {
+                        return true;
                     }
-//                }
-//            }
+                    stack.pop();
+                    visited.remove(newCoord);
+                }
+            }
         }
 
         if (!isFound) {
@@ -197,11 +193,9 @@ public class WallFollowingPathFinder implements PathFinder {
     	
         for (int xDelta = -1; xDelta <= 1; xDelta += 1) {
             for (int yDelta = -1; yDelta <= 1; yDelta += 1) {
-                if (!(xDelta == 0 && yDelta == 0))
-
-                {
+                if (!(xDelta == 0 && yDelta == 0)) {
                     Coordinate newCoord = new Coordinate(c.x + xDelta, c.y + yDelta);
-                    Cell mapTile = map.get(newCoord);
+                    Cell mapTile = mapManager.getCell(newCoord.x, newCoord.y);
                     if (mapTile != null && mapTile.type == Cell.CellType.WALL) {
                         return true;
                     }
@@ -210,6 +204,5 @@ public class WallFollowingPathFinder implements PathFinder {
         }
         return false;
     }
-
 }
 

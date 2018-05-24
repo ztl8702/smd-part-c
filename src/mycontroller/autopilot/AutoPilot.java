@@ -1,6 +1,5 @@
 package mycontroller.autopilot;
 
-import world.Car;
 
 /**
  * AutoPilot, like the ones in aviation, are not fully auto, but rather
@@ -16,12 +15,12 @@ public interface AutoPilot {
      * at that cycle. TODO: Consider replacing the `car` parameter with an object
      * that encapsulates the information needed for decision-making.
      *
-     * @see AutoPilotAction
+     * @see ActuatorAction
      * @param delta Seconds passed since last update
      * @param car
      * @return
      */
-    public AutoPilotAction handle(float delta, Car car);
+    ActuatorAction handle(float delta, SensorInfo carStatus);
 
     /**
      * Lets the caller know whether this AutoPilot can take over the control. Some

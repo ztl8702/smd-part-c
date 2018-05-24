@@ -3,11 +3,13 @@ package mycontroller;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.badlogic.gdx.math.Path;
-
 import controller.CarController;
-import mycontroller.autopilot.AutoPilotAction;
-import mycontroller.common.Cell;
+
+import mycontroller.autopilot.ActuatorAction;
+import mycontroller.autopilot.SensorInfo;
+import mycontroller.mapmanager.MapManager;
+import mycontroller.mapmanager.MapManagerInterface;
+
 import mycontroller.navigator.DefaultNavigator;
 import mycontroller.navigator.Navigator;
 import mycontroller.pathfinder.*;
@@ -28,15 +30,12 @@ public class MyAIController extends CarController {
 	
 	private final int DANGER_THRESHOLD = 20;
 	
-	private MapManager mapManager;
+	private MapManagerInterface mapManager;
 	private State currentState;
 	private Navigator navigator;
 
-	private Car car; //TODO: refactor and remove this
-
 	public MyAIController(Car car) {
 		super(car);
-		this.car = car;
 
 		this.startedMoving = false;
 		this.currentState = State.Explore;
@@ -44,6 +43,7 @@ public class MyAIController extends CarController {
 		mapManager = new MapManager();
 		mapManager.initialMap(this.getMap());
 		navigator = new DefaultNavigator();
+
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class MyAIController extends CarController {
 		HashMap<Coordinate, MapTile> currentView = getView();
 		
 		// update key to mapManager
-		mapManager.updateKey(this.getKey());
+//		mapManager.updateKey(this.getKey());
 
 		// update the mapManager
 		mapManager.updateView(currentView);
@@ -62,9 +62,9 @@ public class MyAIController extends CarController {
 		// have not found solution, keep exploring
 		if(!startedMoving && currentState == State.Explore) {
 
-			PathFinder wallFollower = new WallFollowingPathFinder();
+			PathFinder wallFollower = new WallFollowingPathFinder(mapManager);
 
-			ArrayList<Coordinate> path = wallFollower.getPath(mapManager.getMap(),
+			ArrayList<Coordinate> path = wallFollower.getPath(
 					new Coordinate(this.getPosition()), null, this.getSpeed(), this.getAngle());
 
 			navigator.loadNewPath(path);
@@ -75,7 +75,7 @@ public class MyAIController extends CarController {
 			startedMoving = true;
 			
 		} else {
-			AutoPilotAction action = navigator.update(delta,car);
+			ActuatorAction action = navigator.update(delta,SensorInfo.fromController(this));
 			if (action.brake) {
 				this.applyBrake();
 			}
@@ -95,10 +95,10 @@ public class MyAIController extends CarController {
 		
 		
 		// once all keys have been found
-		if (mapManager.foundAllKeys()) {
+		if (mapManager.foundAllKeys(this.getKey())) {
 			
 			int maxSearchDepth = 500;
-			PathFinder finisher = new AStarPathFinder(maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
+			PathFinder finisher = new AStarPathFinder(mapManager, maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
 			
 			ArrayList<Coordinate> finalPath = new ArrayList<>();
 	        ArrayList<Coordinate> subPath = null;
@@ -111,14 +111,14 @@ public class MyAIController extends CarController {
 			// loop through all the keys and set key coordinate end location
 			for( int i = this.getKey()-1; i>=1; i-- ) {
 				
-				Coordinate k = mapManager.findKey(i);
+				Coordinate k = mapManager.getKeyCoordinate(i);
 //				if (k == null) {
 //					System.err.println("cant locate key position" + i);
 //				} else {
 ////					System.out.println("finding key number" + i);
 //				}
 
-				subPath = finisher.getPath(mapManager.getMap(), new Coordinate(cX, cY), 
+				subPath = finisher.getPath(new Coordinate(cX, cY), 
 						new Coordinate(k.x, k.y), this.getSpeed(), this.getAngle());
 				
 //				System.err.println(mapManager.printBoard());
@@ -135,9 +135,9 @@ public class MyAIController extends CarController {
 				}
 			}
 			// done with getting all keys, now go to finish tile
-			Coordinate finalKeyPosition = mapManager.findKey(1);
+			Coordinate finalKeyPosition = mapManager.getKeyCoordinate(1);
 			Coordinate finishTile = mapManager.getFinishTile();
-			subPath = finisher.getPath(mapManager.getMap(), new Coordinate(finalKeyPosition.x, finalKeyPosition.y), 
+			subPath = finisher.getPath(new Coordinate(finalKeyPosition.x, finalKeyPosition.y), 
 					new Coordinate(finishTile.x, finishTile.y), this.getSpeed(), this.getAngle());
 //			System.err.println(mapManager.printBoard());
 			

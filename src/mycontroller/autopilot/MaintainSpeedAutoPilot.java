@@ -1,15 +1,11 @@
 package mycontroller.autopilot;
 
-import java.util.Random;
-
-import world.Car;
 
 /**
  * An AutoPilot that maintains the car speed at a given value.
  */
 public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 	public static float SPEED_EPS = 0.005f;
-	private Random random = new Random();
 	private float target;
 
 	public enum State {
@@ -32,10 +28,8 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 	private float recoveringReverseTime = 0;
 
 	@Override
-	public AutoPilotAction handle(float delta, Car car) {
+	public ActuatorAction handle(float delta, SensorInfo car) {
 		float currentSpeed = car.getSpeed();
-		if (DEBUG_AUTOPILOT) System.out.printf("[%.4f] %.6f %.6f\n", delta, currentSpeed, car.getVelocity().len());
-
 		switch (this.state) {
 		case Accelerating:
 			if (currentSpeed < target) {
@@ -50,14 +44,14 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 						break;
 					}
 				}
-				return AutoPilotAction.forward();
+				return ActuatorAction.forward();
 			} else {
 				changeState(State.Idle);
 			}
 			break;
 		case Decelerating:
 			if (currentSpeed - SPEED_EPS > target) {
-				return AutoPilotAction.brake();
+				return ActuatorAction.brake();
 			} else {
 				changeState(State.Idle);
 			}
@@ -65,12 +59,12 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 		case Idle:
 			if (currentSpeed + SPEED_EPS < target) {
 				changeState(State.Accelerating);
-				return AutoPilotAction.forward();
+				return ActuatorAction.forward();
 			} else if (currentSpeed - SPEED_EPS - 0.2f > target) {
 				changeState(State.Decelerating);
-				return AutoPilotAction.brake();
+				return ActuatorAction.brake();
 			} else {
-				return AutoPilotAction.nothing();
+				return ActuatorAction.nothing();
 			}
 		case RecoveringWait:
 			recoveringWaitTime += delta;
@@ -81,10 +75,10 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 		case RecoveringReverse:
 			changeState(State.Idle);
 			System.err.println("!!!!!!!!!!!!!!!!!!RECOVERED!!!!!!!!!!!!!!!!!");
-			return AutoPilotAction.backward();
+			return ActuatorAction.backward();
 		// break;
 		}
-		return AutoPilotAction.nothing();
+		return ActuatorAction.nothing();
 	}
 
 	private void changeState(State newState) {

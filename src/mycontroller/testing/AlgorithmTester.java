@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 import mycontroller.common.Cell;
+import mycontroller.mapmanager.MapManager;
 import mycontroller.pathfinder.AStarPathFinder;
 import mycontroller.pathfinder.PathFinder;
 import utilities.Coordinate;
@@ -18,8 +19,6 @@ import world.World;
  * DO NOT GRADE!
  */
 public class AlgorithmTester {
-
-
     public static String IN_FILE = "map.in";
     public static int startX, startY, endX, endY, width, height;
     public static HashMap<Coordinate, Cell> map;
@@ -28,16 +27,20 @@ public class AlgorithmTester {
         readInput();
 
         //System.out.printf("%d %d", startX, startY);
-        int maxSearchDepth = 500;
-		PathFinder finisher = new AStarPathFinder(maxSearchDepth, width, height);
-		
-        ArrayList<Coordinate> path = finisher.getPath(map, new Coordinate(startX, startY), 
-				new Coordinate(endX, endY), 0, 0);
-		
+
+/*
+        AStarPathFinder finisher = new AStarPathFinder(map, 500,
+                0, new Coordinate(startX, startY), 0, 90, width, height);
+        ArrayList<Coordinate> path = finisher.findPath(startX, startY, endX, endY);
+>>>>>>> master
         // print out the result
         System.out.println("*****ASTAR***** Path found!!!!");
 
         System.out.println(path.toString());
+<<<<<<< HEAD
+
+=======
+*/
 
 
     }
@@ -112,6 +115,5 @@ public class AlgorithmTester {
         endX = sc2.nextInt();
         endY = sc2.nextInt();
         sc2.close();
-
     }
 }

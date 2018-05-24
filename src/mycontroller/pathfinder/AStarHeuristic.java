@@ -1,9 +1,6 @@
 package mycontroller.pathfinder;
 
-import java.util.HashMap;
-
-import mycontroller.common.Cell;
-import utilities.Coordinate;
+import mycontroller.mapmanager.MapManagerInterface;
 
 public interface AStarHeuristic {
 	
@@ -20,5 +17,5 @@ public interface AStarHeuristic {
 	 * @param ty Teh y coordinate of the target location
 	 * @return The cost associated with the given tile
 	 */
-	public float getCost(HashMap<Coordinate, Cell> map, int x, int y, int tx, int ty);
+	public float getCost(int x, int y, int tx, int ty);
 }

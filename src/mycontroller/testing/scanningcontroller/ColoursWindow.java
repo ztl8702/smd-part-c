@@ -1,9 +1,8 @@
-package mycontroller.scanningcontroller;
+package mycontroller.testing.scanningcontroller;
 
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Frame;
-import java.awt.TextArea;
 import javax.swing.JTextPane;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;

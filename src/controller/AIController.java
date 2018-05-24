@@ -133,7 +133,7 @@ public class AIController extends CarController {
 		if (mapManager.foundAllKeys()) {
 			
 			int maxSearchDepth = 500;
-			PathFinder finisher = new AStarPathFinder(maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
+//			PathFinder finisher = new AStarPathFinder(maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
 			
 			
 			System.out.println("\n\n\n\n\n\n====================================\n");
@@ -156,8 +156,8 @@ public class AIController extends CarController {
 //					System.out.println("finding key number" + i);
 				}
 
-				subPath = finisher.getPath(mapManager.getMap(), new Coordinate(cX, cY), 
-						new Coordinate(k.x, k.y), this.getSpeed(), this.getAngle());
+//				subPath = finisher.getPath(mapManager.getMap(), new Coordinate(cX, cY), 
+//						new Coordinate(k.x, k.y), this.getSpeed(), this.getAngle());
 				
 				System.err.println(mapManager.printBoard());
 				
@@ -175,8 +175,8 @@ public class AIController extends CarController {
 			// done with getting all keys, now go to finish tile
 			Coordinate finalKeyPosition = mapManager.findKey(1);
 			Coordinate finishTile = mapManager.getFinishTile();
-			subPath = finisher.getPath(mapManager.getMap(), new Coordinate(finalKeyPosition.x, finalKeyPosition.y), 
-					new Coordinate(finishTile.x, finishTile.y), this.getSpeed(), this.getAngle());
+//			subPath = finisher.getPath(mapManager.getMap(), new Coordinate(finalKeyPosition.x, finalKeyPosition.y), 
+//					new Coordinate(finishTile.x, finishTile.y), this.getSpeed(), this.getAngle());
 			System.err.println(mapManager.printBoard());
 			
 //			System.out.println("managed to get final subpath");
