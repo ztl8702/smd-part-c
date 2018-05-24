@@ -23,6 +23,16 @@ public class DefaultNavigator implements Navigator {
     }
 
     @Override
+    public void loadAutoPilots(ArrayList<AutoPilot> autoPilots) {
+        this.opt = null;
+        this.upcomingOpts = new LinkedList<>();
+        for (AutoPilot a : autoPilots){
+            this.upcomingOpts.add(a);
+        }
+    }
+
+
+    @Override
     public ActuatorAction update(float delta, SensorInfo car) {
         while (!upcomingOpts.isEmpty() && upcomingOpts.peek().canTakeCharge() && (this.opt ==null || this.opt.canBeSwappedOut()) ) {
             System.out.println(upcomingOpts.peek()+"taking charge");
