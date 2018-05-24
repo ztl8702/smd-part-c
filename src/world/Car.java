@@ -86,8 +86,7 @@ public class Car extends Sprite{
 		CAR_WIDTH = (int) sprite.getWidth();
 		CAR_HEIGHT = (int) sprite.getHeight();
 
-		this.currentOrientation = WorldSpatial.Direction.NORTH;
-		this.rotation =90;
+		this.currentOrientation = WorldSpatial.Direction.EAST;
 	}
 
 	public void update(float delta) {
