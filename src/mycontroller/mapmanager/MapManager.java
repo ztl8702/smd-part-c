@@ -1,11 +1,6 @@
 package mycontroller.mapmanager;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
@@ -34,11 +29,11 @@ public class MapManager implements MapManagerInterface {
             new Coordinate(0,+1)
     };
 
-    private HashSet<Coordinate> unseen = new HashSet<>();
+    private Set<Coordinate> unseen = new HashSet<>();
 
 
-    private HashSet<Coordinate> reachable = new HashSet<>();
-    private HashMap<Integer, Coordinate> keys = new HashMap<>();
+    private Set<Coordinate> reachable = new HashSet<>();
+    private Map<Integer, Coordinate> keys = new HashMap<>();
 
 
 
@@ -59,7 +54,7 @@ public class MapManager implements MapManagerInterface {
 
     @Override
     public boolean isReachable(int x, int y) {
-        return false;
+        return this.reachable.contains(new Coordinate(x,y));
     }
 
     @Override
@@ -80,6 +75,11 @@ public class MapManager implements MapManagerInterface {
     @Override
     public Coordinate getKeyCoordinate(int keyNumber) {
         return this.keys.get(keyNumber);
+    }
+
+    @Override
+    public Set<Coordinate> getUnseenLocations() {
+        return null;
     }
 
 
@@ -265,45 +265,5 @@ public class MapManager implements MapManagerInterface {
             }
         }
     }
-//
-//	public ColoredRegion[] getConnectedComponents() {
-//		int colouredCount = 0;
-//		dfs_visited = new HashSet<Coordinate>();
-//		ArrayList<ColoredRegion> regions = new ArrayList<ColoredRegion>();
-//		for (int y = yEnd; y>=yStart; --y) {
-//			for (int x = xStart; x<=xEnd; ++x) {
-//				Coordinate coord = new Coordinate(x,y);
-//				if (reachable.contains(coord) && !dfs_visited.contains(coord) && !(map.get(coord).type == Cell.CellType.WALL)) {
-//					++colouredCount;
-//					ColoredRegion newRegion = new ColoredRegion(map.get(coord));
-//					dfsColour(newRegion, coord, colouredCount);
-//					regions.add(newRegion);
-//				}
-//			}
-//
-//		}
-//		return regions.toArray(new ColoredRegion[regions.size()]);
-//	}
-//
-//	private void dfsColour(ColoredRegion region, Coordinate currentLocation, int colour) {
-//		if (dfs_visited.contains(currentLocation)) {
-//			return;
-//		}
-//		dfs_visited.add(currentLocation);
-//		region.coordinates.add(currentLocation);
-//
-//
-//		for (Coordinate direction : DIRECTIONS) {
-//			int newX = currentLocation.x + direction.x;
-//			int newY = currentLocation.y + direction.y;
-//			Coordinate newCoord = new Coordinate(newX,newY);
-//
-//			if (this.isWithinBoard(newCoord)) {
-//				if (this.map.get(newCoord).getCellTypeHash().equals(this.map.get(currentLocation).getCellTypeHash())
-//						&& !this.unseen.contains(newCoord)) {
-//					dfsColour(region, newCoord, colour);
-//				}
-//			}
-//		}
-//	}
+
 }

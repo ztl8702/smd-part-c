@@ -6,6 +6,8 @@ import java.util.HashMap;
 import controller.CarController;
 import mycontroller.autopilot.ActuatorAction;
 import mycontroller.autopilot.SensorInfo;
+import mycontroller.mapmanager.MapManager;
+import mycontroller.mapmanager.MapManagerInterface;
 import mycontroller.navigator.DefaultNavigator;
 import mycontroller.navigator.Navigator;
 import mycontroller.pathfinder.*;
@@ -25,7 +27,7 @@ public class MyAIController extends CarController {
 	
 	private final int DANGER_THRESHOLD = 20;
 	
-	private MapManager mapManager;
+	private MapManagerInterface mapManager;
 	private State currentState;
 	private Navigator navigator;
 
@@ -38,11 +40,8 @@ public class MyAIController extends CarController {
 		
 		mapManager = new MapManager();
 		mapManager.initialMap(this.getMap());
-		mapManager.markReachable();
 
 		navigator = new DefaultNavigator();
-		
-		
 		HashMap<Coordinate, MapTile> m = getMap();
 		
 		if (DEBUG) {
@@ -69,9 +68,7 @@ public class MyAIController extends CarController {
 			System.out.println("\n\n\n\n\n\n====================================\n");
 
 			ArrayList<Coordinate> path = wallFollower.getPath(
-					mapManager.getMap(),
-					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle(),
-					mapManager.getUnseen());
+					new Coordinate(this.getPosition()),this.getSpeed(),this.getAngle());
 			System.out.println("\n====================================\n\n\n\n\n");
 
 			navigator.loadNewPath(path);

@@ -5,6 +5,7 @@ import tiles.MapTile;
 import utilities.Coordinate;
 
 import java.util.HashMap;
+import java.util.Set;
 
 // TODO: We might remove this later
 public interface MapManagerInterface {
@@ -42,9 +43,9 @@ public interface MapManagerInterface {
      * @return
      */
     Coordinate getFinishTile();
-
-
     Coordinate getKeyCoordinate(int keyNumber);
+
+    Set<Coordinate> getUnseenLocations();
 
     /**
      * Whether we have found all the keys we need;

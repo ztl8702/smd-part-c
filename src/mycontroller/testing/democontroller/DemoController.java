@@ -32,7 +32,7 @@ public class DemoController extends CarController {
 
 		upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(7,3), new Coordinate(7,7), 5));
 		upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(7,6), new Coordinate(7,7), 5));
-		upcomingOpts.add(new ReCentreAutoPilot(ReCentreAutoPilot.CentringAxis.X, 8.0f));
+		upcomingOpts.add(new ReCentreAutoPilot(ReCentreAutoPilot.CentringAxis.X, 7.4f));
 		upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(7,7), new Coordinate(7,12), 0));
 
 		upcomingOpts.add(new ForwardToAutoPilot(new Coordinate(7,3), new Coordinate(7,12), 0));

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 import mycontroller.common.Cell;
-import mycontroller.pathfinder.AStarPathFinder;
+//import mycontroller.pathfinder.AStarPathFinder;
 import utilities.Coordinate;
 
 /**
@@ -26,14 +26,14 @@ public class AlgorithmTester {
         readInput();
 
         //System.out.printf("%d %d", startX, startY);
-        AStarPathFinder finisher = new AStarPathFinder(map, 500,
+        /*AStarPathFinder finisher = new AStarPathFinder(map, 500,
                 0, new Coordinate(startX, startY), 0, 90, width, height);
         ArrayList<Coordinate> path = finisher.findPath(startX, startY, endX, endY);
         // print out the result
         System.out.println("*****ASTAR***** Path found!!!!");
 
         System.out.println(path.toString());
-
+*/
 
     }
 
@@ -68,7 +68,7 @@ public class AlgorithmTester {
                 Cell newCell = null;
                 Coordinate newCoord = new Coordinate(x, y);
                 if (keyNum != null) {
-                    newCell = Cell.newTrapCell(keyNum);
+                    newCell = Cell.newLavaCell(keyNum);
                     //System.out.printf("is key %d",keyNum);
                 } else {
                     switch (token) {
@@ -85,8 +85,10 @@ public class AlgorithmTester {
                             newCell = Cell.newRoadCell();
                             break;
                         case "T":
-                            newCell = Cell.newTrapCell(0);
+                            newCell = Cell.newLavaCell(0);
                             break;
+                        case "H":
+                            newCell = Cell.newHealthCell();
                         default:
                             //System.err.println("Unknown Cell Type " + token);
                             break;

@@ -14,8 +14,8 @@ public class WallFollowingPathFinder implements PathFinder {
     private WorldSpatial.Direction startingDirection;
 
     @Override
-    public ArrayList<Coordinate> getPath(HashMap<Coordinate, Cell> map, Coordinate currentPosition, float currentSpeed,
-                                         float currentAngle) {
+    public ArrayList<Coordinate> getPath(Coordinate currentPosition, float currentSpeed, float currentAngle) {
+
 
         this.map = map;
         this.startingPosition = currentPosition;
@@ -200,6 +200,8 @@ public class WallFollowingPathFinder implements PathFinder {
         }
         return false;
     }
+
+
 
 }
 

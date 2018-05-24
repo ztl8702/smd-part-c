@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ForkJoinPool.ManagedBlocker;
 
-import mycontroller.MapManager;
+import mycontroller.mapmanager.MapManager;
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
 import utilities.Coordinate;
