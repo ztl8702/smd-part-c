@@ -3,18 +3,17 @@ package mycontroller.pathfinder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
+import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
-import world.World;
 import world.WorldSpatial;
 import world.WorldSpatial.Direction;
 
-public class AStarPathFinder implements PathFinder {
+public class AStarPathFinder extends PathFinderBase {
 	
 	private boolean DEBUG_GET_TILE_BEHIND = false;
 
@@ -75,14 +74,6 @@ public class AStarPathFinder implements PathFinder {
 			);
 
 	
-	/**
-	 * Create a path finder 
-	 * 
-	 * @param heuristic The heuristic used to determine the search order of the map
-	 * @param map The map to be searched
-	 * @param maxSearchDistance The maximum depth we'll search before giving up
-	 * @param allowDiagMovement True if the search should try diaganol movement
-	 */
 
 	public AStarPathFinder(MapManagerInterface mapManager, int maxSearchDistance, int width, int height) {
 		
@@ -229,80 +220,18 @@ public class AStarPathFinder implements PathFinder {
 			if ( (!open.contains(neighbour)) && !(closed.contains(neighbour)) ) {
 				neighbour.cost = nextStepCost;
 				neighbour.heuristic = getHeuristicCost(xp, yp, tx, ty);
-				neighbour.direction = getDirection(xp, yp, tx, ty);
+				neighbour.direction = getDirection(current.x, current.y, xp, yp); // getDirection(xp, yp, tx, ty);
 				maxDepth = Math.max(maxDepth, neighbour.setParent(current));
 				open.add(neighbour);
 			}
 		}
 	}
 
-	
-	
-
-	private WorldSpatial.Direction angleToDirection(float currentAngle) {
-//		if (currentAngle <= 45 && currentAngle>=315) {
-//			// facing east, give west tile
-//			return WorldSpatial.Direction.EAST;
-//        } else if (currentAngle >=45 && currentAngle <= 135) {
-//        	// facing north
-//        	return WorldSpatial.Direction.NORTH;
-//        } else if (currentAngle >= 135 && currentAngle <= 225) {
-//        	// facing west
-//        	return WorldSpatial.Direction.WEST;
-//        } else {
-//        	// facing south
-//        	return WorldSpatial.Direction.SOUTH;
-//        }
-		
-		if (currentAngle <= 90) {
-			// facing east, give west tile
-			return WorldSpatial.Direction.EAST;
-        } else if (currentAngle <= 180) {
-        	// facing north
-        	return WorldSpatial.Direction.NORTH;
-        } else if (currentAngle <= 270) {
-        	// facing west
-        	return WorldSpatial.Direction.WEST;
-        } else {
-        	// facing south
-        	return WorldSpatial.Direction.SOUTH;
-        }
-	}
 
 	private Coordinate getTileBehind(float currentAngle, int x, int y) {
-		if (currentAngle <= 90) {
-			// facing east, give west tile
-			return new Coordinate(x-1, y);
-        } else if (currentAngle <= 180) {
-        	// facing north
-        	return new Coordinate(x, y-1);
-        } else if (currentAngle <= 270) {
-        	// facing west
-        	return new Coordinate(x+1, y);
-        } else {
-        	// facing south
-        	return new Coordinate(x, y+1);
-        }
+		WorldSpatial.Direction currentOrientation = Util.angleToOrientation(currentAngle);
+		return Util.getTileBehind(new Coordinate(x,y), currentOrientation);
 	}
-//	private Coordinate getTileBehind(WorldSpatial.Direction direction, int x, int y) {
-//		if (direction == WorldSpatial.Direction.EAST) {
-//			// facing east, give west tile
-//			return new Coordinate(x-1, y);
-//		}
-//		else if (direction == WorldSpatial.Direction.NORTH) {
-//			// facing north
-//        	return new Coordinate(x, y-1);
-//		}
-//		else if (direction == WorldSpatial.Direction.WEST) {
-//			// facing west
-//        	return new Coordinate(x+1, y);
-//		}
-//		else {
-//			// facing south
-//        	return new Coordinate(x, y+1);
-//		}
-//	}
-	
 	
 	/**
 	 * Get direction based on previous step
@@ -313,29 +242,8 @@ public class AStarPathFinder implements PathFinder {
 	 * @return
 	 */
 	private float getDirection(int xp, int yp, int tx, int ty) {
-		int diffX = tx - xp;
-		int diffY = ty - yp;
-		
-		if (diffX == 1 && diffY == 0) {
-			// going East
-			return 0;
-//			return WorldSpatial.Direction.EAST;
-
-		} else if (diffX == -1 && diffY == 0) {
-			// going West
-			return 180;
-//			return WorldSpatial.Direction.WEST;
-
-		} else if (diffX == 0 && diffY == 1) {
-			// going North
-			return 90;
-//			return WorldSpatial.Direction.NORTH;
-
-		} else {
-			// going South
-			return 270;
-//			return WorldSpatial.Direction.SOUTH;
-		}
+		Direction direction = Util.inferDirection(new Coordinate(tx,ty), new Coordinate(xp,yp));
+		return Util.orientationToAngle(direction);
 	}
 	
 	private boolean isWall(int x, int y) {
@@ -384,10 +292,6 @@ public class AStarPathFinder implements PathFinder {
 		return 1;
 	}
 
-	
-	
-	
-	
 	
 	
 	
