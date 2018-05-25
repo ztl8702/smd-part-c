@@ -156,7 +156,7 @@ public class TurningAutoPilot extends AutoPilotBase {
      * @return
      */
     private boolean reachedTurningPoint(float x, float y) {
-        double offset = 0.05;
+        double offset = 0.001;
         switch (fromDirection) {
             case WEST:
                 return (double)x <= this.getCentreLineX(toTile.x, toTile.y) + d() - offset;
