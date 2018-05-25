@@ -1,5 +1,6 @@
 package mycontroller.autopilot;
 
+import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
 
@@ -78,15 +79,19 @@ public class ForwardToAutoPilot extends AutoPilotBase {
             }
 
             if (car.getSpeed() > 1.0) {
+                Coordinate nextCell = Util.getTileAhead(car.getCoordinate(), car.getOrientation());
+                if (nextCell == null) {
+                    nextCell = car.getCoordinate();
+                }
                 if (trackingAxis == TrackingAxis.X) {
-                    double newCentreLineY = getCentreLineY(car.getTileX(), car.getTileY());
+                    double newCentreLineY = getCentreLineY(nextCell.x, nextCell.y);
                     if (Math.abs(car.getY() - newCentreLineY ) > RECENTER_EPS) {
                         changeState(State.Recentering);
                         mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, (float) car.getSpeed());
                         recentringAutoPilot = new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.Y, (float)newCentreLineY);
                     }
                 } else if (trackingAxis == TrackingAxis.Y) {
-                    double newCentreLineX = getCentreLineX(car.getTileX(), car.getTileY());
+                    double newCentreLineX = getCentreLineX(nextCell.x, nextCell.y);
                     if (Math.abs(car.getX() - newCentreLineX) > RECENTER_EPS ){
                         changeState(State.Recentering);
                         mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, (float) car.getSpeed());
