@@ -7,6 +7,7 @@ import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
 import mycontroller.common.Logger;
 import tiles.MapTile;
+import tiles.HealthTrap;
 import tiles.LavaTrap;
 import utilities.Coordinate;
 import world.World;
@@ -17,7 +18,12 @@ public class MapManager implements MapManagerInterface {
 
 
     private HashMap<Coordinate, Cell> map = new HashMap<>();
-
+    private Set<Coordinate> unseen = new HashSet<>();
+    private Set<Coordinate> reachable = new HashSet<>();
+    
+    private Map<Integer, Coordinate> keys = new HashMap<>();
+    private Set<Coordinate> healthTiles = new HashSet<>();
+    
 
     private int xStart = 0;
     private int xEnd = World.MAP_WIDTH - 1;
@@ -25,22 +31,20 @@ public class MapManager implements MapManagerInterface {
     private int yEnd = World.MAP_HEIGHT - 1;
 
     private static Coordinate[] DIRECTIONS = {
-            new Coordinate(-1,0),
-            new Coordinate(+1,0),
-            new Coordinate(0,-1),
-            new Coordinate(0,+1)
+            new Coordinate(-1,0), //W
+            new Coordinate(+1,0), //E
+            new Coordinate(0,-1), //S
+            new Coordinate(0,+1)  //N
     };
-
-    private Set<Coordinate> unseen = new HashSet<>();
-
-
-    private Set<Coordinate> reachable = new HashSet<>();
-    private Map<Integer, Coordinate> keys = new HashMap<>();
-
-
-
+    
+    
     public MapManager() {
 
+    }
+    
+    @Override
+    public Set<Coordinate> getHealthTiles() {
+    	return this.healthTiles;
     }
 
 
@@ -49,7 +53,6 @@ public class MapManager implements MapManagerInterface {
     	if (isWithinBoard(new Coordinate(x, y))) {
     		return this.map.get(new Coordinate(x, y));
     	}
-    	
         return null;
     }
 
@@ -134,12 +137,16 @@ public class MapManager implements MapManagerInterface {
                     switch (tile.getType()) {
                         case TRAP:
                             this.unseen.remove(coord);
+                            // keep track of lava tile location
                             if (tile instanceof LavaTrap) {
                                 LavaTrap t = (LavaTrap)tile;
                                 this.map.put(new Coordinate(coord.x, coord.y), Cell.newLavaCell(t.getKey()));
                                 this.keys.put(t.getKey(), new Coordinate(coord.x, coord.y));
-                            } else {
+                            } 
+                            // keep track of health tile location
+                            else if (tile instanceof HealthTrap) {
                                 this.map.put(new Coordinate(coord.x, coord.y), Cell.newHealthCell());
+                                this.healthTiles.add(new Coordinate(coord.x, coord.y));
                             }
                             break;
                         case ROAD:

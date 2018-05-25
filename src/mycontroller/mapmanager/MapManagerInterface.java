@@ -43,9 +43,25 @@ public interface MapManagerInterface {
      * @return
      */
     Coordinate getFinishTile();
+    
+    /**
+     * Get coordinate of a specified key
+     * @param keyNumber
+     * @return
+     */
     Coordinate getKeyCoordinate(int keyNumber);
 
+    /**
+     * Get locations not yet explored
+     * @return
+     */
     Set<Coordinate> getUnseenLocations();
+    
+    /**
+     * Get location of health tiles
+     * @return
+     */
+    Set<Coordinate> getHealthTiles();
 
     /**
      * Whether we have found all the keys we need;
@@ -55,11 +71,22 @@ public interface MapManagerInterface {
     boolean foundAllKeys(int currentKey);
 
 
+    /**
+     * Initialise map
+     * @param tiles
+     */
     void initialMap(HashMap<Coordinate, MapTile> tiles);
+    
+    /**
+     * Update map
+     * @param tiles
+     */
     void updateView(HashMap<Coordinate, MapTile> tiles);
 
+    /**
+     * Check if coordinate is within the board
+     * @param coord
+     * @return
+     */
     boolean isWithinBoard(Coordinate coord);
-
-
-
 }
