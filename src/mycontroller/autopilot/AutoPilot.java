@@ -12,7 +12,7 @@ public interface AutoPilot {
     /**
      * This is called on each update cycle. The AutoPilot looks at the environment
      * (via the Car object), and then make a decision about what car controls to use
-     * at that cycle. TODO: Consider replacing the `car` parameter with an object
+     * at that cycle.
      * that encapsulates the information needed for decision-making.
      *
      * @see ActuatorAction

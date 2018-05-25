@@ -184,7 +184,7 @@ public class MyAIController extends CarController {
     }
 
     private void navigatorUpdate(float delta) {
-        
+
         ActuatorAction action = navigator.update(delta, SensorInfo.fromController(this));
         if (action.brake) {
             this.applyBrake();

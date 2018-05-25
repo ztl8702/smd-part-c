@@ -50,6 +50,27 @@ public class Util {
 
 
     /**
+     * Converts WorldSpatial.Direction to delta change in x,y
+     *
+     * Say EAST => (+1,0);
+     * @return
+     */
+    public static Coordinate orientationToDelta(WorldSpatial.Direction orientation) {
+        switch (orientation){
+            case NORTH:
+                return new Coordinate(0, 1);
+            case WEST:
+                return new Coordinate(-1, 0);
+            case SOUTH:
+                return new Coordinate(0, -1);
+            case EAST:
+                return new Coordinate(1, 0);
+        }
+        warn("orientationToDelta", "invalid argument");
+        return new Coordinate(0,0);
+    }
+
+    /**
      * Infers the car's moving direction by using the current and last location
      *
      * @param now
@@ -135,6 +156,44 @@ public class Util {
                 warn("getOppositeOrientation", "invalid orientation.");
                 return EAST;
         }
+    }
+
+    /**
+     * Which orientation I am facing after, say turning Left from East?
+     * @param original
+     * @param turningMode
+     * @return
+     */
+    public static WorldSpatial.Direction getTurnedOrientation(WorldSpatial.Direction original, WorldSpatial.RelativeDirection turningMode) {
+        switch (turningMode) {
+            case LEFT:
+                switch (original){
+                    case EAST:
+                        return NORTH;
+                    case NORTH:
+                        return WEST;
+                    case WEST:
+                        return SOUTH;
+                    case SOUTH:
+                        return EAST;
+                }
+            case RIGHT:
+                switch (original) {
+                    case EAST:
+                        return SOUTH;
+                    case SOUTH:
+                        return WEST;
+                    case WEST:
+                        return NORTH;
+                    case NORTH:
+                        return EAST;
+                }
+        }
+
+        // Defensive coding: We should not reach here. If we do, there is something wrong elsewhere in the code.
+        warn("getTurnedOrientation", "Invalid arguments!");
+        return null;
+
     }
 
 
