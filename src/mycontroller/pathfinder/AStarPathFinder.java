@@ -3,16 +3,13 @@ package mycontroller.pathfinder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
-import world.World;
 import world.WorldSpatial;
-import world.WorldSpatial.Direction;
 
 public class AStarPathFinder implements PathFinder {
 	
@@ -151,6 +148,10 @@ public class AStarPathFinder implements PathFinder {
 				// if we are exploring from original position
 				// need to avoid providing a solution that involves reversing the car
 				if (currentPosition.x == current.x && currentPosition.y == current.y) {
+					System.err.println("Ohh, interesting, we are at start position search rn");
+					System.err.println(currentPosition.toString());
+					System.err.println(current.x);
+					System.err.println(current.y);
 					if (DEBUG_GET_TILE_BEHIND) {
 						System.out.println("maxdepth is " + maxDepth);
 						System.out.println(current.x);System.out.println(current.y);

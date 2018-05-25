@@ -97,10 +97,10 @@ public class MyAIController extends CarController {
 				// once all keys have been found
 				if (mapManager.foundAllKeys(this.getKey())) {
 					ArrayList<Coordinate> path = getAStarPath();
-					navigator.loadNewPath(path);
+//					navigator.loadNewPath(path);
 //					// print out the result		
-//					System.err.println("************************ASTAR***************** Path found!!!!");
-//					System.err.println(finalPath.toString());
+					System.err.println("************************ASTAR***************** Path found!!!!");
+					System.err.println(path.toString());
 				}
 				
 			}
@@ -160,7 +160,7 @@ public class MyAIController extends CarController {
 		}
 		
 		
-			// done with getting all keys, now go to finish tile
+		// done with getting all keys, now go to finish tile
 		Coordinate finalKeyPosition = mapManager.getKeyCoordinate(1);
 		Coordinate finishTile = mapManager.getFinishTile();
 		
@@ -176,15 +176,9 @@ public class MyAIController extends CarController {
 
 		}
 		
-		
-		
-		
 		if (subPath != null) {
 			finalPath.addAll(subPath);
-
 		}
-		return finalPath;
-		
+		return finalPath;	
 	}
-
 }
