@@ -12,6 +12,7 @@ import controller.CarController;
 import mycontroller.autopilot.ActuatorAction;
 import mycontroller.autopilot.SensorInfo;
 import mycontroller.common.Util;
+import mycontroller.common.Cell.CellType;
 import mycontroller.mapmanager.MapManager;
 import mycontroller.mapmanager.MapManagerInterface;
 
@@ -28,8 +29,6 @@ import world.WorldSpatial;
 public class MyAIController extends CarController {
 	
 	public enum State { Explore, Finish, Recover }
-	
-	private static final boolean DEBUG = false;
 	
 	private boolean startedMoving;
 
@@ -62,8 +61,33 @@ public class MyAIController extends CarController {
 
 		// update the mapManager
 		mapManager.updateView(currentView);
-		if (mapManager.foundAllKeys(this.getKey())) currentState = State.Finish;
+		
+		// all keys have been found
+		if (mapManager.foundAllKeys(this.getKey())) { 
+			currentState = State.Finish;
+		} 
+		
+		
+		//TODO: move to Navigator
+		if (this.getHealth() <= 40) {
+			// low health warning
+			currentState = State.Recover;
+		}
+		if (currentState == State.Recover && this.getHealth() == 100) {
+			// recovered to full health
 			
+			Coordinate currentPosition = new Coordinate(this.getPosition());
+	        // initial position before search
+	        int cX = currentPosition.x;
+	        int cY = currentPosition.y;
+	        if (mapManager.getCell(cX, cY).type == CellType.HEALTH) {
+	        	currentState = State.Finish
+	        }
+		}
+		 
+			
+		
+		// continue to navigate using instructions provided from path
 		if (!navigator.isCurrentPathCompleted()) {
 			ActuatorAction action = navigator.update(delta,SensorInfo.fromController(this));
 			if (action.brake) {
@@ -81,8 +105,10 @@ public class MyAIController extends CarController {
 			if (action.turnRight) {
 				this.turnRight(delta);
 			}
+			
 		} else {
-			// have not found solution, keep exploring
+			
+			// have not found all keys, keep exploring
 			if(currentState == State.Explore) {
 
 				PathFinder wallFollower = new WallFollowingPathFinder(mapManager);
@@ -96,15 +122,23 @@ public class MyAIController extends CarController {
 				//compiler.compile(path);
 				//exit(-1);
 				
-			} else {
+			} 
+			// found all keys, can now get remaining keys
+			else if (currentState == State.Finish) {
 				// once all keys have been found
-				if (mapManager.foundAllKeys(this.getKey())) {
-					ArrayList<Coordinate> path = getAStarPath();
-					navigator.loadNewPath(path);
-//					// print out the result
-//					System.err.println("************************ASTAR***************** Path found!!!!");
-//					System.err.println(finalPath.toString());
-				}
+				ArrayList<Coordinate> path = getAStarPath();
+				navigator.loadNewPath(path);
+				
+//				if (mapManager.foundAllKeys(this.getKey())) {
+//					
+////					// print out the result
+////					System.err.println("************************ASTAR***************** Path found!!!!");
+////					System.err.println(finalPath.toString());
+//				}
+				
+			}
+			// in recovery mode
+			else if (currentState == State.Recover) {
 				
 			}
 			

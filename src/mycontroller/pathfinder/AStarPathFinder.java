@@ -17,7 +17,6 @@ public class AStarPathFinder extends PathFinderBase {
 	
 	private boolean DEBUG_GET_TILE_BEHIND = false;
 
-	/** The map being searched */
 	private MapManagerInterface mapManager;
 
 	/** The maximum depth of search we're willing to accept before giving up */
@@ -246,19 +245,20 @@ public class AStarPathFinder extends PathFinderBase {
 		return Util.orientationToAngle(direction);
 	}
 	
+	/**
+	 * Check if coordinate is a wall
+	 * @param x
+	 * @param y
+	 * @return
+	 */
 	private boolean isWall(int x, int y) {
-		
-		boolean inMap = mapManager.isWithinBoard(new Coordinate(x, y));
-		if (inMap) {
-			Cell cell = mapManager.getCell(x, y);
-			if (cell != null) {
-				return (cell.type == CellType.WALL);
-			}
+		// getCell already checks if coordinate is in map
+		Cell cell = mapManager.getCell(x, y);
+		if (cell != null) {
+			return (cell.type == CellType.WALL);
 		}
 		return false;
 	}
-
-
 
 	/**
 	 * Get the heuristic cost for the given location. This determines in which 

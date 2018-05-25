@@ -6,7 +6,6 @@ import mycontroller.autopilot.SensorInfo;
 import mycontroller.routecompiler.DefaultRouteCompiler;
 import mycontroller.routecompiler.RouteCompiler;
 import utilities.Coordinate;
-import world.Car;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
