@@ -2,6 +2,7 @@ package mycontroller;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -13,6 +14,7 @@ import controller.CarController;
 
 import mycontroller.autopilot.ActuatorAction;
 import mycontroller.autopilot.SensorInfo;
+import mycontroller.common.Logger;
 import mycontroller.common.Util;
 import mycontroller.common.Cell.CellType;
 import mycontroller.mapmanager.MapManager;
@@ -29,21 +31,43 @@ import world.WorldSpatial;
 
 
 public class MyAIController extends CarController {
-    public enum State {Explore, Finish, Recover}
+    public enum Goal {
+        Explore,
+        Finish,
+        Recover
+    }
+    public enum State {
+        ExecutingExploringPath,
+        ExecutingFinishPath,
+        ExecutingRecoverPath,
+        WaitingToRegainHealth,
+        Idle
+    }
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private boolean finishExploring = false;
     private boolean executingExploringPath = false;
 
 
     private MapManagerInterface mapManager;
+
+    /**
+     * State is what we are doing
+     */
     private State currentState;
+    /**
+     * Goal is what we what to do
+     */
+    private Goal currentGoal;
+
     private Navigator navigator;
 
     public MyAIController(Car car) {
         super(car);
-        this.currentState = State.Explore;
+
+        this.currentState = State.Idle;
+        this.currentGoal = Goal.Explore;
 
         mapManager = new MapManager();
         mapManager.initialMap(this.getMap());
@@ -60,90 +84,96 @@ public class MyAIController extends CarController {
 
         // update the mapManager
         mapManager.updateView(currentView);
-        
-        if (mapManager.foundAllKeys(this.getKey())) {
-        	currentState = State.Finish;
-        	finishExploring = true;
+        navigatorUpdate(delta);
+
+        // First, figure the goal
+        switch (currentGoal) {
+            case Explore:
+                if (mapManager.foundAllKeys(this.getKey()))
+                {
+                    changeGoal(Goal.Finish);
+                }
+                if (isLowHealth()) { // low health warning
+                    changeGoal(Goal.Recover);
+                }
+                break;
+            case Finish:
+                if (isLowHealth()) { // low health warning
+                    changeGoal(Goal.Recover);
+                }
+                break;
+            case Recover:
+                if (isEnoughHealth()) {
+                    // health recovered, go back to ....
+                    if (mapManager.foundAllKeys(this.getKey())) {
+                        changeGoal(Goal.Finish);
+                    } else {
+                        changeGoal(Goal.Explore);
+                    }
+                }
+                break;
         }
-        
-        //TODO: move to Navigator
-//		if (this.getHealth() <= 40) { // low health warning
-//			currentState = State.Recover;
-//		}
-//		if (currentState == State.Recover && this.getHealth() == 100) { // recovered to full health
-//			
-//			Coordinate currentPosition = new Coordinate(this.getPosition());
-//	        // initial position before search
-//	        int cX = currentPosition.x;
-//	        int cY = currentPosition.y;
-//	        
-//	        // check if still on health tile
-//	        if (mapManager.getCell(cX, cY).type == CellType.HEALTH) {
-//	        	if (finishExploring) {
-//	        		currentState = State.Finish;
-//	        	} else {
-//	        		currentState = State.Explore;
-//	        	}
-//	        }
-//		}
-        
 
-        if (!navigator.isIdle()) {
-            ActuatorAction action = navigator.update(delta, SensorInfo.fromController(this));
-            if (action.brake) {
-                this.applyBrake();
-            }
-            if (action.forward) {
-                this.applyForwardAcceleration();
-            }
-            if (action.backward) {
-                this.applyReverseAcceleration();
-            }
-            if (action.turnLeft) {
-                this.turnLeft(delta);
-            }
-            if (action.turnRight) {
-                this.turnRight(delta);
-            }
+        // Should we interrupt the Navigator
+        if ( (currentState == State.ExecutingExploringPath || currentState == State.ExecutingFinishPath)
+                && currentGoal == Goal.Recover) {
+            // health is low, we need to stop
+            navigator.requestInterrupt();
+        }
+        if (currentState==State.ExecutingExploringPath && currentGoal == Goal.Finish) {
+            // don't need to explore anymore
+            navigator.requestInterrupt();
+        }
 
-            if (executingExploringPath && mapManager.foundAllKeys(this.getKey())) {
-                // no need to keep exploring now
-                navigator.requestInterrupt();
-			}
-			// else if ( health is low ) {
-			//  navigator.requestInterrupt();	
-			//}
-            
-        } else {
-        	
+        // State change
+        switch (currentState) {
+            case Idle:
+                switch (currentGoal) {
+                    case Explore: {
+                        PathFinder wallFollower = new WallFollowingPathFinder(mapManager);
+                        ArrayList<Coordinate> path = wallFollower.getPath(
+                                new Coordinate(this.getPosition()), null, this.getSpeed(), this.getAngle());
+                        navigator.loadNewPath(path);
+                        changeState(State.ExecutingExploringPath);
+                    }
+                    break;
+                    case Finish: {
+                        ArrayList<Coordinate> path = getAStarPath();
+                        navigator.loadNewPath(path);
+                        changeState(State.ExecutingFinishPath);
+                    }
+                    break;
+                    case Recover: {
+                        if (DEBUG) System.err.println("i came in here");
+                        ArrayList<Coordinate> path = getHealthPath();
+                        if (DEBUG) System.err.println("found path");
+                        navigator.loadNewPath(path);
+                        changeState(State.ExecutingRecoverPath);
+                    }
+                    break;
+                }
+            case ExecutingExploringPath:
+                if (navigator.isIdle()){
+                    changeState(State.Idle);
+                }
+                break;
+            case ExecutingFinishPath:
+                if (navigator.isIdle()){
+                    changeState(State.Idle);
+                }
+                break;
+            case ExecutingRecoverPath:
+                if (navigator.isIdle() && onHealthTile()){
+                    changeState(State.WaitingToRegainHealth);
+                }
+                break;
+            case WaitingToRegainHealth:
+                if (isEnoughHealth()) {
+                    changeState(State.Idle);
+                }
+                break;
             // have not found solution, keep exploring
-            if (currentState == State.Explore) {
 
-                PathFinder wallFollower = new WallFollowingPathFinder(mapManager);
-
-                ArrayList<Coordinate> path = wallFollower.getPath(
-                        new Coordinate(this.getPosition()), null, this.getSpeed(), this.getAngle());
-
-                navigator.loadNewPath(path);
-                //RouteCompiler compiler = new DefaultRouteCompiler();
-                executingExploringPath = true;
-                //compiler.compile(path);
-                //exit(-1);
-
-            } 
-            // found all keys, can now get remaining keys
- 			else if (currentState == State.Finish) {
-                executingExploringPath = false;
- 				// once all keys have been found
- 				ArrayList<Coordinate> path = getAStarPath();
- 				navigator.loadNewPath(path); 				
- 			}
- 			// in recovery mode
- 			else if (currentState == State.Recover) {
-                executingExploringPath = false;
- 				ArrayList<Coordinate> path = getHealthPath();
- 				navigator.loadNewPath(path);
- 			}
         }
 
         /**
@@ -161,6 +191,24 @@ public class MyAIController extends CarController {
          **/
     }
 
+    private void navigatorUpdate(float delta) {
+        ActuatorAction action = navigator.update(delta, SensorInfo.fromController(this));
+        if (action.brake) {
+            this.applyBrake();
+        }
+        if (action.forward) {
+            this.applyForwardAcceleration();
+        }
+        if (action.backward) {
+            this.applyReverseAcceleration();
+        }
+        if (action.turnLeft) {
+            this.turnLeft(delta);
+        }
+        if (action.turnRight) {
+            this.turnRight(delta);
+        }
+    }
     /**
      * Way points are locations we need to visit
      *
@@ -187,77 +235,6 @@ public class MyAIController extends CarController {
         Coordinate finishTile = mapManager.getFinishTile();
         wayPoints.add(new Coordinate(finishTile.x, finishTile.y));
         return wayPoints;
-    }
-    
-    private Queue<Coordinate> createHealthWayPoints() {
-
-        boolean isColdStart = this.getSpeed() < 0.1;
-
-        Queue<Coordinate> wayPoints = new LinkedList<>();
-
-        if (isColdStart) {
-            // if the car is not moving, we must move ahead first.
-            wayPoints.add(Util.getTileAhead(new Coordinate(this.getPosition()), this.getOrientation()));
-        }
-        
-    	
-    	
-    	Set<Coordinate> healthTiles = mapManager.getHealthTiles();
-		for (Coordinate h: healthTiles) {
-			wayPoints.add(new Coordinate(h.x, h.y));
-			// update distance from current location to h
-		}
-		
-		// using distance, go to shortest
-        
-
-        // loop through all the keys and set key coordinate end location
-        for (int i = this.getKey() - 1; i >= 1; i--) {
-            Coordinate nextKeyToFind = mapManager.getKeyCoordinate(i);
-            wayPoints.add(new Coordinate(nextKeyToFind.x, nextKeyToFind.y));
-        }
-        // finally add our finalTile
-
-        Coordinate finishTile = mapManager.getFinishTile();
-        wayPoints.add(new Coordinate(finishTile.x, finishTile.y));
-        return wayPoints;
-    }
-    
-    
-    private ArrayList<Coordinate> getHealthPath() {
-    	
-    	int maxSearchDepth = 500;
-        PathFinder finisher = new AStarPathFinder(mapManager, maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
-
-
-//         <coordinate of health tile>, <path to health tile from current location>
-//        HashMap<Coordinate, ArrayList<Coordinate>> healthPathMap = new HashMap<>();
-        
-        Set<Coordinate> healthTiles = mapManager.getHealthTiles();
-        ArrayList<ArrayList<Coordinate>> healthPaths = new ArrayList<ArrayList<Coordinate>>(healthTiles.size());
-
-        Coordinate currentPosition = new Coordinate(this.getPosition());
-        // initial position before search
-        int cX = currentPosition.x;
-        int cY = currentPosition.y;
-        float lastAngle = this.getAngle();
-        
-		for (Coordinate h: healthTiles) {
-			// update distance from current location to h
-			ArrayList<Coordinate> path = finisher.getPath(new Coordinate(cX, cY), new Coordinate(h.x, h.y), this.getSpeed(), lastAngle);
-//			healthPaths.put(h, path);
-			healthPaths.add(path);
-		}
-		
-//		// using distance, go to shortest
-//		Collections.sort(healthPaths);
-//		
-//		for (ArrayList<Coordinate> p : healthPaths.values()) {
-//			p.size()
-//		}
-		
-		
-		return null;
     }
 
     /**
@@ -309,4 +286,74 @@ public class MyAIController extends CarController {
         }
 		return finalPath;		
 	}
+
+
+    /**
+     * Gets a path to the nearest health tile
+     * @return
+     */
+    private ArrayList<Coordinate> getHealthPath() {
+
+    	int maxSearchDepth = 500;
+        PathFinder finisher = new AStarPathFinder(mapManager, maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
+
+        Set<Coordinate> healthTiles = mapManager.getHealthTiles();
+        ArrayList<ArrayList<Coordinate>> healthPaths = new ArrayList<>(healthTiles.size());
+
+        Coordinate currentPosition = new Coordinate(this.getPosition());
+        // initial position before search
+        int cX = currentPosition.x;
+        int cY = currentPosition.y;
+        float lastAngle = this.getAngle();
+        
+		for (Coordinate h: healthTiles) {
+			if(DEBUG) System.err.println(h.toString());
+			// update distance from current location to h
+			ArrayList<Coordinate> path = finisher.getPath(new Coordinate(cX, cY), new Coordinate(h.x, h.y), this.getSpeed(), lastAngle);
+
+			if (path!=null) healthPaths.add(path);
+		}
+		
+		Collections.sort(healthPaths, (ArrayList a1, ArrayList a2) -> a1.size() - a2.size()); // smallest to biggest
+
+		if(DEBUG) System.err.println(healthPaths.toString());
+
+		if (healthPaths.get(0) != null) {
+			return healthPaths.get(0);
+		}
+		return null;
+    }
+
+    private void changeGoal(Goal newGoal){
+        if (newGoal!=currentGoal) {
+            Logger.printDebug("MyAIController", "Change Goal: " + currentGoal + "->"+newGoal);
+            currentGoal = newGoal;
+        }
+    }
+
+    private void changeState(State newState){
+        if (newState!=currentState) {
+            Logger.printDebug("MyAIController", "Change State: " + currentState + "->"+newState);
+            currentState = newState;
+        }
+    }
+
+    /**
+     * Whether the car is on a HealthTile
+     * @return
+     */
+    private boolean onHealthTile() {
+        Coordinate now = new Coordinate(this.getPosition());
+        return (mapManager.getCell(now.x, now.y)).type == CellType.HEALTH;
+    }
+
+    private boolean isLowHealth() {
+        return this.getHealth() <= 40;
+    }
+
+    private boolean isEnoughHealth() {
+        return this.getHealth() >= 79; // avoid rounding error
+    }
+
+
 }

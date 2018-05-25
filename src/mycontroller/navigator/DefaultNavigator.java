@@ -27,10 +27,12 @@ public class DefaultNavigator implements Navigator {
     public void loadNewPath(ArrayList<Coordinate> path) {
         switch (state) {
             case Idle:
-                this.opt = null;
-                RouteCompiler  compiler = new DefaultRouteCompiler();
-                this.upcomingOpts = compiler.compile(path);
-                this.changeState(State.Navigating);
+                if (path!=null && !path.isEmpty()){
+                    this.opt = null;
+                    RouteCompiler  compiler = new DefaultRouteCompiler();
+                    this.upcomingOpts = compiler.compile(path);
+                    this.changeState(State.Navigating);
+                }
                 break;
             case Navigating:
                 Logger.printWarning("DefaultNavigator", "Attempting to loadNewPath while navigating!");
