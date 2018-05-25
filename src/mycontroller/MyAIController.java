@@ -2,6 +2,7 @@ package mycontroller;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -66,25 +67,25 @@ public class MyAIController extends CarController {
         }
         
         //TODO: move to Navigator
-//		if (this.getHealth() <= 40) { // low health warning
-//			currentState = State.Recover;
-//		}
-//		if (currentState == State.Recover && this.getHealth() == 100) { // recovered to full health
-//			
-//			Coordinate currentPosition = new Coordinate(this.getPosition());
-//	        // initial position before search
-//	        int cX = currentPosition.x;
-//	        int cY = currentPosition.y;
-//	        
-//	        // check if still on health tile
-//	        if (mapManager.getCell(cX, cY).type == CellType.HEALTH) {
-//	        	if (finishExploring) {
-//	        		currentState = State.Finish;
-//	        	} else {
-//	        		currentState = State.Explore;
-//	        	}
-//	        }
-//		}
+		if (this.getHealth() <= 40) { // low health warning
+			currentState = State.Recover;
+		}
+		if (currentState == State.Recover && this.getHealth() == 100) { // recovered to full health
+			
+			Coordinate currentPosition = new Coordinate(this.getPosition());
+	        // initial position before search
+	        int cX = currentPosition.x;
+	        int cY = currentPosition.y;
+	        
+	        // check if still on health tile
+	        if (mapManager.getCell(cX, cY).type == CellType.HEALTH) {
+	        	if (finishExploring) {
+	        		currentState = State.Finish;
+	        	} else {
+	        		currentState = State.Explore;
+	        	}
+	        }
+		}
         
 
         if (!navigator.isCurrentPathCompleted()) {
@@ -155,7 +156,7 @@ public class MyAIController extends CarController {
      *
      * @return
      */
-    private Queue<Coordinate> createKeyWayPoints() {
+    private Queue<Coordinate> createWayPoints() {
 
         boolean isColdStart = this.getSpeed() < 0.1;
 
@@ -177,78 +178,7 @@ public class MyAIController extends CarController {
         wayPoints.add(new Coordinate(finishTile.x, finishTile.y));
         return wayPoints;
     }
-    
-    private Queue<Coordinate> createHealthWayPoints() {
-
-        boolean isColdStart = this.getSpeed() < 0.1;
-
-        Queue<Coordinate> wayPoints = new LinkedList<>();
-
-        if (isColdStart) {
-            // if the car is not moving, we must move ahead first.
-            wayPoints.add(Util.getTileAhead(new Coordinate(this.getPosition()), this.getOrientation()));
-        }
-        
-    	
-    	
-    	Set<Coordinate> healthTiles = mapManager.getHealthTiles();
-		for (Coordinate h: healthTiles) {
-			wayPoints.add(new Coordinate(h.x, h.y));
-			// update distance from current location to h
-		}
-		
-		// using distance, go to shortest
-        
-
-        // loop through all the keys and set key coordinate end location
-        for (int i = this.getKey() - 1; i >= 1; i--) {
-            Coordinate nextKeyToFind = mapManager.getKeyCoordinate(i);
-            wayPoints.add(new Coordinate(nextKeyToFind.x, nextKeyToFind.y));
-        }
-        // finally add our finalTile
-
-        Coordinate finishTile = mapManager.getFinishTile();
-        wayPoints.add(new Coordinate(finishTile.x, finishTile.y));
-        return wayPoints;
-    }
-    
-    
-    private ArrayList<Coordinate> getHealthPath() {
-    	
-    	int maxSearchDepth = 500;
-        PathFinder finisher = new AStarPathFinder(mapManager, maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
-
-
-//         <coordinate of health tile>, <path to health tile from current location>
-//        HashMap<Coordinate, ArrayList<Coordinate>> healthPathMap = new HashMap<>();
-        
-        Set<Coordinate> healthTiles = mapManager.getHealthTiles();
-        ArrayList<ArrayList<Coordinate>> healthPaths = new ArrayList<ArrayList<Coordinate>>(healthTiles.size());
-
-        Coordinate currentPosition = new Coordinate(this.getPosition());
-        // initial position before search
-        int cX = currentPosition.x;
-        int cY = currentPosition.y;
-        float lastAngle = this.getAngle();
-        
-		for (Coordinate h: healthTiles) {
-			// update distance from current location to h
-			ArrayList<Coordinate> path = finisher.getPath(new Coordinate(cX, cY), new Coordinate(h.x, h.y), this.getSpeed(), lastAngle);
-//			healthPaths.put(h, path);
-			healthPaths.add(path);
-		}
-		
-//		// using distance, go to shortest
-//		Collections.sort(healthPaths);
-//		
-//		for (ArrayList<Coordinate> p : healthPaths.values()) {
-//			p.size()
-//		}
-		
-		
-		return null;
-    }
-
+ 
     /**
      * Gets a path to find all keys and to the finish tile,
      * by calling A* path finding algorithm
@@ -262,7 +192,7 @@ public class MyAIController extends CarController {
 
         ArrayList<Coordinate> finalPath = new ArrayList<>();
 
-        Queue<Coordinate> wayPoints = createKeyWayPoints();
+        Queue<Coordinate> wayPoints = createWayPoints();
 
         Coordinate currentPosition = new Coordinate(this.getPosition());
         // initial position before search
@@ -298,4 +228,39 @@ public class MyAIController extends CarController {
         }
 		return finalPath;		
 	}
+    
+    
+    
+    private ArrayList<Coordinate> getHealthPath() {
+    	
+    	int maxSearchDepth = 500;
+        PathFinder finisher = new AStarPathFinder(mapManager, maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
+
+        Set<Coordinate> healthTiles = mapManager.getHealthTiles();
+        ArrayList<ArrayList<Coordinate>> healthPaths = new ArrayList<ArrayList<Coordinate>>(healthTiles.size());
+
+        Coordinate currentPosition = new Coordinate(this.getPosition());
+        // initial position before search
+        int cX = currentPosition.x;
+        int cY = currentPosition.y;
+        float lastAngle = this.getAngle();
+        
+		for (Coordinate h: healthTiles) {
+			// update distance from current location to h
+			ArrayList<Coordinate> path = finisher.getPath(new Coordinate(cX, cY), new Coordinate(h.x, h.y), this.getSpeed(), lastAngle);
+			healthPaths.add(path);
+		}
+		
+//		List<ArrayList> allTheLists; 
+		Collections.sort(healthPaths, new Comparator<ArrayList>(){
+		    public int compare(ArrayList a1, ArrayList a2) {
+		        return a1.size() - a2.size(); // smallest to biggest
+		    }
+		});
+		
+		if (healthPaths.get(0) != null) {
+			return healthPaths.get(0);
+		}
+		return null;
+    }
 }

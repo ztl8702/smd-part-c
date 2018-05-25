@@ -2,8 +2,8 @@ package mycontroller.common;
 
 public class Logger {
 
-    private static boolean PRINT_INFO = true;
-    private static boolean PRINT_WARNING = true;
+    private static boolean PRINT_INFO = false;
+    private static boolean PRINT_WARNING = false;
 
 
     public static void printWarning(String sender, String message) {
