@@ -49,12 +49,28 @@ public class WallFollowingPathFinder extends PathFinderBase {
             e.printStackTrace();
         }
 
-        ArrayList<Coordinate> path2 = findPathFollowingWallDFS(
+        WorldSpatial.Direction wallFollowingStartDirection;
+        if (path1.isEmpty() || path1.size() < 2) {
+            wallFollowingStartDirection = startingDirection;
+        } else {
+            Coordinate lastTile = path1.get(path1.size()-1);
+            Coordinate secondLastTile = path1.get(path1.size()-2);
+            WorldSpatial.Direction lastDirection = Util.inferDirection(lastTile, secondLastTile);
+            if (nextToWall(lastTile, lastDirection, WorldSpatial.RelativeDirection.LEFT) ||
+                    nextToWall(lastTile,lastDirection,WorldSpatial.RelativeDirection.RIGHT)) {
+                wallFollowingStartDirection = lastDirection;
+            }
+            else {
+                wallFollowingStartDirection = Util.getTurnedOrientation(lastDirection,WorldSpatial.RelativeDirection.RIGHT);
+            }
+
+        }
+        ArrayList<Coordinate> path2 = findPathFollowingWall(
                 path1.isEmpty() ? currentPosition : path1.get(path1.size() - 1),
+                wallFollowingStartDirection,
                 new HashSet<>(path1));
         finalPath.addAll(path1);
         finalPath.addAll(path2);
-
 
         return finalPath;
     }
@@ -116,152 +132,45 @@ public class WallFollowingPathFinder extends PathFinderBase {
     }
 
 
-    private Stack<Coordinate> stack;
+    private ArrayList<Coordinate> findPathFollowingWall(Coordinate start, WorldSpatial.Direction startingDirection, Set<Coordinate> visited) {
 
-
-    /**
-     *
-     * @param currentLocation
-     * @param missWallBudget
-     * @param whichSide
-     * @param visited
-     * @return
-     */
-    private boolean dfs(Coordinate currentLocation,
-                        int missWallBudget,
-                        WorldSpatial.RelativeDirection whichSide,
-                        WorldSpatial.Direction orientation,
-                        Set<Coordinate> visited) {
-        if (missWallBudget < 0) {
-            return false;
-        }
-        visited.add(currentLocation);
-        stack.push(currentLocation);
-        boolean noSuccessor = true;
-
-        if (orientation == null) {
-            // we can choose freely which direction to go
-
-            for (WorldSpatial.Direction d : WorldSpatial.Direction.values()) {
-                Coordinate c = Util.orientationToDelta(d);
-                Coordinate newCoord = new Coordinate(currentLocation.x + c.x, currentLocation.y + c.y);
-
-                if (!isWall(newCoord.x, newCoord.y)) {
-                    if (!visited.contains(newCoord)) {
-                        if (nextToWallAnySide(newCoord)) {
-                            noSuccessor = false;
-                            if (dfs(newCoord, missWallBudget, whichSideIsWall(newCoord, d), d, visited)) {
-                                return true;
-                            }
-
-                        }
-                    }
-                }
-            }
-        } else {
-            // we can only turn left or right, or go straight
-            Coordinate nextAhead = Util.getTileAhead(currentLocation, orientation);
-            WorldSpatial.Direction myLeft =  Util.getTurnedOrientation(orientation, WorldSpatial.RelativeDirection.LEFT);
-            WorldSpatial.Direction myRight =  Util.getTurnedOrientation(orientation, WorldSpatial.RelativeDirection.RIGHT);
-            Coordinate leftTile = Util.getTileAhead(currentLocation, myLeft);
-            Coordinate rightTile = Util.getTileAhead(currentLocation, myRight);
-
-            if (!isWall(nextAhead.x, nextAhead.y) && !visited.contains(nextAhead)) {
-                if (nextToWall(nextAhead,orientation,whichSide)) {
-                    noSuccessor = false;
-                    if (dfs(
-                            nextAhead,
-                            missWallBudget,
-                            whichSide,
-                            orientation,
-                            visited)) {
-                        return true;
-                    }
-                } else if (missWallBudget > 0) {
-                    noSuccessor = false;
-                    if (dfs(
-                            nextAhead,
-                            missWallBudget-1,
-                            whichSide,
-                            orientation,
-                            visited)) {
-                        return true;
-                    }
-                }
-            }
-
-            if (!isWall(leftTile.x, leftTile.y) && !visited.contains(leftTile)) {
-                if (nextToWall(leftTile, myLeft, whichSide)) {
-                    noSuccessor = false;
-                    if (dfs(
-                            leftTile,
-                            missWallBudget,
-                            whichSide,
-                            myLeft,
-                            visited)) {
-                        return true;
-                    }
-                } else if (missWallBudget > 0) {
-                    noSuccessor = false;
-                    if (dfs(
-                            leftTile,
-                            missWallBudget-1,
-                            whichSide,
-                            myLeft,
-                            visited)) {
-                        return true;
-                    }
-                }
-            }
-
-            if (!isWall(leftTile.x, leftTile.y) && !visited.contains(rightTile)) {
-                if (nextToWall(rightTile, myRight, whichSide)) {
-                    noSuccessor = false;
-                    if (dfs(
-                            rightTile,
-                            missWallBudget,
-                            whichSide,
-                            myRight,
-                            visited)) {
-                        return true;
-                    }
-                } else if (missWallBudget > 0) {
-                    noSuccessor = false;
-                    if (dfs(
-                            rightTile,
-                            missWallBudget-1,
-                            whichSide,
-                            myRight,
-                            visited)) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-
-        if (noSuccessor) {
-            return true;
-        }
-        stack.pop();
-        visited.remove(currentLocation);
-        return false;
-    }
-
-    private ArrayList<Coordinate> findPathFollowingWallDFS(Coordinate start, Set<Coordinate> visited) {
-
-        stack = new Stack<Coordinate>();
-        boolean result = dfs(start, 1,null, null, visited);
-        assert (result);
+        WorldSpatial.RelativeDirection whichSideFollowing = whichSideIsWall(start, startingDirection);
+        WorldSpatial.RelativeDirection turnWhenLoseWall = whichSideFollowing;
+        WorldSpatial.RelativeDirection turnWhenHitWall = (whichSideFollowing == WorldSpatial.RelativeDirection.LEFT)?WorldSpatial.RelativeDirection.RIGHT : WorldSpatial.RelativeDirection.LEFT;
 
         ArrayList<Coordinate> path = new ArrayList<>();
+        Coordinate currentCell = Util.cloneCoordinate(start);
+        WorldSpatial.Direction currentDirection = startingDirection;
+        if (!(nextToWall(currentCell, currentDirection, whichSideFollowing)))
+            throw new AssertionError();
 
-        while (!stack.isEmpty()) {
-            path.add(stack.pop());
+        while (true) {
+            Coordinate tileAhead = Util.getTileAhead(currentCell,currentDirection);
+            if (nextToWall(tileAhead, currentDirection, whichSideFollowing)
+                    && !(isWall(tileAhead.x, tileAhead.y) || isNarrowRoad(tileAhead.x, tileAhead.y, currentDirection))) {
+                currentCell = tileAhead;
+
+            } else if (isWall(tileAhead.x, tileAhead.y)|| isNarrowRoad(tileAhead.x, tileAhead.y, currentDirection)) {
+                // hit wall
+                currentDirection = Util.getTurnedOrientation(currentDirection, turnWhenHitWall);
+                //Coordinate tileRight = Util.getTileAhead(currentCell, currentDirection);
+                continue;
+                //currentCell = tileRight;
+            } else {
+                // miss wall
+                currentDirection = Util.getTurnedOrientation(currentDirection, turnWhenLoseWall);
+                Coordinate tileLeft = Util.getTileAhead(tileAhead, currentDirection);
+                path.add(Util.cloneCoordinate(tileAhead));
+                visited.add(Util.cloneCoordinate(tileAhead));
+                currentCell = tileLeft;
+            }
+            path.add(Util.cloneCoordinate(currentCell));
+            if (visited.contains(currentCell)) {
+                break;
+            } else {
+                visited.add(Util.cloneCoordinate(currentCell));
+            }
         }
-
-        Collections.reverse(path);
-        path.remove(0); // remove the first one (which is the same as the end of last path)
         return path;
 
     }
@@ -274,6 +183,12 @@ public class WallFollowingPathFinder extends PathFinderBase {
             return c.type == Cell.CellType.WALL;
         }
 
+    }
+
+    protected boolean isNarrowRoad(int x, int y, WorldSpatial.Direction movingDirection) {
+        Coordinate left = Util.getTileAhead(new Coordinate(x,y), Util.getTurnedOrientation(movingDirection,WorldSpatial.RelativeDirection.LEFT));
+        Coordinate right = Util.getTileAhead(new Coordinate(x,y), Util.getTurnedOrientation(movingDirection,WorldSpatial.RelativeDirection.RIGHT));
+        return (isWall(left.x, left.y) && isWall(right.x, right.y));
     }
 
     private WorldSpatial.RelativeDirection whichSideIsWall(Coordinate c, WorldSpatial.Direction orientation) {
