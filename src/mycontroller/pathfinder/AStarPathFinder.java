@@ -169,7 +169,8 @@ public class AStarPathFinder extends PathFinderBase {
 //					System.out.println(getTileBehind(Direction.WEST, 0, 0).toString());
 //					System.out.println(getTileBehind(Direction.SOUTH, 0, 0).toString());
 //					System.exit(-1);
-
+                    
+                    // TODO: use common.Util.getTileBehind()
                     Coordinate tileBehind = getTileBehind(current.direction, current.x, current.y);
 
                     if (DEBUG_GET_TILE_BEHIND) {
@@ -216,7 +217,6 @@ public class AStarPathFinder extends PathFinderBase {
             float nextStepCost = current.cost + getMovementCost(current.x, current.y, xp, yp);
             Node neighbour = nodes[xp][yp];
 //				map.pathFinderVisited(xp, yp);
-
             // if the new cost we've determined for this node is lower than
             // it has been previously makes sure the node hasn't been discarded. We've
             // determined that there might have been a better path to get to
