@@ -32,7 +32,7 @@ import world.WorldSpatial;
 public class MyAIController extends CarController {
     public enum State {Explore, Finish, Recover}
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private boolean finishExploring = false;
 
@@ -131,7 +131,9 @@ public class MyAIController extends CarController {
  			}
  			// in recovery mode
  			else if (currentState == State.Recover) {
+ 				if(DEBUG) System.err.println("i came in here");
  				ArrayList<Coordinate> path = getHealthPath();
+ 				if(DEBUG) System.err.println("found path");
  				navigator.loadNewPath(path);
  			}
         }
@@ -233,6 +235,8 @@ public class MyAIController extends CarController {
     
     private ArrayList<Coordinate> getHealthPath() {
     	
+    	
+    	
     	int maxSearchDepth = 500;
         PathFinder finisher = new AStarPathFinder(mapManager, maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
 
@@ -246,6 +250,7 @@ public class MyAIController extends CarController {
         float lastAngle = this.getAngle();
         
 		for (Coordinate h: healthTiles) {
+			if(DEBUG) System.err.println(h.toString());
 			// update distance from current location to h
 			ArrayList<Coordinate> path = finisher.getPath(new Coordinate(cX, cY), new Coordinate(h.x, h.y), this.getSpeed(), lastAngle);
 			healthPaths.add(path);
@@ -257,6 +262,9 @@ public class MyAIController extends CarController {
 		        return a1.size() - a2.size(); // smallest to biggest
 		    }
 		});
+		
+		if(DEBUG) System.err.println(healthPaths.toString());
+		System.exit(-1);
 		
 		if (healthPaths.get(0) != null) {
 			return healthPaths.get(0);
