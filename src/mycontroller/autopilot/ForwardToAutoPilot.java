@@ -1,5 +1,6 @@
 package mycontroller.autopilot;
 
+import mycontroller.common.Logger;
 import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
@@ -119,13 +120,13 @@ public class ForwardToAutoPilot extends AutoPilotBase {
         case On:
             double d = getDistanceToTarget(car.getX(), car.getY());
             double speedLimit = getSpeedLimit(d - delta * car.getSpeed() - 0.03, targetSpeed);
-            if (DEBUG_AUTOPILOT) System.out.printf("speedLimit=%.5f\n", speedLimit);
+            Logger.printInfo("ForwardToAutoPilot", String.format("speedLimit=%.5f\n", speedLimit));
             mainTainSpeedAutoPilot= new MaintainSpeedAutoPilot(mapManager, (float) speedLimit);
             return mainTainSpeedAutoPilot.handle(delta, car);
         case Recentering:
             ActuatorAction speedOps = mainTainSpeedAutoPilot.handle(delta, car);
             speedOps.backward = false;
-            System.out.printf("\t%s\n", recentringAutoPilot);
+            Logger.printInfo("ForwardToAutoPilot", String.format("recentre %s\n", recentringAutoPilot));
             return ActuatorAction.combine(speedOps, recentringAutoPilot.handle(delta,car));
         case Finished:
             if (Math.abs(car.getSpeed() - targetSpeed) < 0.1f) {

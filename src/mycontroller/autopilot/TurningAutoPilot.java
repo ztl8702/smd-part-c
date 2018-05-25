@@ -1,5 +1,6 @@
 package mycontroller.autopilot;
 
+import mycontroller.common.Logger;
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
 import world.WorldSpatial;
@@ -78,8 +79,11 @@ public class TurningAutoPilot extends AutoPilotBase {
     public ActuatorAction handle(float delta, SensorInfo car) {
         Coordinate coord = new Coordinate(car.getTileX(), car.getTileY());
 
-        if (DEBUG_AUTOPILOT) System.out.printf("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x,
-                this.getCentreLineX(toTile.x,toTile.y), d(), this.getCentreLineX(toTile.x, toTile.y) - d(), car.getX());
+        Logger.printInfo("TurningAutoPilot",
+                String.format("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x,
+                this.getCentreLineX(toTile.x,toTile.y), d(), this.getCentreLineX(toTile.x, toTile.y) - d(), car.getX()
+                )
+        );
 
         switch (this.state) {
             case Waiting:

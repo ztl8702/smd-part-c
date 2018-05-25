@@ -3,6 +3,7 @@ package mycontroller.navigator;
 import mycontroller.autopilot.AutoPilot;
 import mycontroller.autopilot.ActuatorAction;
 import mycontroller.autopilot.SensorInfo;
+import mycontroller.common.Logger;
 import mycontroller.routecompiler.DefaultRouteCompiler;
 import mycontroller.routecompiler.RouteCompiler;
 import utilities.Coordinate;
@@ -12,7 +13,6 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class DefaultNavigator implements Navigator {
-	private boolean DEBUG = true;
     private AutoPilot opt = null;
     private Queue<AutoPilot> upcomingOpts = new LinkedList<AutoPilot>();
     @Override
@@ -35,22 +35,18 @@ public class DefaultNavigator implements Navigator {
     @Override
     public ActuatorAction update(float delta, SensorInfo car) {
         while (!upcomingOpts.isEmpty() && upcomingOpts.peek().canTakeCharge() && (this.opt ==null || this.opt.canBeSwappedOut()) ) {
-        	if (DEBUG) System.out.println(upcomingOpts.peek()+"taking charge");
+            info(upcomingOpts.peek()+"taking charge");
             this.opt = upcomingOpts.remove();
         }
 
-        if (DEBUG) System.out.printf("delta=%.6f (%.6f, %.6f)\n", delta,car.getX(),car.getY());
+        info(String.format("delta=%.6f (%.6f, %.6f)\n", delta,car.getX(),car.getY()));
         ActuatorAction action = ActuatorAction.nothing();
 
         if (opt!=null) {
             action = opt.handle(delta, car);
         }
-        if (DEBUG) System.out.println(opt);
+        info(String.format("Current AutoPilot: %s", opt));
 
-        /*for (AutoPilot o : this.upcomingOpts) {
-            System.out.println(o);
-            o.handle(delta, car);
-        }*/
         // only look ahead by one
         if (!this.upcomingOpts.isEmpty()){
             this.upcomingOpts.peek().handle(delta,car);
@@ -77,4 +73,8 @@ public class DefaultNavigator implements Navigator {
 			return false;
 		}
 	}
+
+	private void info(String message) {
+        Logger.printInfo("DefaultNavigator", message);
+    }
 }

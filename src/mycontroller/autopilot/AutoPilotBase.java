@@ -11,8 +11,6 @@ import utilities.Coordinate;
 public abstract class AutoPilotBase implements AutoPilot {
     public static final double TILE_WIDTH = 1; // 32;
     
-    public static boolean DEBUG_AUTOPILOT = false;
-
     public static final double WALL_BUFFER = 0.2;
 
     protected MapManagerInterface mapManager;

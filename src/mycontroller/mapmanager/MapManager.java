@@ -5,6 +5,7 @@ import java.util.*;
 
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
+import mycontroller.common.Logger;
 import tiles.MapTile;
 import tiles.HealthTrap;
 import tiles.LavaTrap;
@@ -117,7 +118,7 @@ public class MapManager implements MapManagerInterface {
                     this.map.put(new Coordinate(coord.x, coord.y), Cell.newFinishCell());
                     break;
                 default:
-                    System.err.println("Unexpected cell type in initial map.");
+                    Logger.printWarning(this.getClass().getName(),"Unexpected cell type in initial map.");
                     break;
             }
         });

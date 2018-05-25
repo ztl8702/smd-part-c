@@ -3,6 +3,7 @@ package mycontroller.pathfinder;
 import java.util.*;
 
 import mycontroller.common.Cell;
+import mycontroller.common.Logger;
 import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
@@ -65,7 +66,7 @@ public class WallFollowingPathFinder extends PathFinderBase {
     }
 
 
-    private ArrayList<Coordinate> findPathToClosestWallBFS() throws Exception {
+    private ArrayList<Coordinate> findPathToClosestWallBFS() {
 
 
         Queue<Coordinate> queue = new LinkedList<Coordinate>();
@@ -115,7 +116,8 @@ public class WallFollowingPathFinder extends PathFinderBase {
                 }
             }
         }
-        return null;
+        Logger.printWarning(this.getClass().getName(), "BFS ended without a path");
+        return new ArrayList<>();
     }
 
 
