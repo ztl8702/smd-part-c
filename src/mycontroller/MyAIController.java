@@ -34,6 +34,7 @@ public class MyAIController extends CarController {
     private static final boolean DEBUG = false;
 
     private boolean finishExploring = false;
+    private boolean executingExploringPath = false;
 
 
     private MapManagerInterface mapManager;
@@ -87,7 +88,7 @@ public class MyAIController extends CarController {
 //		}
         
 
-        if (!navigator.isCurrentPathCompleted()) {
+        if (!navigator.isIdle()) {
             ActuatorAction action = navigator.update(delta, SensorInfo.fromController(this));
             if (action.brake) {
                 this.applyBrake();
@@ -104,6 +105,14 @@ public class MyAIController extends CarController {
             if (action.turnRight) {
                 this.turnRight(delta);
             }
+
+            if (executingExploringPath && mapManager.foundAllKeys(this.getKey())) {
+                // no need to keep exploring now
+                navigator.requestInterrupt();
+			}
+			// else if ( health is low ) {
+			//  navigator.requestInterrupt();	
+			//}
             
         } else {
         	
@@ -117,19 +126,21 @@ public class MyAIController extends CarController {
 
                 navigator.loadNewPath(path);
                 //RouteCompiler compiler = new DefaultRouteCompiler();
-
+                executingExploringPath = true;
                 //compiler.compile(path);
                 //exit(-1);
 
             } 
             // found all keys, can now get remaining keys
  			else if (currentState == State.Finish) {
+                executingExploringPath = false;
  				// once all keys have been found
  				ArrayList<Coordinate> path = getAStarPath();
  				navigator.loadNewPath(path); 				
  			}
  			// in recovery mode
  			else if (currentState == State.Recover) {
+                executingExploringPath = false;
  				ArrayList<Coordinate> path = getHealthPath();
  				navigator.loadNewPath(path);
  			}
