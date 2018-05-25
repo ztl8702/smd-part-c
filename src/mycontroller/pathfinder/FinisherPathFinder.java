@@ -39,7 +39,7 @@ public class FinisherPathFinder extends PathFinderBase {
     }
 
     /**
-     * Way points are locations we need to visit
+     * Waypoints are locations we need to visit on our way to the finish tile
      *
      * @return
      */
@@ -64,8 +64,6 @@ public class FinisherPathFinder extends PathFinderBase {
         wayPoints.add(new Coordinate(finishTile.x, finishTile.y));
         return wayPoints;
     }
-
-
 
     private ArrayList<Coordinate> doGetPath(Coordinate startPosition, float startingSpeed, float startingAngle) {
 
@@ -113,6 +111,5 @@ public class FinisherPathFinder extends PathFinderBase {
         }
         return finalPath;
     }
-
 
 }

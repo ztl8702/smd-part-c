@@ -19,11 +19,6 @@ public class AStarPathFinder extends PathFinderBase {
     private boolean DEBUG_GET_TILE_BEHIND = false;
 
     /**
-     * The map being searched
-     */
-    private MapManagerInterface mapManager;
-
-    /**
      * The maximum depth of search we're willing to accept before giving up
      */
     private int maxSearchDistance;
@@ -84,9 +79,8 @@ public class AStarPathFinder extends PathFinderBase {
 
 
     public AStarPathFinder(MapManagerInterface mapManager, int maxSearchDistance, int width, int height) {
-
+        super(mapManager);
         this.maxSearchDistance = maxSearchDistance;
-        this.mapManager = mapManager;
 
 
         //TODO need to think about it again as if this is the search we are using to explore

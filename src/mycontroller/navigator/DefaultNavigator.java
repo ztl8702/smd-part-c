@@ -170,6 +170,6 @@ public class DefaultNavigator implements Navigator {
     }
 
 	private void info(String message) {
-        Logger.printInfo("DefaultNavigator", message);
+        Logger.printDebug("DefaultNavigator", message);
     }
 }

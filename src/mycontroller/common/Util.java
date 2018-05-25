@@ -137,6 +137,11 @@ public class Util {
         }
     }
 
+
+    public static Coordinate cloneCoordinate(Coordinate a) {
+        return new Coordinate(a.x, a.y);
+    }
+
     /**
      * Print warning message
      *
@@ -146,6 +151,7 @@ public class Util {
     private static void warn(String methodName, String message) {
         Logger.printWarning("Util." + methodName, message);
     }
+
 
 }
 
