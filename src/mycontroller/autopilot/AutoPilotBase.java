@@ -20,7 +20,7 @@ public abstract class AutoPilotBase implements AutoPilot {
     }
 
 
-    private boolean isWall(int x, int y) {
+    protected boolean isWall(int x, int y) {
         if (!mapManager.isWithinBoard(new Coordinate(x,y))) {
             return true;
         } else {

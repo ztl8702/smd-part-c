@@ -2,10 +2,7 @@ package mycontroller;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Set;
 
 import mycontroller.autopilot.AutoPilotFactory;
@@ -187,6 +184,7 @@ public class MyAIController extends CarController {
     }
 
     private void navigatorUpdate(float delta) {
+        
         ActuatorAction action = navigator.update(delta, SensorInfo.fromController(this));
         if (action.brake) {
             this.applyBrake();
@@ -214,48 +212,20 @@ public class MyAIController extends CarController {
     private ArrayList<Coordinate> getAStarPath() {
         return new FinisherPathFinder(mapManager, this.getKey()).getPath(
                 new Coordinate(this.getPosition()),
-                null, // finisher doesnt care about goalPosition, it will figure out by itself
+                null, // finisher doesn't care about goalPosition, it will figure out by itself
                     this.getSpeed(),
                     this.getAngle()
                 );
     }
 
-
-    /**
-     * Gets a path to the nearest health tile
-     *
-     * @return
-     */
     private ArrayList<Coordinate> getHealthPath() {
+        return new HealthPathFinder(mapManager).getPath(
+                new Coordinate(this.getPosition()),
+                null, // we don't have a goal position here, it is up to HealthPathFinder to figure out
+                this.getSpeed(),
+                this.getAngle()
+        );
 
-        int maxSearchDepth = 500;
-        PathFinder finisher = new AStarPathFinder(mapManager, maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
-
-        Set<Coordinate> healthTiles = mapManager.getHealthTiles();
-        ArrayList<ArrayList<Coordinate>> healthPaths = new ArrayList<>(healthTiles.size());
-
-        Coordinate currentPosition = new Coordinate(this.getPosition());
-        // initial position before search
-        int cX = currentPosition.x;
-        int cY = currentPosition.y;
-        float lastAngle = this.getAngle();
-
-        for (Coordinate h : healthTiles) {
-            if (DEBUG) System.err.println(h.toString());
-            // update distance from current location to h
-            ArrayList<Coordinate> path = finisher.getPath(new Coordinate(cX, cY), new Coordinate(h.x, h.y), this.getSpeed(), lastAngle);
-
-            if (path != null) healthPaths.add(path);
-        }
-
-        Collections.sort(healthPaths, (ArrayList a1, ArrayList a2) -> a1.size() - a2.size()); // smallest to biggest
-
-        if (DEBUG) System.err.println(healthPaths.toString());
-
-        if (healthPaths.get(0) != null) {
-            return healthPaths.get(0);
-        }
-        return null;
     }
 
     private void changeGoal(Goal newGoal) {

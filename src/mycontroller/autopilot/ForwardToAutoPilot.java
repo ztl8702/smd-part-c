@@ -64,9 +64,17 @@ public class ForwardToAutoPilot extends AutoPilotBase {
         Coordinate coord = new Coordinate(car.getTileX(), car.getTileY());
         switch (state) {
         case Idle:
-            if ((trackingAxis == TrackingAxis.X && inRange(car.getX(), fromPos, toPos)
-                    && coord.y == Math.round(otherAxis))
-                    || (trackingAxis == TrackingAxis.Y && inRange(car.getY(), fromPos, toPos)
+            if (
+                    (trackingAxis == TrackingAxis.X
+                            && (inRange(car.getX(), fromPos, toPos)
+                                || coord.x == Math.round(fromPos)
+                                )
+                            && coord.y == Math.round(otherAxis))
+                    ||
+                    (trackingAxis == TrackingAxis.Y
+                            && (inRange(car.getY(), fromPos, toPos)
+                                || coord.y == Math.round(fromPos)
+                               )
                             && coord.x == Math.round(otherAxis))) {
                 //if (car.getOrientation() == theOrientation){
                    changeState(State.On);
@@ -74,8 +82,10 @@ public class ForwardToAutoPilot extends AutoPilotBase {
             }
             break;
         case On:
-            if ((trackingAxis == TrackingAxis.X && !(inRange(car.getX(), fromPos, toPos)))
-                    || (trackingAxis == TrackingAxis.Y && !(inRange(car.getY(), fromPos, toPos)))) {
+            if (
+                    (trackingAxis == TrackingAxis.X && !(inRange(car.getX(), fromPos, toPos) || coord.x == Math.round(fromPos)))
+                    || (trackingAxis == TrackingAxis.Y && !(inRange(car.getY(), fromPos, toPos) || coord.y == Math.round(fromPos)))
+                    ) {
                 changeState(State.Finished);
             }
 
@@ -86,14 +96,14 @@ public class ForwardToAutoPilot extends AutoPilotBase {
                 }
                 if (trackingAxis == TrackingAxis.X) {
                     double newCentreLineY = getCentreLineY(nextCell.x, nextCell.y);
-                    if (Math.abs(car.getY() - newCentreLineY ) > RECENTER_EPS) {
+                    if (!isWall(nextCell.x, nextCell.y) && Math.abs(car.getY() - newCentreLineY ) > RECENTER_EPS) {
                         changeState(State.Recentering);
                         mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, (float) car.getSpeed());
                         recentringAutoPilot = new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.Y, (float)newCentreLineY);
                     }
                 } else if (trackingAxis == TrackingAxis.Y) {
                     double newCentreLineX = getCentreLineX(nextCell.x, nextCell.y);
-                    if (Math.abs(car.getX() - newCentreLineX) > RECENTER_EPS ){
+                    if (!isWall(nextCell.x, nextCell.y) && Math.abs(car.getX() - newCentreLineX) > RECENTER_EPS ){
                         changeState(State.Recentering);
                         mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, (float) car.getSpeed());
                         recentringAutoPilot = new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.X, (float)newCentreLineX);
@@ -111,7 +121,6 @@ public class ForwardToAutoPilot extends AutoPilotBase {
         case Finished:
             break;
         }
-
 
 
         switch (state) {

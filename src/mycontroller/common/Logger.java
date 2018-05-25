@@ -2,7 +2,7 @@ package mycontroller.common;
 
 public class Logger {
 
-    private static boolean PRINT_INFO = false;
+    private static boolean PRINT_INFO = true;
     private static boolean PRINT_DEBUG = true;
     private static boolean PRINT_WARNING = true;
 
