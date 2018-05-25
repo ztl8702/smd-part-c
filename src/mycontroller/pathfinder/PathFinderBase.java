@@ -1,8 +1,6 @@
 package mycontroller.pathfinder;
 
-import utilities.Coordinate;
-import world.World;
-import world.WorldSpatial;
+import mycontroller.mapmanager.MapManagerInterface;
 
 /**
  * This abstract class implements some common functionality shared by
@@ -10,5 +8,11 @@ import world.WorldSpatial;
  */
 public abstract class PathFinderBase implements PathFinder {
 
-    //TODO: move common code between different path finders here
+    // TODO: move common code between different path finders here
+
+    protected MapManagerInterface mapManager;
+
+    public PathFinderBase(MapManagerInterface mapManager) {
+        this.mapManager = mapManager;
+    }
 }

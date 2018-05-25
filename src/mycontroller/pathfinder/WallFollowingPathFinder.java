@@ -18,14 +18,13 @@ public class WallFollowingPathFinder extends PathFinderBase {
 			new Coordinate(1,0) //E
 			);
 
-    private MapManagerInterface mapManager;
     private Coordinate startingPosition;
     private float startingSpeed;
     private WorldSpatial.Direction startingDirection;
     
 
     public WallFollowingPathFinder(MapManagerInterface mapManager) {
-		this.mapManager = mapManager;
+        super(mapManager);
 	}
     
     @Override
@@ -51,16 +50,10 @@ public class WallFollowingPathFinder extends PathFinderBase {
         ArrayList<Coordinate> path2 = findPathFollowingWallDFS(
                 path1.isEmpty() ? currentPosition : path1.get(path1.size() - 1),
                 new HashSet<>(path1));
-        //path1.remove(path1.size() - 1);
         finalPath.addAll(path1);
         finalPath.addAll(path2);
 
 
-//        System.out.println("Path found!!!!, path1 len= "+path1.size());
-//        for (Coordinate c : finalPath) {
-//            System.out.printf("(%d,%d)->", c.x, c.y);
-//
-//        }
 
         return finalPath;
     }

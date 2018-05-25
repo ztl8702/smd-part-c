@@ -15,7 +15,6 @@ import controller.CarController;
 import mycontroller.autopilot.ActuatorAction;
 import mycontroller.autopilot.SensorInfo;
 import mycontroller.common.Logger;
-import mycontroller.common.Util;
 import mycontroller.common.Cell.CellType;
 import mycontroller.mapmanager.MapManager;
 import mycontroller.mapmanager.MapManagerInterface;
@@ -27,7 +26,6 @@ import world.Car;
 import world.World;
 import tiles.MapTile;
 import utilities.Coordinate;
-import world.WorldSpatial;
 
 
 public class MyAIController extends CarController {
@@ -36,6 +34,7 @@ public class MyAIController extends CarController {
         Finish,
         Recover
     }
+
     public enum State {
         ExecutingExploringPath,
         ExecutingFinishPath,
@@ -45,9 +44,6 @@ public class MyAIController extends CarController {
     }
 
     private static final boolean DEBUG = true;
-
-    private boolean finishExploring = false;
-    private boolean executingExploringPath = false;
 
 
     private MapManagerInterface mapManager;
@@ -89,8 +85,7 @@ public class MyAIController extends CarController {
         // First, figure the goal
         switch (currentGoal) {
             case Explore:
-                if (mapManager.foundAllKeys(this.getKey()))
-                {
+                if (mapManager.foundAllKeys(this.getKey())) {
                     changeGoal(Goal.Finish);
                 }
                 if (isLowHealth()) { // low health warning
@@ -115,12 +110,12 @@ public class MyAIController extends CarController {
         }
 
         // Should we interrupt the Navigator
-        if ( (currentState == State.ExecutingExploringPath || currentState == State.ExecutingFinishPath)
+        if ((currentState == State.ExecutingExploringPath || currentState == State.ExecutingFinishPath)
                 && currentGoal == Goal.Recover) {
             // health is low, we need to stop
             navigator.requestInterrupt();
         }
-        if (currentState==State.ExecutingExploringPath && currentGoal == Goal.Finish) {
+        if (currentState == State.ExecutingExploringPath && currentGoal == Goal.Finish) {
             // don't need to explore anymore
             navigator.requestInterrupt();
         }
@@ -153,17 +148,17 @@ public class MyAIController extends CarController {
                     break;
                 }
             case ExecutingExploringPath:
-                if (navigator.isIdle()){
+                if (navigator.isIdle()) {
                     changeState(State.Idle);
                 }
                 break;
             case ExecutingFinishPath:
-                if (navigator.isIdle()){
+                if (navigator.isIdle()) {
                     changeState(State.Idle);
                 }
                 break;
             case ExecutingRecoverPath:
-                if (navigator.isIdle() && onHealthTile()){
+                if (navigator.isIdle() && onHealthTile()) {
                     changeState(State.WaitingToRegainHealth);
                 }
                 break;
@@ -209,92 +204,31 @@ public class MyAIController extends CarController {
             this.turnRight(delta);
         }
     }
-    /**
-     * Way points are locations we need to visit
-     *
-     * @return
-     */
-    private Queue<Coordinate> createKeyWayPoints() {
 
-        boolean isColdStart = this.getSpeed() < 0.1;
-
-        Queue<Coordinate> wayPoints = new LinkedList<>();
-
-        if (isColdStart) {
-            // if the car is not moving, we must move ahead first.
-            wayPoints.add(Util.getTileAhead(new Coordinate(this.getPosition()), this.getOrientation()));
-        }
-
-        // loop through all the keys and set key coordinate end location
-        for (int i = this.getKey() - 1; i >= 1; i--) {
-            Coordinate nextKeyToFind = mapManager.getKeyCoordinate(i);
-            wayPoints.add(new Coordinate(nextKeyToFind.x, nextKeyToFind.y));
-        }
-        // finally add our finalTile
-
-        Coordinate finishTile = mapManager.getFinishTile();
-        wayPoints.add(new Coordinate(finishTile.x, finishTile.y));
-        return wayPoints;
-    }
-
-    /**
+   /**
      * Gets a path to find all keys and to the finish tile,
      * by calling A* path finding algorithm
      *
      * @return
      */
     private ArrayList<Coordinate> getAStarPath() {
-
-        int maxSearchDepth = 500;
-        PathFinder finisher = new AStarPathFinder(mapManager, maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
-
-        ArrayList<Coordinate> finalPath = new ArrayList<>();
-
-        Queue<Coordinate> wayPoints = createKeyWayPoints();
-
-        Coordinate currentPosition = new Coordinate(this.getPosition());
-        // initial position before search
-        int cX = currentPosition.x;
-        int cY = currentPosition.y;
-        float lastAngle = this.getAngle();
-
-        // visit way points one by one
-        while (!wayPoints.isEmpty()) {
-            Coordinate nextWayPoint = wayPoints.remove();
-            int goalX = nextWayPoint.x;
-            int goalY = nextWayPoint.y;
-            if (!(goalX == cX && goalY == cY)) {
-                ArrayList<Coordinate> subPath = finisher.getPath(new Coordinate(cX, cY),
-                        new Coordinate(goalX, goalY), this.getSpeed(), lastAngle);
-
-                if (subPath != null) {
-                    // gets the ending direction
-                    WorldSpatial.Direction endingOrientation = Util.inferDirection(new Coordinate(goalX, goalY),
-                            subPath.get(subPath.size() - 2));
-                    lastAngle = Util.orientationToAngle(endingOrientation);
-
-
-                    if (!finalPath.isEmpty()) {
-                        // remove first coordinate to avoid repetition
-                        subPath.remove(0);
-                    }
-                    finalPath.addAll(subPath);
-                    cX = goalX;
-                    cY = goalY;
-                }
-            }
-        }
-		return finalPath;		
-	}
+        return new FinisherPathFinder(mapManager, this.getKey()).getPath(
+                new Coordinate(this.getPosition()),
+                null, // finisher doesnt care about goalPosition, it will figure out by itself
+                    this.getSpeed(),
+                    this.getAngle()
+                );
+    }
 
 
     /**
      * Gets a path to the nearest health tile
+     *
      * @return
      */
     private ArrayList<Coordinate> getHealthPath() {
 
-    	int maxSearchDepth = 500;
+        int maxSearchDepth = 500;
         PathFinder finisher = new AStarPathFinder(mapManager, maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
 
         Set<Coordinate> healthTiles = mapManager.getHealthTiles();
@@ -305,41 +239,42 @@ public class MyAIController extends CarController {
         int cX = currentPosition.x;
         int cY = currentPosition.y;
         float lastAngle = this.getAngle();
-        
-		for (Coordinate h: healthTiles) {
-			if(DEBUG) System.err.println(h.toString());
-			// update distance from current location to h
-			ArrayList<Coordinate> path = finisher.getPath(new Coordinate(cX, cY), new Coordinate(h.x, h.y), this.getSpeed(), lastAngle);
 
-			if (path!=null) healthPaths.add(path);
-		}
-		
-		Collections.sort(healthPaths, (ArrayList a1, ArrayList a2) -> a1.size() - a2.size()); // smallest to biggest
+        for (Coordinate h : healthTiles) {
+            if (DEBUG) System.err.println(h.toString());
+            // update distance from current location to h
+            ArrayList<Coordinate> path = finisher.getPath(new Coordinate(cX, cY), new Coordinate(h.x, h.y), this.getSpeed(), lastAngle);
 
-		if(DEBUG) System.err.println(healthPaths.toString());
+            if (path != null) healthPaths.add(path);
+        }
 
-		if (healthPaths.get(0) != null) {
-			return healthPaths.get(0);
-		}
-		return null;
+        Collections.sort(healthPaths, (ArrayList a1, ArrayList a2) -> a1.size() - a2.size()); // smallest to biggest
+
+        if (DEBUG) System.err.println(healthPaths.toString());
+
+        if (healthPaths.get(0) != null) {
+            return healthPaths.get(0);
+        }
+        return null;
     }
 
-    private void changeGoal(Goal newGoal){
-        if (newGoal!=currentGoal) {
-            Logger.printDebug("MyAIController", "Change Goal: " + currentGoal + "->"+newGoal);
+    private void changeGoal(Goal newGoal) {
+        if (newGoal != currentGoal) {
+            Logger.printDebug("MyAIController", "Change Goal: " + currentGoal + "->" + newGoal);
             currentGoal = newGoal;
         }
     }
 
-    private void changeState(State newState){
-        if (newState!=currentState) {
-            Logger.printDebug("MyAIController", "Change State: " + currentState + "->"+newState);
+    private void changeState(State newState) {
+        if (newState != currentState) {
+            Logger.printDebug("MyAIController", "Change State: " + currentState + "->" + newState);
             currentState = newState;
         }
     }
 
     /**
      * Whether the car is on a HealthTile
+     *
      * @return
      */
     private boolean onHealthTile() {
@@ -348,11 +283,11 @@ public class MyAIController extends CarController {
     }
 
     private boolean isLowHealth() {
-        return this.getHealth() <= 40;
+        return this.getHealth() <= 60;
     }
 
     private boolean isEnoughHealth() {
-        return this.getHealth() >= 79; // avoid rounding error
+        return this.getHealth() >= 100; // avoid rounding error
     }
 
 

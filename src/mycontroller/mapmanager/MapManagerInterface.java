@@ -72,7 +72,9 @@ public interface MapManagerInterface {
 
 
     /**
-     * Initialise map
+     * Initialise map.
+     * Should only be called once
+     *
      * @param tiles
      */
     void initialMap(HashMap<Coordinate, MapTile> tiles);
