@@ -69,21 +69,21 @@ public class MyAIController extends CarController {
 		
 		
 		//TODO: move to Navigator
-		if (this.getHealth() <= 40) {
-			// low health warning
-			currentState = State.Recover;
-		}
-		if (currentState == State.Recover && this.getHealth() == 100) {
-			// recovered to full health
-			
-			Coordinate currentPosition = new Coordinate(this.getPosition());
-	        // initial position before search
-	        int cX = currentPosition.x;
-	        int cY = currentPosition.y;
-	        if (mapManager.getCell(cX, cY).type == CellType.HEALTH) {
-	        	currentState = State.Finish
-	        }
-		}
+//		if (this.getHealth() <= 40) {
+//			// low health warning
+//			currentState = State.Recover;
+//		}
+//		if (currentState == State.Recover && this.getHealth() == 100) {
+//			// recovered to full health
+//			
+//			Coordinate currentPosition = new Coordinate(this.getPosition());
+//	        // initial position before search
+//	        int cX = currentPosition.x;
+//	        int cY = currentPosition.y;
+//	        if (mapManager.getCell(cX, cY).type == CellType.HEALTH) {
+//	        	currentState = State.Finish
+//	        }
+//		}
 		 
 			
 		
@@ -232,9 +232,6 @@ public class MyAIController extends CarController {
                 }
             }
         }
-
-		return finalPath;
-		
+		return finalPath;		
 	}
-
 }
