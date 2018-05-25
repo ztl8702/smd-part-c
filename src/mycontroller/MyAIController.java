@@ -100,7 +100,6 @@ public class MyAIController extends CarController {
 				// once all keys have been found
 				if (mapManager.foundAllKeys(this.getKey())) {
 					ArrayList<Coordinate> path = getAStarPath();
-
 					navigator.loadNewPath(path);
 //					// print out the result
 //					System.err.println("************************ASTAR***************** Path found!!!!");
@@ -203,4 +202,5 @@ public class MyAIController extends CarController {
 		return finalPath;
 		
 	}
+
 }

@@ -9,7 +9,9 @@ import java.util.Scanner;
 import mycontroller.common.Cell;
 import mycontroller.mapmanager.MapManager;
 import mycontroller.pathfinder.AStarPathFinder;
+import mycontroller.pathfinder.PathFinder;
 import utilities.Coordinate;
+import world.World;
 
 /**
  * CODE FOR TESTING PURPOSES
@@ -20,24 +22,25 @@ public class AlgorithmTester {
     public static String IN_FILE = "map.in";
     public static int startX, startY, endX, endY, width, height;
     public static HashMap<Coordinate, Cell> map;
-    
-    
 
     public static void main(String[] argv) {
         readInput();
 
         //System.out.printf("%d %d", startX, startY);
 
-//        public AStarPathFinder( mapManager, int maxSearchDistance, int width, int height)
-        AStarPathFinder finisher = new AStarPathFinder(new MapManager(), 500, width, height);
-        ArrayList<Coordinate> path = finisher.getPath(new Coordinate(startX, startY), new Coordinate(endX, endY), 0, 0);
-
-
+/*
+        AStarPathFinder finisher = new AStarPathFinder(map, 500,
+                0, new Coordinate(startX, startY), 0, 90, width, height);
+        ArrayList<Coordinate> path = finisher.findPath(startX, startY, endX, endY);
+>>>>>>> master
         // print out the result
         System.out.println("*****ASTAR***** Path found!!!!");
 
         System.out.println(path.toString());
+<<<<<<< HEAD
 
+=======
+*/
 
 
     }
