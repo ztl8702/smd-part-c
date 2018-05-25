@@ -17,7 +17,7 @@ public interface AutoPilot {
      *
      * @see ActuatorAction
      * @param delta Seconds passed since last update
-     * @param car
+     * @param carStatus
      * @return
      */
     ActuatorAction handle(float delta, SensorInfo carStatus);

@@ -13,10 +13,20 @@ public interface Navigator {
 
     void loadAutoPilots(ArrayList<AutoPilot> autoPilots);
     
-    boolean isCurrentPathCompleted();
+    boolean isIdle();
     ActuatorAction update(float delta, SensorInfo carInfo);
     
     float getPercentageCompleted();
-    
-    void interrupt();
+
+    /**
+     * Request Navigator to stop navigating on the current path
+     *
+     * Note: this does not guarantee stopping immediately,
+     * Navigator might be in some critical state, like turning, which
+     * cannot be interrupted until completed.
+     *
+     * Always use isIdle() to check;
+     */
+    void requestInterrupt();
+
 }
