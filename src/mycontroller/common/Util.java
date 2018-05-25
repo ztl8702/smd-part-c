@@ -7,21 +7,20 @@ import static world.WorldSpatial.Direction.*;
 
 /**
  * Physics/Math helper methods used throughout our driving system
- *
- *
  */
 public class Util {
     /**
      * Converts angle in degrees to WorldSpatial.Direction
+     *
      * @param currentAngle
      * @return
      */
     public static WorldSpatial.Direction angleToOrientation(float currentAngle) {
-        if ( (-45 <= currentAngle && currentAngle <= 45) || (currentAngle>=360-45) ) {
+        if ((-45 <= currentAngle && currentAngle <= 45) || (currentAngle >= 360 - 45)) {
             return EAST;
-        } else if ( 45 < currentAngle && currentAngle <= 135) {
+        } else if (45 < currentAngle && currentAngle <= 135) {
             return WorldSpatial.Direction.NORTH;
-        } else if ( 135 < currentAngle && currentAngle <= 225) {
+        } else if (135 < currentAngle && currentAngle <= 225) {
             return WorldSpatial.Direction.WEST;
         } else {
             return WorldSpatial.Direction.SOUTH;
@@ -30,6 +29,7 @@ public class Util {
 
     /**
      * Converts WorldSpatial.Direction to degrees
+     *
      * @param orientation
      * @return
      */
@@ -51,6 +51,7 @@ public class Util {
 
     /**
      * Infers the car's moving direction by using the current and last location
+     *
      * @param now
      * @param prev
      * @return
@@ -70,9 +71,12 @@ public class Util {
         } else {
             // this should not happen at all.
             // but if it does there is something wrong with our path finder
-            System.err.printf("[inferDirection] invalid inputs: (%d,%d)->(%d,%d)\n", prev.x,prev.y, now.x,now.y);
-            System.err.printf("[inferDirection] This implies that there might be some " +
-                    "bugs in the PathFinder\n", prev.x,prev.y, now.x,now.y);
+            warn("inferDirection",
+                    String.format("invalid inputs: (%d,%d)->(%d,%d)", prev.x, prev.y, now.x, now.y));
+            warn("inferDirection",
+                    String.format("This implies that there might be some " +
+                            "bugs in the PathFinder", prev.x, prev.y, now.x, now.y)
+            );
             // Default to EAST
             return EAST;
         }
@@ -80,6 +84,7 @@ public class Util {
 
     /**
      * Next tile in direction
+     *
      * @return
      */
     public static Coordinate getTileAhead(Coordinate startingPosition, WorldSpatial.Direction startingDirection) {
@@ -104,6 +109,7 @@ public class Util {
 
     /**
      * Next tile in reverse direction
+     *
      * @return
      */
     public static Coordinate getTileBehind(Coordinate currentPosition, WorldSpatial.Direction currentOrientation) {
@@ -112,7 +118,7 @@ public class Util {
 
     public static WorldSpatial.Direction getOppositeOrientation(WorldSpatial.Direction orientation) {
         if (orientation == null) {
-            System.err.printf("[getOppositeOrientation] orientation is null!\n");
+            warn("getOppositeOrientation", "orientation is null!");
             // default to east
             return EAST;
         }
@@ -126,9 +132,19 @@ public class Util {
             case SOUTH:
                 return NORTH;
             default:
-                System.err.printf("[getOppositeOrientation] invalid orientation.\n");
+                warn("getOppositeOrientation", "invalid orientation.");
                 return EAST;
         }
+    }
+
+    /**
+     * Print warning message
+     *
+     * @param methodName
+     * @param message
+     */
+    private static void warn(String methodName, String message) {
+        Logger.printWarning("Util." + methodName, message);
     }
 
 }

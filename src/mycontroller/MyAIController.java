@@ -26,112 +26,111 @@ import world.WorldSpatial;
 
 
 public class MyAIController extends CarController {
-	
-	public enum State { Explore, Finish, Recover }
-	
-	private static final boolean DEBUG = false;
-	
-	private boolean startedMoving;
+
+    public enum State {Explore, Finish, Recover}
+
+    private static final boolean DEBUG = false;
+
+    private boolean startedMoving;
 
 
-	
-	
-	private MapManagerInterface mapManager;
-	private State currentState;
-	private Navigator navigator;
+    private MapManagerInterface mapManager;
+    private State currentState;
+    private Navigator navigator;
 
-	public MyAIController(Car car) {
-		super(car);
+    public MyAIController(Car car) {
+        super(car);
 
 
-		this.startedMoving = false;
-		this.currentState = State.Explore;
-		
-		mapManager = new MapManager();
-		mapManager.initialMap(this.getMap());
-		navigator = new DefaultNavigator();
-		AutoPilotFactory.initialise(mapManager);
+        this.startedMoving = false;
+        this.currentState = State.Explore;
 
-	}
+        mapManager = new MapManager();
+        mapManager.initialMap(this.getMap());
+        navigator = new DefaultNavigator();
+        AutoPilotFactory.initialise(mapManager);
 
-	@Override
-	public void update(float delta) {
-		
-		// gets what the car can see
-		HashMap<Coordinate, MapTile> currentView = getView();
+    }
 
-		// update the mapManager
-		mapManager.updateView(currentView);
-		if (mapManager.foundAllKeys(this.getKey())) currentState = State.Finish;
-			
-		if (!navigator.isCurrentPathCompleted()) {
-			ActuatorAction action = navigator.update(delta,SensorInfo.fromController(this));
-			if (action.brake) {
-				this.applyBrake();
-			}
-			if (action.forward) {
-				this.applyForwardAcceleration();
-			}
-			if (action.backward) {
-				this.applyReverseAcceleration();
-			}
-			if (action.turnLeft) {
-				this.turnLeft(delta);
-			}
-			if (action.turnRight) {
-				this.turnRight(delta);
-			}
-		} else {
-			// have not found solution, keep exploring
-			if(currentState == State.Explore) {
+    @Override
+    public void update(float delta) {
 
-				PathFinder wallFollower = new WallFollowingPathFinder(mapManager);
+        // gets what the car can see
+        HashMap<Coordinate, MapTile> currentView = getView();
 
-				ArrayList<Coordinate> path = wallFollower.getPath(
-						new Coordinate(this.getPosition()), null, this.getSpeed(), this.getAngle());
+        // update the mapManager
+        mapManager.updateView(currentView);
+        if (mapManager.foundAllKeys(this.getKey())) currentState = State.Finish;
 
-				navigator.loadNewPath(path);
-				//RouteCompiler compiler = new DefaultRouteCompiler();
+        if (!navigator.isCurrentPathCompleted()) {
+            ActuatorAction action = navigator.update(delta, SensorInfo.fromController(this));
+            if (action.brake) {
+                this.applyBrake();
+            }
+            if (action.forward) {
+                this.applyForwardAcceleration();
+            }
+            if (action.backward) {
+                this.applyReverseAcceleration();
+            }
+            if (action.turnLeft) {
+                this.turnLeft(delta);
+            }
+            if (action.turnRight) {
+                this.turnRight(delta);
+            }
+        } else {
+            // have not found solution, keep exploring
+            if (currentState == State.Explore) {
 
-				//compiler.compile(path);
-				//exit(-1);
-				
-			} else {
-				// once all keys have been found
-				if (mapManager.foundAllKeys(this.getKey())) {
-					ArrayList<Coordinate> path = getAStarPath();
-					navigator.loadNewPath(path);
+                PathFinder wallFollower = new WallFollowingPathFinder(mapManager);
+
+                ArrayList<Coordinate> path = wallFollower.getPath(
+                        new Coordinate(this.getPosition()), null, this.getSpeed(), this.getAngle());
+
+                navigator.loadNewPath(path);
+                //RouteCompiler compiler = new DefaultRouteCompiler();
+
+                //compiler.compile(path);
+                //exit(-1);
+
+            } else {
+                // once all keys have been found
+                if (mapManager.foundAllKeys(this.getKey())) {
+                    ArrayList<Coordinate> path = getAStarPath();
+                    navigator.loadNewPath(path);
 //					// print out the result
 //					System.err.println("************************ASTAR***************** Path found!!!!");
 //					System.err.println(finalPath.toString());
-				}
-				
-			}
-			
-		}
-		
-		/**
-		// car hit a wall
-		//TODO maybe make a method to check ifCollided
-		if(getSpeed() == 0 && startedMoving) {
-			ReverseMode reverseMode = new ReverseMode();
-		}
-		
-		// health is lower than danger threshold
-		if(getHealth() <= DANGER_THRESHOLD) {
-			RecoveryPathFinder recoveryPathFinder = new RecoveryPathFinder();
-		}
-		if (DEBUG) System.out.printf("current unseen count: %d\n", mapManager.getUnseen().size());	
-		**/
-	}
+                }
+
+            }
+
+        }
+
+        /**
+         // car hit a wall
+         //TODO maybe make a method to check ifCollided
+         if(getSpeed() == 0 && startedMoving) {
+         ReverseMode reverseMode = new ReverseMode();
+         }
+
+         // health is lower than danger threshold
+         if(getHealth() <= DANGER_THRESHOLD) {
+         RecoveryPathFinder recoveryPathFinder = new RecoveryPathFinder();
+         }
+         if (DEBUG) System.out.printf("current unseen count: %d\n", mapManager.getUnseen().size());
+         **/
+    }
 
     /**
      * Way points are locations we need to visit
+     *
      * @return
      */
-	private Queue<Coordinate> createWayPoints() {
+    private Queue<Coordinate> createWayPoints() {
 
-	    boolean isColdStart = this.getSpeed() <0.1;
+        boolean isColdStart = this.getSpeed() < 0.1;
 
         Queue<Coordinate> wayPoints = new LinkedList<>();
 
@@ -141,7 +140,7 @@ public class MyAIController extends CarController {
         }
 
         // loop through all the keys and set key coordinate end location
-        for( int i = this.getKey()-1; i>=1; i-- ) {
+        for (int i = this.getKey() - 1; i >= 1; i--) {
             Coordinate nextKeyToFind = mapManager.getKeyCoordinate(i);
             wayPoints.add(new Coordinate(nextKeyToFind.x, nextKeyToFind.y));
         }
@@ -155,9 +154,10 @@ public class MyAIController extends CarController {
     /**
      * Gets a path to find all keys and to the finish tile,
      * by calling A* path finding algorithm
+     *
      * @return
      */
-	private ArrayList<Coordinate> getAStarPath() {
+    private ArrayList<Coordinate> getAStarPath() {
 
         int maxSearchDepth = 500;
         PathFinder finisher = new AStarPathFinder(mapManager, maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
@@ -177,14 +177,14 @@ public class MyAIController extends CarController {
             Coordinate nextWayPoint = wayPoints.remove();
             int goalX = nextWayPoint.x;
             int goalY = nextWayPoint.y;
-            if ( !( goalX == cX && goalY == cY) ) {
+            if (!(goalX == cX && goalY == cY)) {
                 ArrayList<Coordinate> subPath = finisher.getPath(new Coordinate(cX, cY),
                         new Coordinate(goalX, goalY), this.getSpeed(), lastAngle);
 
                 if (subPath != null) {
                     // gets the ending direction
                     WorldSpatial.Direction endingOrientation = Util.inferDirection(new Coordinate(goalX, goalY),
-                            subPath.get(subPath.size()-2));
+                            subPath.get(subPath.size() - 2));
                     lastAngle = Util.orientationToAngle(endingOrientation);
 
 
@@ -199,8 +199,6 @@ public class MyAIController extends CarController {
             }
         }
 
-		return finalPath;
-		
-	}
-
+        return finalPath;
+    }
 }

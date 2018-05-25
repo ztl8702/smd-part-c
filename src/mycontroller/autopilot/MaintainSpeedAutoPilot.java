@@ -1,6 +1,7 @@
 package mycontroller.autopilot;
 
 
+import mycontroller.common.Logger;
 import mycontroller.mapmanager.MapManagerInterface;
 
 /**
@@ -86,7 +87,7 @@ public class MaintainSpeedAutoPilot extends AutoPilotBase {
 
 	private void changeState(State newState) {
 		if (this.state != newState) {
-			if (DEBUG_AUTOPILOT) System.out.println("[MaintinSpeedOperator] state change: " + this.state + " -> " + newState);
+			Logger.printInfo("MaintinSpeedOperator","state change: " + this.state + " -> " + newState);
 			this.state = newState;
 
 			if (newState == State.Accelerating) {
