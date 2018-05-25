@@ -160,39 +160,13 @@ public class MyAIController extends CarController {
      */
 	private ArrayList<Coordinate> getAStarPath() {
 
-//<<<<<<< HEAD
-//				cX = k.x;
-//				cY = k.y;
-//			}
-//			else {
-//				System.err.println("Problem finding path with astar" + "from" + cX + "," + cY + "to" + k.x + "," + k.y);
-//			}
-//		}
-//		
-//		
-//		// done with getting all keys, now go to finish tile
-//		Coordinate finalKeyPosition = mapManager.getKeyCoordinate(1);
-//		Coordinate finishTile = mapManager.getFinishTile();
-//		
-//		
-//		if (finalKeyPosition == null) {			
-//=======
         int maxSearchDepth = 500;
         PathFinder finisher = new AStarPathFinder(mapManager, maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
-//>>>>>>> radium/master
 
         ArrayList<Coordinate> finalPath = new ArrayList<>();
 
         Queue<Coordinate> wayPoints = createWayPoints();
-//
-//<<<<<<< HEAD
-//		}
-//		
-//		if (subPath != null) {
-//			finalPath.addAll(subPath);
-//		}
-//		return finalPath;	
-//=======
+
         Coordinate currentPosition = new Coordinate(this.getPosition());
         // initial position before search
         int cX = currentPosition.x;
@@ -228,6 +202,5 @@ public class MyAIController extends CarController {
 
 		return finalPath;
 		
-//>>>>>>> radium/master
 	}
 }

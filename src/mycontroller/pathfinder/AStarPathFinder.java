@@ -11,6 +11,7 @@ import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
 import world.WorldSpatial;
+import world.WorldSpatial.Direction;
 
 public class AStarPathFinder extends PathFinderBase {
 	
@@ -141,10 +142,6 @@ public class AStarPathFinder extends PathFinderBase {
 				// if we are exploring from original position
 				// need to avoid providing a solution that involves reversing the car
 				if (currentPosition.x == current.x && currentPosition.y == current.y) {
-					System.err.println("Ohh, interesting, we are at start position search rn");
-					System.err.println(currentPosition.toString());
-					System.err.println(current.x);
-					System.err.println(current.y);
 					if (DEBUG_GET_TILE_BEHIND) {
 						System.out.println("maxdepth is " + maxDepth);
 						System.out.println(current.x);System.out.println(current.y);
@@ -429,7 +426,6 @@ public class AStarPathFinder extends PathFinderBase {
 	
 
 }
-
 
 
 

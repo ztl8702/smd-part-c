@@ -1,7 +1,5 @@
 package mycontroller.pathfinder;
 
-import mycontroller.mapmanager.MapManagerInterface;
-
 public interface AStarHeuristic {
 	
 	/**
