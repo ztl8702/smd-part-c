@@ -28,36 +28,59 @@ public class AStarPathFinder extends PathFinderBase {
      */
     private Node[][] nodes;
 
-    /**
-     * The heuristic we're applying to determine which nodes to search first
-     */
+    
+    /** HEURISTICS USED FOR A STAR **/
+    // heuristic 1: tile type
+    // the higher the value the least likely it will be searched
     private AStarHeuristic heuristicTileType = new AStarHeuristic() {
-
+        //TODO: currently HardCoded value, maybe not the best
         @Override
         public float getCost(int x, int y, int tx, int ty) {
-            // using current position
-            // check if its a lava tile
-            // or a health tile
+
+        	// using current position, which is the current node
             Cell cell = mapManager.getCell(x, y);
             CellType cellType = null;
             if (cell != null) {
                 cellType = cell.type;
             }
-
+            
+            // if node is not in close proximity to a wall
+            // favour it for turning/travelling at higher speed
+            if (! nextToWall(new Coordinate(x, y))) {
+            	return 3;
+            }
 
             if (cellType == CellType.LAVA) {
-                //TODO: currently HardCoded value, maybe not the best
-                // the higher the value the least likely it will be searched
+                // disfavour lava tiles
                 return 5;
             }
 
             if (cellType == CellType.HEALTH) {
-                return -1;
+            	// favour health tiles
+                return -5;
             }
 
             return 0;
         }
     };
+    
+    // TODO: same code as in WallFollowingPathFinder
+    private boolean nextToWall(Coordinate c) {
+        for (int xDelta = -1; xDelta <= 1; xDelta += 1) {
+            for (int yDelta = -1; yDelta <= 1; yDelta += 1) {
+                if (!(xDelta == 0 && yDelta == 0)) {
+                    Coordinate newCoord = new Coordinate(c.x + xDelta, c.y + yDelta);
+                    Cell mapTile = mapManager.getCell(newCoord.x, newCoord.y);
+                    if (mapTile != null && mapTile.type == Cell.CellType.WALL) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    // heuristic 2: distance
     private AStarHeuristic heuristicClosest = new AStarHeuristic() {
 
         @Override
