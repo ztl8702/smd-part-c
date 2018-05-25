@@ -3,12 +3,12 @@ package mycontroller.pathfinder;
 import java.util.*;
 
 import mycontroller.common.Cell;
-import mycontroller.mapmanager.MapManager;
+import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
 import world.WorldSpatial;
 
-public class WallFollowingPathFinder implements PathFinder {
+public class WallFollowingPathFinder extends PathFinderBase {
 	
 	public static final List<Coordinate> ANTICLOCKWISE_DIRECTION = Arrays.asList(
 			new Coordinate(0,1), //N
@@ -22,7 +22,6 @@ public class WallFollowingPathFinder implements PathFinder {
     private float startingSpeed;
     private WorldSpatial.Direction startingDirection;
     
-    private boolean isWallLeft = false;
 
     public WallFollowingPathFinder(MapManagerInterface mapManager) {
 		this.mapManager = mapManager;
@@ -38,15 +37,7 @@ public class WallFollowingPathFinder implements PathFinder {
 
         // figure out the direction
 
-        if (currentAngle <= 90) {
-            startingDirection = WorldSpatial.Direction.EAST;
-        } else if (currentAngle <= 180) {
-            startingDirection = WorldSpatial.Direction.NORTH;
-        } else if (currentAngle <= 270) {
-            startingDirection = WorldSpatial.Direction.WEST;
-        } else {
-            startingDirection = WorldSpatial.Direction.SOUTH;
-        }
+        startingDirection = Util.angleToOrientation(currentAngle);
 
         ArrayList<Coordinate> finalPath = new ArrayList<>();
         ArrayList<Coordinate> path1 = null;
@@ -86,22 +77,7 @@ public class WallFollowingPathFinder implements PathFinder {
         parent.put(startingPosition, null);
 
         // add the next tile in direction
-        Coordinate nextLocationInDirection = null;
-        switch (startingDirection) {
-            case EAST:
-                nextLocationInDirection = new Coordinate(startingPosition.x + 1, startingPosition.y);
-                break;
-            case WEST:
-                nextLocationInDirection = new Coordinate(startingPosition.x - 1, startingPosition.y);
-                break;
-            case NORTH:
-                nextLocationInDirection = new Coordinate(startingPosition.x, startingPosition.y + 1);
-                break;
-            case SOUTH:
-                nextLocationInDirection = new Coordinate(startingPosition.x, startingPosition.y - 1);
-                break;
-
-        }
+        Coordinate nextLocationInDirection = Util.getTileAhead(startingPosition,startingDirection);
 
         assert (mapManager.getCell(nextLocationInDirection.x, nextLocationInDirection.y).type != Cell.CellType.WALL);
         queue.add(nextLocationInDirection);

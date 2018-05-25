@@ -2,7 +2,6 @@ package mycontroller.mapmanager;
 
 import java.util.*;
 
-import org.apache.logging.log4j.core.util.SystemNanoClock;
 
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;

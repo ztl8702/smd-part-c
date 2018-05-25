@@ -1,14 +1,14 @@
 package mycontroller.autopilot;
 
+import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
-import world.Car;
 import world.WorldSpatial;
 import world.WorldSpatial.RelativeDirection;
 import world.WorldSpatial.Direction;
 
 import java.security.InvalidParameterException;
 
-public class TurningAutoPilot extends BaseAutoPilot {
+public class TurningAutoPilot extends AutoPilotBase {
 
     // TODO: Handle situation where the MAINTAIN_SPEED cannot be reached before
     // turning
@@ -33,7 +33,9 @@ public class TurningAutoPilot extends BaseAutoPilot {
     private Direction toDirection;
     private RelativeDirection turningMode;
 
-    public TurningAutoPilot(Coordinate fromTile, Coordinate toTile, RelativeDirection turningMode) {
+    public TurningAutoPilot(MapManagerInterface mapManager, Coordinate fromTile, Coordinate toTile, RelativeDirection turningMode) {
+        super(mapManager);
+
         // figure out which direction we are turning from and which direction we are turning to
         if (fromTile.x + 1 == toTile.x && fromTile.y + 1 == toTile.y && turningMode == RelativeDirection.LEFT) {
             fromDirection = Direction.EAST;
@@ -68,7 +70,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
         this.turningMode = turningMode;
 
         // let some other AutoPilot care about the speed
-        maintainSpeedOpt = new MaintainSpeedAutoPilot(MAINTAIN_SPEED);
+        maintainSpeedOpt = new MaintainSpeedAutoPilot(mapManager, MAINTAIN_SPEED);
         state = State.Waiting;
     }
 
@@ -77,7 +79,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
         Coordinate coord = new Coordinate(car.getTileX(), car.getTileY());
 
         if (DEBUG_AUTOPILOT) System.out.printf("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x,
-                this.getCentreLineX(toTile.x), d(), this.getCentreLineX(toTile.x) - d(), car.getX());
+                this.getCentreLineX(toTile.x,toTile.y), d(), this.getCentreLineX(toTile.x, toTile.y) - d(), car.getX());
 
         switch (this.state) {
             case Waiting:
@@ -154,17 +156,16 @@ public class TurningAutoPilot extends BaseAutoPilot {
      * @return
      */
     private boolean reachedTurningPoint(float x, float y) {
-    	
-    	float buffer = 0.01f;
+        double offset = 0.05;
         switch (fromDirection) {
             case WEST:
-                return (double)x <= this.getCentreLineX(toTile.x) + d() - buffer;// (-0.1); // overrun a little bit to avoid hitting the wall
+                return (double)x <= this.getCentreLineX(toTile.x, toTile.y) + d() - offset;
             case EAST:
-                return (double)x >= this.getCentreLineX(toTile.x) - d() + buffer;//(-0.1);
+                return (double)x >= this.getCentreLineX(toTile.x, toTile.y) - d() + offset;
             case NORTH:
-                return (double)y >= this.getCentreLineY(toTile.y) - d() + buffer;//0.005;
+                return (double)y >= this.getCentreLineY(toTile.x, toTile.y) - d() + offset;
             case SOUTH:
-                return (double)y <= this.getCentreLineY(toTile.y) + d() - buffer;//0.005;
+                return (double)y <= this.getCentreLineY(toTile.x, toTile.y) + d() - offset;
             default:
                 return false;
         }

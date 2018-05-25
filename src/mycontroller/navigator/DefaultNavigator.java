@@ -13,7 +13,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class DefaultNavigator implements Navigator {
-	private boolean DEBUG = false;
+	private boolean DEBUG = true;
     private AutoPilot opt = null;
     private Queue<AutoPilot> upcomingOpts = new LinkedList<AutoPilot>();
     @Override
