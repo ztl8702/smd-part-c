@@ -14,7 +14,7 @@ import java.security.InvalidParameterException;
 public class ForwardToAutoPilot extends AutoPilotBase {
 
 
-    private static double RECENTER_EPS = 0.19;
+    private static double RECENTER_EPS = 0.22;
 
     public enum TrackingAxis {
         X, Y
