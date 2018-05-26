@@ -19,6 +19,7 @@ public class Util {
      * but the risk of overruning will also be lower.
      */
     public static float DECELERATION = 1.99f;
+    public static float ACCELERATION = 1.99f;
 
     /**
      * Converts angle in degrees to WorldSpatial.Direction
@@ -231,6 +232,18 @@ public class Util {
      */
     public static double getStoppingDistance(double speedFrom, double speedTo) {
         return (speedFrom * speedFrom - speedTo * speedTo) / (2.0 * (double)DECELERATION);
+    }
+
+    public static double getAccelerateDistance(double speedFrom, double speedTo) {
+        return (speedTo * speedTo - speedFrom * speedFrom) / (2.0 * (double)ACCELERATION);
+    }
+
+    /**
+     * Manhattan distance
+     * @return
+     */
+    public static int dis(Coordinate a, Coordinate b) {
+        return (Math.abs(a.x-b.x)+Math.abs(a.y-b.y));
     }
 
 

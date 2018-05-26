@@ -124,9 +124,11 @@ public class TurningAutoPilot extends AutoPilotBase {
                 break;
             case ReachTurningSpeed:
                 // Handle situation where the turningSpeed cannot be reached
-                if (car.getSpeed() > turningSpeed) {
+                if (Math.abs(car.getSpeed() - turningSpeed)>0.01 && car.getSpeed()>MAX_TURNING_SPEED_U_TURN-0.01) {
 
-                    double distanceToReachSpeed = Util.getStoppingDistance(car.getSpeed(), turningSpeed);
+                    double distanceToReachSpeed = car.getSpeed() > turningSpeed ?
+                            Util.getStoppingDistance(car.getSpeed(), turningSpeed)
+                            : Util.getAccelerateDistance(car.getSpeed(), turningSpeed);
                     double distanceToTurn = d(turningSpeed);
                     double availableDistance =  distanceFromTarget(car.getX(), car.getY());
                     if (distanceToReachSpeed+distanceToTurn > availableDistance) {
@@ -144,7 +146,7 @@ public class TurningAutoPilot extends AutoPilotBase {
                     }
                 }
                 
-                if (reachedTurningPoint(car.getX(), car.getY())) {
+                if (reachedTurningPoint(car.getX(), car.getY(), Math.min(car.getSpeed(),turningSpeed))) {
                     changeState(State.StartTurning);
                 }
                 break;
@@ -211,8 +213,8 @@ public class TurningAutoPilot extends AutoPilotBase {
      * @param y
      * @return
      */
-    private boolean reachedTurningPoint(float x, float y) {
-        return distanceFromTarget(x,y) <=  d(turningSpeed) - TURNING_OVERRUN_DISTANCE;
+    private boolean reachedTurningPoint(float x, float y, double currentSpeed) {
+        return distanceFromTarget(x,y) <=  d(currentSpeed) - TURNING_OVERRUN_DISTANCE;
     }
 
     /**
