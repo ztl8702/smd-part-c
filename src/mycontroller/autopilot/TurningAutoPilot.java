@@ -17,31 +17,6 @@ import java.security.InvalidParameterException;
 
 public class TurningAutoPilot extends AutoPilotBase {
 
-
-    /**
-     * Max turning speed when turning followed by moving straight
-     *
-     * 1 2 3 4 5
-     *         6
-     *         7
-     *         8 9 10
-     */
-    public static final double MAX_TURNING_SPEED = 2.0;
-    /**
-     * Max turning speed when turning followed by turning
-     *
-     * L-turn
-     * 1 2 3
-     *     4 5 6
-     *
-     * or
-     *
-     * width-2 U-turn
-     * 1 2 3
-     * 6 5 4
-     *
-     */
-    public static final double MAX_TURNING_SPEED_U_TURN = 0.7;
     private static final double TURNING_OVERRUN_DISTANCE = 0.001;
 
     private enum TurningType {
@@ -128,7 +103,7 @@ public class TurningAutoPilot extends AutoPilotBase {
                 break;
             case ReachTurningSpeed:
                 // Handle situation where the turningSpeed cannot be reached
-                if (Math.abs(car.getSpeed() - turningSpeed)>0.01 && car.getSpeed()>MAX_TURNING_SPEED_U_TURN-0.01) {
+                if (Math.abs(car.getSpeed() - turningSpeed)>0.01 && car.getSpeed()>Util.MAX_TURNING_SPEED_U_TURN-0.01) {
 
                     double distanceToReachSpeed = car.getSpeed() > turningSpeed ?
                             Util.getStoppingDistance(car.getSpeed(), turningSpeed)
