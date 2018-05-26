@@ -13,7 +13,7 @@ public class TurningAutoPilot extends AutoPilotBase {
 
     // TODO: Handle situation where the MAINTAIN_SPEED cannot be reached before
     // turning
-    public static final float MAINTAIN_SPEED = 1.1f;
+    public static final float MAINTAIN_SPEED = 0.5f;
 
     private enum TurningType {
         EastToNorth, EastToSouth

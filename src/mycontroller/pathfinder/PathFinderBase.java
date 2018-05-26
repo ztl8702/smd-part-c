@@ -3,7 +3,7 @@ package mycontroller.pathfinder;
 import mycontroller.mapmanager.MapManagerInterface;
 
 /**
- * This abstract class implements some common functionality shared by
+ * This abstract base class implements some common functionality shared by
  * PathFinder implementations
  */
 public abstract class PathFinderBase implements PathFinder {

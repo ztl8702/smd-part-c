@@ -17,7 +17,7 @@ public class ForwardToAutoPilot extends AutoPilotBase {
      * Our (estimated) deceleration due to braking. The lower the value, the earlier the car starts braking,
      * but the risk of overruning will also be lower.
      */
-    private static float DECELERATION = 1.0f;
+    private static float DECELERATION = 2.0f;
 
     private static double RECENTER_EPS = 0.02;
 
@@ -94,6 +94,7 @@ public class ForwardToAutoPilot extends AutoPilotBase {
                 if (nextCell == null) {
                     nextCell = car.getCoordinate();
                 }
+                // TODO: only recentre if there is wall on the opposite side
                 if (trackingAxis == TrackingAxis.X) {
                     double newCentreLineY = getCentreLineY(nextCell.x, nextCell.y);
                     if (!isWall(nextCell.x, nextCell.y) && Math.abs(car.getY() - newCentreLineY ) > RECENTER_EPS) {
