@@ -14,6 +14,9 @@ import mycontroller.mapmanager.MapManagerInterface;
 public abstract class AutoPilotBase implements AutoPilot {
     public static final double TILE_WIDTH = 1; // 32;
 
+    /**
+     * How far away should we shift our centre line from walls
+     */
     public static final double WALL_BUFFER = 0.2;
 
     protected MapManagerInterface mapManager;
@@ -23,10 +26,25 @@ public abstract class AutoPilotBase implements AutoPilot {
     }
 
 
+    // Helper methods
+
+
+    /**
+     * Shorthand method. Checks if a location is wall.
+     * @param x
+     * @param y
+     * @return
+     */
     protected boolean isWall(int x, int y) {
         return mapManager.isWall(x,y);
     }
-    // Helper methods
+
+    /**
+     * Gets the x coordinate of the centre line of a Tile
+     * @param tileX
+     * @param tileY
+     * @return
+     */
     protected double getCentreLineX(int tileX, int tileY) {
         double offset = 0;
         if (isWall(tileX+1, tileY)) {
@@ -43,6 +61,12 @@ public abstract class AutoPilotBase implements AutoPilot {
         return TILE_WIDTH * (tileX) + offset;
     }
 
+    /**
+     * Gets the Y coordinate of the centre line of a Tile
+     * @param tileX
+     * @param tileY
+     * @return
+     */
     protected double getCentreLineY(int tileX, int tileY) {
         double offset = 0;
         if (isWall(tileX, tileY-1)) {

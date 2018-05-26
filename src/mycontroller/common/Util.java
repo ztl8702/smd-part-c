@@ -69,6 +69,11 @@ public class Util {
      */
     public static float ACCELERATION = 1.99f;
 
+
+    /**
+     * The speed below which the car is considered stopped
+     */
+    public static double STOPPED_THRESHOLD = 0.05;
     /**
      * Converts angle in degrees to WorldSpatial.Direction
      *

@@ -14,7 +14,7 @@ import java.security.InvalidParameterException;
 
 /**
  * An composite AutoPilot that knows how to go from tile A to tile B by going straight forward.
- *
+ * <p>
  * Under the hood, it uses MainSpeedAutoPilot to control the speed,
  * and ReCentreAutoPilot to make sure the car travels on the centre line and avoids walls
  */
@@ -22,11 +22,14 @@ public class ForwardToAutoPilot extends AutoPilotBase {
 
     /**
      * How much deviate from the centre line should we start to recentre the car.
-     *
+     * <p>
      * Should be set to slightly higher than the WALL_BUFFER, but less than 2*WALL_BUFFER
      */
     private static double RECENTER_EPS = 0.22;
 
+    /**
+     * Are we moving horizontally or vertically?
+     */
     public enum TrackingAxis {
         X, Y
     }
@@ -39,6 +42,7 @@ public class ForwardToAutoPilot extends AutoPilotBase {
     private float fromPos, toPos, otherAxis;
     private State state;
     private float targetSpeed;
+
     private AutoPilot recentringAutoPilot = null;
     private AutoPilot mainTainSpeedAutoPilot = null;
 
@@ -69,94 +73,110 @@ public class ForwardToAutoPilot extends AutoPilotBase {
     public ActuatorAction handle(float delta, SensorInfo car) {
         Coordinate coord = new Coordinate(car.getTileX(), car.getTileY());
         switch (state) {
-        case Idle:
-            if (
-                    (trackingAxis == TrackingAxis.X
-                            && (inRange(car.getX(), fromPos, toPos)
+            case Idle:
+                if (
+                        (trackingAxis == TrackingAxis.X
+                                && (inRange(car.getX(), fromPos, toPos)
                                 || coord.x == Math.round(fromPos)
+                        )
+                                && coord.y == Math.round(otherAxis))
+                                ||
+                                (trackingAxis == TrackingAxis.Y
+                                        && (inRange(car.getY(), fromPos, toPos)
+                                        || coord.y == Math.round(fromPos)
                                 )
-                            && coord.y == Math.round(otherAxis))
-                    ||
-                    (trackingAxis == TrackingAxis.Y
-                            && (inRange(car.getY(), fromPos, toPos)
-                                || coord.y == Math.round(fromPos)
-                               )
-                            && coord.x == Math.round(otherAxis))) {
-                //if (car.getOrientation() == theOrientation){
-                   changeState(State.On);
-                //}
-            }
-            break;
-        case On:
-            if (
-                    (trackingAxis == TrackingAxis.X && !(inRange(car.getX(), fromPos, toPos) || coord.x == Math.round(fromPos)))
-                    || (trackingAxis == TrackingAxis.Y && !(inRange(car.getY(), fromPos, toPos) || coord.y == Math.round(fromPos)))
-                    ) {
-                changeState(State.Finished);
-            }
+                                        && coord.x == Math.round(otherAxis))) {
+                    // if we are in between fromPos and toPos,
+                    // and that our location on the other axis is correct
 
-            if (car.getSpeed() > 1.0) {
-                Coordinate nextCell = Util.getTileAhead(car.getCoordinate(), car.getOrientation());
-                if (nextCell == null) {
-                    nextCell = car.getCoordinate();
+                    // This means this AutoPilot can start performing its duty!
+
+                    //if (car.getOrientation() == theOrientation){
+                    changeState(State.On);
+                    //}
                 }
-                if (trackingAxis == TrackingAxis.X) {
-                    double newCentreLineY = getCentreLineY(nextCell.x, nextCell.y);
-                    if (!isWall(nextCell.x, nextCell.y) && Math.abs(car.getY() - newCentreLineY ) > RECENTER_EPS) {
-                        changeState(State.Recentering);
-                        Logger.printWarning("==============","ReCentre AP Takes over");
-                        mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, (float) car.getSpeed());
-                        recentringAutoPilot = new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.Y, (float)newCentreLineY);
-                    }
-                } else if (trackingAxis == TrackingAxis.Y) {
-                    double newCentreLineX = getCentreLineX(nextCell.x, nextCell.y);
-                    if (!isWall(nextCell.x, nextCell.y) && Math.abs(car.getX() - newCentreLineX) > RECENTER_EPS ){
-                        changeState(State.Recentering);
-                        Logger.printWarning("==============","ReCentre AP Takes over");
+                break;
+            case On:
+                if ((trackingAxis == TrackingAxis.X
+                        && !(inRange(car.getX(), fromPos, toPos)
+                        || coord.x == Math.round(fromPos)))
+                        || (trackingAxis == TrackingAxis.Y
+                        && !(inRange(car.getY(), fromPos, toPos)
+                        || coord.y == Math.round(fromPos)))
+                        ) {
+                    // if we have travelled past the toPos (target position),
+                    // then this AutoPilot can retire
+                    changeState(State.Finished);
+                }
 
-                        mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, (float) car.getSpeed());
-                        recentringAutoPilot = new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.X, (float)newCentreLineX);
+                // Check if we should change to ReCentring State
+                if (car.getSpeed() > 1.0) {
+                    Coordinate nextCell = Util.getTileAhead(car.getCoordinate(), car.getOrientation());
+                    if (nextCell == null) {
+                        nextCell = car.getCoordinate();
+                    }
+                    if (trackingAxis == TrackingAxis.X) {
+                        double newCentreLineY = getCentreLineY(nextCell.x, nextCell.y);
+                        if (!isWall(nextCell.x, nextCell.y) && Math.abs(car.getY() - newCentreLineY) > RECENTER_EPS) {
+                            // if we have diverted from centre line (Y)
+                            changeState(State.Recentering);
+                            Logger.printWarning("==============", "ReCentre AP Takes over");
+                            mainTainSpeedAutoPilot = AutoPilotFactory.maintainSpeed(car.getSpeed());
+                            recentringAutoPilot = AutoPilotFactory.recentre(ReCentreAutoPilot.CentringAxis.Y,
+                                    (float) newCentreLineY);
+                        }
+                    } else if (trackingAxis == TrackingAxis.Y) {
+                        double newCentreLineX = getCentreLineX(nextCell.x, nextCell.y);
+                        if (!isWall(nextCell.x, nextCell.y) && Math.abs(car.getX() - newCentreLineX) > RECENTER_EPS) {
+                            // if we have diverted from centre line (X)
+                            changeState(State.Recentering);
+                            Logger.printWarning("==============", "ReCentre AP Takes over");
+                            mainTainSpeedAutoPilot = AutoPilotFactory.maintainSpeed(car.getSpeed());
+                            recentringAutoPilot = AutoPilotFactory.recentre(ReCentreAutoPilot.CentringAxis.X,
+                                    (float) newCentreLineX);
+                        }
                     }
                 }
-            }
 
 
-            break;
-        case Recentering:
-            if (this.recentringAutoPilot.canBeSwappedOut()) {
-                changeState(State.On);
-                Logger.printWarning("==============","ReCentre AP Thrown out!!!!");
-                recentringAutoPilot = null;
-            }
-        case Finished:
-            break;
+                break;
+            case Recentering:
+                if (this.recentringAutoPilot.canBeSwappedOut()) {
+                    // if the recentering is done
+                    changeState(State.On);
+                    Logger.printWarning("==============", "ReCentre AP Thrown out!!!!");
+                    recentringAutoPilot = null;
+                }
+            case Finished:
+                break;
         }
 
-
+        // after calculating state change
+        // produce the output (ActuatorAction)
         switch (state) {
-        case Idle:
-            return ActuatorAction.nothing();
-        case On:
-            double d = getDistanceToTarget(car.getX(), car.getY());
-            double speedLimit = getSpeedLimit(d - delta * car.getSpeed() - 0.03, targetSpeed);
-            Logger.printInfo("ForwardToAutoPilot", String.format("speedLimit=%.5f\n", speedLimit));
-            mainTainSpeedAutoPilot= new MaintainSpeedAutoPilot(mapManager, (float) speedLimit);
-            return mainTainSpeedAutoPilot.handle(delta, car);
-        case Recentering:
-            ActuatorAction speedOps = mainTainSpeedAutoPilot.handle(delta, car);
-            speedOps.backward = false;
-            Logger.printInfo("ForwardToAutoPilot", String.format("recentre %s\n", recentringAutoPilot));
-            return ActuatorAction.combine(speedOps, recentringAutoPilot.handle(delta,car));
-        case Finished:
-            if (Math.abs(car.getSpeed() - targetSpeed) < 0.1f) {
+            case Idle:
                 return ActuatorAction.nothing();
-            } else {
-                mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, targetSpeed);
+            case On:
+                double d = getDistanceToTarget(car.getX(), car.getY());
+                double speedLimit = getSpeedLimit(d - delta * car.getSpeed() - 0.03, targetSpeed);
+                Logger.printInfo("ForwardToAutoPilot", String.format("speedLimit=%.5f\n", speedLimit));
+                mainTainSpeedAutoPilot = AutoPilotFactory.maintainSpeed((float) speedLimit);
                 return mainTainSpeedAutoPilot.handle(delta, car);
-            }
+            case Recentering:
+                ActuatorAction speedOps = mainTainSpeedAutoPilot.handle(delta, car);
+                speedOps.backward = false;
+                Logger.printInfo("ForwardToAutoPilot", String.format("recentre %s\n", recentringAutoPilot));
+                return ActuatorAction.combine(speedOps, recentringAutoPilot.handle(delta, car));
+            case Finished:
+                if (Math.abs(car.getSpeed() - targetSpeed) < 0.1f) {
+                    return ActuatorAction.nothing();
+                } else {
+                    mainTainSpeedAutoPilot = AutoPilotFactory.maintainSpeed(targetSpeed);
+                    return mainTainSpeedAutoPilot.handle(delta, car);
+                }
 
-        default:
-            return ActuatorAction.nothing();
+            default:
+                return ActuatorAction.nothing();
         }
     }
 
@@ -176,20 +196,21 @@ public class ForwardToAutoPilot extends AutoPilotBase {
 
     @Override
     public String toString() {
-        return "ForwardToAutoPilot{" + "fromPos=" + fromPos + ", toPos=" + toPos + ", state=" + state + ", targetSpeed="
+        return "ForwardToAutoPilot{" + "fromPos=" + fromPos + ", toPos="
+                + toPos + ", state=" + state + ", targetSpeed="
                 + targetSpeed + '}';
     }
 
     @Override
     public boolean canTakeCharge() {
         switch (state) {
-        case Idle:
-            return false;
-        case On:
-        case Recentering:
-            return true;
-        default:
-            return false;
+            case Idle:
+                return false;
+            case On:
+            case Recentering:
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -213,15 +234,13 @@ public class ForwardToAutoPilot extends AutoPilotBase {
      */
     private double getDistanceToTarget(double x, double y) {
         switch (this.trackingAxis) {
-        case X:
-            return Math.abs(x - toPos);
-        case Y:
-            return Math.abs(y - toPos);
+            case X:
+                return Math.abs(x - toPos);
+            case Y:
+                return Math.abs(y - toPos);
         }
         return 0;
     }
-
-
 
     /**
      * Gets what the current speed should be, given that we are some distance away

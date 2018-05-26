@@ -1,7 +1,11 @@
 package mycontroller.autopilot;
 
+import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManagerInterface;
 
+/**
+ * An AutoPilot that does one thing only: stops the car
+ */
 public class EmergencyStopAutoPilot extends AutoPilotBase {
 
     private AutoPilot maintainSpeedOpt = AutoPilotFactory.maintainSpeed(0);
@@ -25,6 +29,7 @@ public class EmergencyStopAutoPilot extends AutoPilotBase {
 
     @Override
     public boolean canBeSwappedOut() {
-        return lastSpeed < 0.05;
+        // we can consider the car to be stopped if speed is less than 0.05
+        return lastSpeed < Util.STOPPED_THRESHOLD;
     }
 }
