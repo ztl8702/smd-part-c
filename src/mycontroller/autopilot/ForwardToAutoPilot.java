@@ -12,15 +12,7 @@ import java.security.InvalidParameterException;
  * 
  */
 public class ForwardToAutoPilot extends AutoPilotBase {
-    /**
-     * Max speed when cruising
-     */
-    public static float MAX_CRUISING_SPEED = 5.0f;
-    /**
-     * Our (estimated) deceleration due to braking. The lower the value, the earlier the car starts braking,
-     * but the risk of overruning will also be lower.
-     */
-    private static float DECELERATION = 1.7f;
+
 
     private static double RECENTER_EPS = 0.02;
 
@@ -102,6 +94,7 @@ public class ForwardToAutoPilot extends AutoPilotBase {
                     double newCentreLineY = getCentreLineY(nextCell.x, nextCell.y);
                     if (!isWall(nextCell.x, nextCell.y) && Math.abs(car.getY() - newCentreLineY ) > RECENTER_EPS) {
                         changeState(State.Recentering);
+                        Logger.printWarning("==============","ReCentre AP Takes over");
                         mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, (float) car.getSpeed());
                         recentringAutoPilot = new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.Y, (float)newCentreLineY);
                     }
@@ -109,6 +102,8 @@ public class ForwardToAutoPilot extends AutoPilotBase {
                     double newCentreLineX = getCentreLineX(nextCell.x, nextCell.y);
                     if (!isWall(nextCell.x, nextCell.y) && Math.abs(car.getX() - newCentreLineX) > RECENTER_EPS ){
                         changeState(State.Recentering);
+                        Logger.printWarning("==============","ReCentre AP Takes over");
+
                         mainTainSpeedAutoPilot = new MaintainSpeedAutoPilot(mapManager, (float) car.getSpeed());
                         recentringAutoPilot = new ReCentreAutoPilot(mapManager, ReCentreAutoPilot.CentringAxis.X, (float)newCentreLineX);
                     }
@@ -120,6 +115,7 @@ public class ForwardToAutoPilot extends AutoPilotBase {
         case Recentering:
             if (this.recentringAutoPilot.canBeSwappedOut()) {
                 changeState(State.On);
+                Logger.printWarning("==============","ReCentre AP Thrown out!!!!");
                 recentringAutoPilot = null;
             }
         case Finished:
@@ -215,9 +211,7 @@ public class ForwardToAutoPilot extends AutoPilotBase {
         return 0;
     }
 
-    private double getStoppingDistance(double speedFrom, double speedTo) {
-        return (speedFrom * speedFrom - speedTo * speedTo) / (2.0 * DECELERATION);
-    }
+
 
     /**
      * Gets what the current speed should be, given that we are some distance away
@@ -226,6 +220,6 @@ public class ForwardToAutoPilot extends AutoPilotBase {
      */
     private double getSpeedLimit(double distanceFromTarget, double speedTarget) {
         distanceFromTarget = Math.max(0.0, distanceFromTarget);
-        return Math.min(MAX_CRUISING_SPEED, Math.sqrt(2.0 * DECELERATION * distanceFromTarget + speedTarget * speedTarget));
+        return Math.min(Util.MAX_CRUISING_SPEED, Math.sqrt(2.0 * Util.DECELERATION * distanceFromTarget + speedTarget * speedTarget));
     }
 }

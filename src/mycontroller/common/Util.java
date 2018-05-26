@@ -6,9 +6,20 @@ import world.WorldSpatial;
 import static world.WorldSpatial.Direction.*;
 
 /**
- * Physics/Math helper methods used throughout our driving system
+ * Physics / Math helper methods and constants
+ * used throughout our driving system
  */
 public class Util {
+    /**
+     * Max speed when cruising
+     */
+    public static float MAX_CRUISING_SPEED = 5.0f;
+    /**
+     * Our (estimated) deceleration due to braking. The lower the value, the earlier the car starts braking,
+     * but the risk of overruning will also be lower.
+     */
+    public static float DECELERATION = 1.7f;
+
     /**
      * Converts angle in degrees to WorldSpatial.Direction
      *
@@ -196,10 +207,23 @@ public class Util {
 
     }
 
-
+    /**
+     * Clones a Coordinate
+     */
     public static Coordinate cloneCoordinate(Coordinate a) {
         return new Coordinate(a.x, a.y);
     }
+
+    /**
+     * Gets the distance required for speed change.
+     * @param speedFrom
+     * @param speedTo
+     * @return
+     */
+    private double getStoppingDistance(double speedFrom, double speedTo) {
+        return (speedFrom * speedFrom - speedTo * speedTo) / (2.0 * DECELERATION);
+    }
+
 
     /**
      * Print warning message

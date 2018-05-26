@@ -110,7 +110,7 @@ public class TurningAutoPilot extends AutoPilotBase {
 
         Logger.printInfo("TurningAutoPilot",
                 String.format("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x,
-                this.getCentreLineX(toTile.x,toTile.y), d(), this.getCentreLineX(toTile.x, toTile.y) - d(), car.getX()
+                this.getCentreLineX(toTile.x,toTile.y), d(turningSpeed), this.getCentreLineX(toTile.x, toTile.y) - d(turningSpeed), car.getX()
                 )
         );
 
@@ -190,19 +190,29 @@ public class TurningAutoPilot extends AutoPilotBase {
      */
     private boolean reachedTurningPoint(float x, float y) {
         double offset = 0.001;
+        return distanceFromTarget(x,y) <=  d(turningSpeed) - offset;
+    }
+
+    /**
+     * How far away are we from the position when we should stop turning at
+     * @param x
+     * @param y
+     * @return
+     */
+    private double distanceFromTarget(double x, double y) {
         switch (fromDirection) {
             case WEST:
-                return (double)x <= this.getCentreLineX(toTile.x, toTile.y) + d() - offset;
+                return x - this.getCentreLineX(toTile.x, toTile.y);
             case EAST:
-                return (double)x >= this.getCentreLineX(toTile.x, toTile.y) - d() + offset;
+                return this.getCentreLineX(toTile.x, toTile.y) - x;
             case NORTH:
-                return (double)y >= this.getCentreLineY(toTile.x, toTile.y) - d() + offset;
+                return this.getCentreLineY(toTile.x, toTile.y) - y;
             case SOUTH:
-                return (double)y <= this.getCentreLineY(toTile.x, toTile.y) + d() - offset;
+                return y - this.getCentreLineY(toTile.x, toTile.y);
             default:
-                return false;
+                Logger.printWarning("TurningAutoPilot", "something is wrong");
+                return 0;
         }
-
     }
 
     /**
@@ -253,9 +263,9 @@ public class TurningAutoPilot extends AutoPilotBase {
      * Gets the distances ahead of the target tiles' centre line at which we need to
      * start turning.
      */
-    private double d() {
+    private double d(double speed) {
         // This formula comes from a bit of calculus.
-        return (6.0 / 5.0 / Math.PI) * (turningSpeed);
+        return (6.0 / 5.0 / Math.PI) * (speed);
     }
 
     @Override

@@ -138,7 +138,7 @@ public class DefaultRouteCompiler extends RouteCompilerBase {
                 } else if (nextAction.type == ActionType.TurnLeft || nextAction.type == ActionType.TurnRight) {
                     currentAction.speedLimit = (float)TurningAutoPilot.MAX_TURNING_SPEED;
                 } else {
-                    currentAction.speedLimit = (float)ForwardToAutoPilot.MAX_CRUISING_SPEED;
+                    currentAction.speedLimit = (float)Util.MAX_CRUISING_SPEED;
                 }
             } else if (currentAction.type == ActionType.TurnLeft || currentAction.type == ActionType.TurnRight) {
                 if ((nextAction!=null && (nextAction.type == ActionType.TurnLeft || nextAction.type==ActionType.TurnRight)) ||
