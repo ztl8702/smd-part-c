@@ -1,8 +1,17 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.common;
 
 /**
  * Our internal representation of the MapTile
+ * for MapManager to update the map and other classes to identify tiles
  */
+
+// TODO: make into factory???
+
 public class Cell {
 
 	public enum CellType {ROAD, WALL, START, FINISH, LAVA, HEALTH, UNREACHABLE}

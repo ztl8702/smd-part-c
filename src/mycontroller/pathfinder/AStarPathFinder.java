@@ -1,21 +1,26 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.pathfinder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManagerInterface;
+
 import utilities.Coordinate;
 import world.WorldSpatial;
 import world.WorldSpatial.Direction;
 
 public class AStarPathFinder extends PathFinderBase {
-
+    
+    //TODO: refactor to be in Logger
     private boolean DEBUG_GET_TILE_BEHIND = false;
 
     /**
@@ -28,16 +33,16 @@ public class AStarPathFinder extends PathFinderBase {
      */
     private Node[][] nodes;
 
-    
-    /** HEURISTICS USED FOR A STAR **/
-    // heuristic 1: tile type
-    // the higher the value the least likely it will be searched
+    /**
+     * heuristic based on tile type
+     * the higher the value the least likely it will be searched 
+     */
     private AStarHeuristic heuristicTileType = new AStarHeuristic() {
         //TODO: currently HardCoded value, maybe not the best
         @Override
         public float getCost(int x, int y, int tx, int ty) {
 
-        	// using current position, which is the current node
+            // using current position, which is the current node
             Cell cell = mapManager.getCell(x, y);
             CellType cellType = null;
             if (cell != null) {
@@ -51,7 +56,7 @@ public class AStarPathFinder extends PathFinderBase {
                 if (cellType == CellType.LAVA) {
                     return 50;
                 }
-            	return 5;
+                return 5;
             }
 
             if (cellType == CellType.LAVA) {
@@ -60,7 +65,7 @@ public class AStarPathFinder extends PathFinderBase {
             }
 
             if (cellType == CellType.HEALTH) {
-            	// favour health tiles
+                // favour health tiles
                 return 1;
             }
 
@@ -68,6 +73,8 @@ public class AStarPathFinder extends PathFinderBase {
         }
     };
     
+
+    // TODO: move to PathFinderBase, same code as in WallFollowingPathFinder
     // TODO: same code as in WallFollowingPathFinder
     private boolean nextToWall(Coordinate c) {
         for (int xDelta = -1; xDelta <= 1; xDelta += 1) {
@@ -75,7 +82,7 @@ public class AStarPathFinder extends PathFinderBase {
                 if (!(xDelta == 0 && yDelta == 0)) {
                     Coordinate newCoord = new Coordinate(c.x + xDelta, c.y + yDelta);
                     Cell mapTile = mapManager.getCell(newCoord.x, newCoord.y);
-                    if (mapTile != null && mapTile.type == Cell.CellType.WALL) {
+                    if (mapTile != null && mapTile.type == CellType.WALL) {
                         return true;
                     }
                 }
@@ -84,7 +91,10 @@ public class AStarPathFinder extends PathFinderBase {
         return false;
     }
     
-    // heuristic 2: distance
+    /**
+     * heuristic based on distance
+     * favour shorter distances 
+     */
     private AStarHeuristic heuristicClosest = new AStarHeuristic() {
 
         @Override
@@ -97,20 +107,17 @@ public class AStarPathFinder extends PathFinderBase {
         }
     };
 
-    public static final List<Coordinate> ANTICLOCKWISE_DIRECTION = Arrays.asList(
-            new Coordinate(0, 1),  //N
-            new Coordinate(-1, 0), //W
-            new Coordinate(0, -1), //S
-            new Coordinate(1, 0)   //E
-    );
-
-
+    /**
+     * AStarPathFinder constructor that initialises the search space for A* search
+     * 
+     * @param mapManager
+     * @param maxSearchDistance
+     * @param width
+     * @param height
+     */
     public AStarPathFinder(MapManagerInterface mapManager, int maxSearchDistance, int width, int height) {
         super(mapManager);
         this.maxSearchDistance = maxSearchDistance;
-
-
-        //TODO need to think about it again as if this is the search we are using to explore
 
         nodes = new Node[width][height];
         for (int x = 0; x < width; x++) {
@@ -130,11 +137,13 @@ public class AStarPathFinder extends PathFinderBase {
     }
 
     @Override
-    public ArrayList<Coordinate> getPath(Coordinate currentPosition,
-                                         Coordinate goalPosition, float currentSpeed, float currentDirection) {
+    public ArrayList<Coordinate> getPath(Coordinate startPosition,
+                                         Coordinate goalPosition, 
+                                         float currentSpeed, 
+                                         float currentDirection) {
 
-        int sx = currentPosition.x;
-        int sy = currentPosition.y;
+        int sx = startPosition.x;
+        int sy = startPosition.y;
         int tx = goalPosition.x;
         int ty = goalPosition.y;
 
@@ -171,8 +180,7 @@ public class AStarPathFinder extends PathFinderBase {
 
             // search through all the neighbours of the current node evaluating
             // them as next steps
-            for (Coordinate d : ANTICLOCKWISE_DIRECTION) {
-
+            for (Coordinate d : Util.ANTICLOCKWISE_DIRECTION) {
                 // determine the location of the neighbour and evaluate it
                 int xp = d.x + current.x;
                 int yp = d.y + current.y;
@@ -180,19 +188,12 @@ public class AStarPathFinder extends PathFinderBase {
 
                 // if we are exploring from original position
                 // need to avoid providing a solution that involves reversing the car
-                if (currentPosition.x == current.x && currentPosition.y == current.y) {
+                if (startPosition.x == current.x && startPosition.y == current.y) {
                     if (DEBUG_GET_TILE_BEHIND) {
                         info("maxdepth is " + maxDepth);
                         info(String.format("%d\n%d\n", current.x, current.y));
                     }
-
-//					System.out.println(getTileBehind(Direction.EAST, 0, 0).toString());
-//					System.out.println(getTileBehind(Direction.NORTH, 0, 0).toString());
-//					System.out.println(getTileBehind(Direction.WEST, 0, 0).toString());
-//					System.out.println(getTileBehind(Direction.SOUTH, 0, 0).toString());
-//					System.exit(-1);
-                    
-                    // TODO: use common.Util.getTileBehind()
+                   
                     Coordinate tileBehind = getTileBehind(current.direction, current.x, current.y);
 
                     if (DEBUG_GET_TILE_BEHIND) {
@@ -200,10 +201,10 @@ public class AStarPathFinder extends PathFinderBase {
                                 tileBehind.toString(), xp, yp));
                     }
                     if (!(tileBehind.x == xp && tileBehind.y == yp)) {
-                        innerLoop(xp, yp, tx, ty, current, closed, open, maxDepth);
+                        updateNodes(xp, yp, tx, ty, current, closed, open, maxDepth);
                     }
                 } else {
-                    innerLoop(xp, yp, tx, ty, current, closed, open, maxDepth);
+                    updateNodes(xp, yp, tx, ty, current, closed, open, maxDepth);
                 }
             }
         }
@@ -230,7 +231,7 @@ public class AStarPathFinder extends PathFinderBase {
         return path;
     }
 
-    private void innerLoop(int xp, int yp, int tx, int ty,
+    private void updateNodes(int xp, int yp, int tx, int ty,
                            Node current, ArrayList<Node> closed, SortedList open, int maxDepth) {
         if (!isWall(xp, yp) && mapManager.isWithinBoard(new Coordinate(xp,yp))) {
             // the cost to get to this node is cost the current plus the movement
@@ -267,13 +268,21 @@ public class AStarPathFinder extends PathFinderBase {
     }
 
 
+    /**
+     * Get the coordinate of the tile behind current location
+     * 
+     * @param currentAngle
+     * @param x
+     * @param y
+     * @return
+     */
     private Coordinate getTileBehind(float currentAngle, int x, int y) {
         WorldSpatial.Direction currentOrientation = Util.angleToOrientation(currentAngle);
         return Util.getTileBehind(new Coordinate(x, y), currentOrientation);
     }
 
     /**
-     * Get direction based on previous step
+     * Get the current direction based on previous step
      *
      * @param xp from point x
      * @param yp from point y
@@ -285,9 +294,9 @@ public class AStarPathFinder extends PathFinderBase {
         Direction direction = Util.inferDirection(new Coordinate(tx, ty), new Coordinate(xp, yp));
         return Util.orientationToAngle(direction);
     }
-
+    
+    //TODO: move to PathFinderBase
     private boolean isWall(int x, int y) {
-
         boolean inMap = mapManager.isWithinBoard(new Coordinate(x, y));
         if (inMap) {
             Cell cell = mapManager.getCell(x, y);
@@ -326,8 +335,8 @@ public class AStarPathFinder extends PathFinderBase {
      * @param ty The y coordinate of the target location
      * @return The cost of movement through the given tile
      */
+    //TODO: maybe remove this altogether since each time cost is always equal to ONE
     private float getMovementCost(int sx, int sy, int tx, int ty) {
-//		return map.getCost(sx, sy, tx, ty);
         return 1;
     }
 
@@ -459,7 +468,9 @@ public class AStarPathFinder extends PathFinderBase {
         }
 
         /**
-         * @see Comparable#compareTo(Object)
+         * Used to compare nodes based on cost
+         * 
+         * @param other the object to be compared to
          */
         public int compareTo(Object other) {
             Node o = (Node) other;
@@ -476,29 +487,4 @@ public class AStarPathFinder extends PathFinderBase {
             }
         }
     }
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

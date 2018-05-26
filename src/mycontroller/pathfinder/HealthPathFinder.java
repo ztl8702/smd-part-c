@@ -1,3 +1,8 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.pathfinder;
 
 import mycontroller.common.Logger;
@@ -14,27 +19,31 @@ import java.util.*;
  */
 public class HealthPathFinder extends PathFinderBase {
 
-    private static int ASTAR_SEARCH_DEPTH = 500;
-
     public HealthPathFinder(MapManagerInterface mapManager) {
         super(mapManager);
     }
-
+    
     @Override
-    public ArrayList<Coordinate> getPath(Coordinate startingPosition,
+    public ArrayList<Coordinate> getPath(Coordinate startPosition,
                                          Coordinate goalPosition,
                                          float startingSpeed,
                                          float startingAngle) {
+        
         boolean isColdStart = startingSpeed < 0.1;
-        PathFinder finisher = new AStarPathFinder(mapManager, ASTAR_SEARCH_DEPTH, World.MAP_WIDTH, World.MAP_HEIGHT);
+
+        PathFinder finisher = new AStarPathFinder(mapManager, 
+                MAX_SEARCH_DEPTH, World.MAP_WIDTH, World.MAP_HEIGHT);
 
         Set<Coordinate> healthTiles = mapManager.getHealthTiles();
         ArrayList<ArrayList<Coordinate>> healthPaths = new ArrayList<>(healthTiles.size());
 
-        Coordinate currentPosition = startingPosition;
+        Coordinate currentPosition = startPosition;
+        
         if (isColdStart) {
-            currentPosition = Util.getTileAhead(startingPosition, Util.angleToOrientation(startingAngle));
+            currentPosition = Util.getTileAhead(startPosition, 
+                    Util.angleToOrientation(startingAngle));
         }
+        
         // initial position before search
         int cX = currentPosition.x;
         int cY = currentPosition.y;
@@ -43,17 +52,20 @@ public class HealthPathFinder extends PathFinderBase {
         for (Coordinate h : healthTiles) {
             Logger.printDebug("HealthPathFinder", h.toString());
             // update distance from current location to h
-            ArrayList<Coordinate> path = finisher.getPath(new Coordinate(cX, cY), new Coordinate(h.x, h.y), startingSpeed, lastAngle);
+            ArrayList<Coordinate> path = finisher.getPath(new Coordinate(cX, cY),
+                    new Coordinate(h.x, h.y), startingSpeed, lastAngle);
 
             if (path != null) {
                 if (isColdStart) {
-                    path.add(0, Util.cloneCoordinate(startingPosition));
+                    path.add(0, Util.cloneCoordinate(startPosition));
                 }
                 healthPaths.add(path);
             }
         }
-
-        Collections.sort(healthPaths, (ArrayList a1, ArrayList a2) -> a1.size() - a2.size()); // smallest to biggest
+        
+        // smallest to biggest
+        Collections.sort(healthPaths, 
+        		(ArrayList<?> a1, ArrayList<?> a2) -> a1.size() - a2.size()); 
 
         Logger.printDebug("HealthPathFinder", healthPaths.toString());
 
@@ -62,5 +74,4 @@ public class HealthPathFinder extends PathFinderBase {
         }
         return null;
     }
-
 }

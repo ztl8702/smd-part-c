@@ -1,15 +1,18 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.navigator;
 
 import mycontroller.autopilot.*;
 import mycontroller.common.Cell;
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
-import mycontroller.mapmanager.MapManager;
 import mycontroller.mapmanager.MapManagerInterface;
 import mycontroller.routecompiler.DefaultRouteCompiler;
 import mycontroller.routecompiler.RouteCompiler;
 import utilities.Coordinate;
-import world.World;
 import world.WorldSpatial;
 
 import java.util.ArrayList;
@@ -196,9 +199,6 @@ public class DefaultNavigator implements Navigator {
 	@Override
 	public boolean isIdle() {
         return this.state == State.Idle;
-
-
-
 	}
 
 	private boolean hasNoMoreAutoPilots() {

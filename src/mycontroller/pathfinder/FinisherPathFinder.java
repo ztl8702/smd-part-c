@@ -1,3 +1,8 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.pathfinder;
 
 import mycontroller.common.Cell;
@@ -21,22 +26,23 @@ import java.util.Queue;
  */
 public class FinisherPathFinder extends PathFinderBase {
 
-
     /**
      * The key id that the car currently owns
      */
     private int currentKey = 0;
-    private static int MAX_SEARCH_DEPTH = 500;
 
     public FinisherPathFinder(MapManagerInterface mapManager, int currentKey) {
         super(mapManager);
         this.currentKey = currentKey;
 
     }
-
-
+    
     @Override
-    public ArrayList<Coordinate> getPath(Coordinate startPosition, Coordinate goalPosition, float startingSpeed, float startingAngle) {
+    public ArrayList<Coordinate> getPath(Coordinate startPosition, 
+                                         Coordinate goalPosition, 
+                                         float startingSpeed, 
+                                         float startingAngle) {
+        
         return doGetPath(startPosition, startingSpeed, startingAngle);
     }
 
@@ -75,9 +81,19 @@ public class FinisherPathFinder extends PathFinderBase {
         return wayPoints;
     }
 
-    private ArrayList<Coordinate> doGetPath(Coordinate startPosition, float startingSpeed, float startingAngle) {
+    /**
+     * Get starting and ending position and calling the getPath method to get final path
+     *  
+     * @param startPosition
+     * @param startingSpeed
+     * @param startingAngle
+     * @return
+     */
+    private ArrayList<Coordinate> doGetPath(Coordinate startPosition, 
+            float startingSpeed, float startingAngle) {
 
-        PathFinder finisher = new AStarPathFinder(mapManager, MAX_SEARCH_DEPTH, World.MAP_WIDTH, World.MAP_HEIGHT);
+        PathFinder finisher = new AStarPathFinder(mapManager, 
+                MAX_SEARCH_DEPTH, World.MAP_WIDTH, World.MAP_HEIGHT);
 
         ArrayList<Coordinate> finalPath = new ArrayList<>();
 
@@ -103,9 +119,12 @@ public class FinisherPathFinder extends PathFinderBase {
                         lastAngle);
 
                 if (subPath != null) {
+                    
                     // gets the ending direction
-                    WorldSpatial.Direction endingOrientation = Util.inferDirection(new Coordinate(goalX, goalY),
+                    WorldSpatial.Direction endingOrientation = 
+                            Util.inferDirection(new Coordinate(goalX, goalY),
                             subPath.get(subPath.size() - 2));
+                    
                     lastAngle = Util.orientationToAngle(endingOrientation);
 
 
@@ -121,5 +140,4 @@ public class FinisherPathFinder extends PathFinderBase {
         }
         return finalPath;
     }
-
 }

@@ -1,8 +1,12 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.routecompiler;
 
 import mycontroller.autopilot.AutoPilot;
 import mycontroller.autopilot.AutoPilotFactory;
-import mycontroller.autopilot.ForwardToAutoPilot;
 import mycontroller.autopilot.TurningAutoPilot;
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
@@ -13,16 +17,15 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
+
+//TODO: for Radium to comment
 /**
- * Naive RouteCompiler
- * <p>
- * Does the basic stuff, assumes speed is always 1.
- * <p>
- * Optimisations can be added later.
+ * Naive RouteCompiler implementation
+ * Converts a path to AutoPilots
+ * 
+ * @see RouteCompilier
  */
 public class DefaultRouteCompiler extends RouteCompilerBase {
-
-
 
     @Override
     public Queue<AutoPilot> compile(ArrayList<Coordinate> path) {

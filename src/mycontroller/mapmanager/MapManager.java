@@ -1,3 +1,8 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.mapmanager;
 
 import java.util.*;
@@ -5,6 +10,7 @@ import java.util.*;
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
 import mycontroller.common.Logger;
+import mycontroller.common.Util;
 import tiles.MapTile;
 import tiles.HealthTrap;
 import tiles.LavaTrap;
@@ -12,28 +18,48 @@ import utilities.Coordinate;
 import world.World;
 
 
+/**
+ * Basic implementaion of MapManagerInterface.
+ */
 public class MapManager implements MapManagerInterface {
 
+    /**
+     * A full representation of the map and tiles that have been seen by the car
+     */
     private HashMap<Coordinate, Cell> map = new HashMap<>();
+    
+    
+    /**
+     * Coordinates of tiles not yet seen by the car 
+     */
     private Set<Coordinate> unseen = new HashSet<>();
+    
+    /**
+     * Coordinates of tiles that are reachable by the car 
+     */
     private Set<Coordinate> reachable = new HashSet<>();
     
-    private Map<Integer, Coordinate> keys = new HashMap<>();
+    /**
+     * Coordinates of health tiles seen 
+     */
     private Set<Coordinate> healthTiles = new HashSet<>();
     
-
+    /**
+     * Map of where the keys are located
+     */
+    private Map<Integer, Coordinate> keys = new HashMap<>();
+    
+    /**
+     * Coordinates of tiles already seen by dfs search
+     */
+    private HashSet<Coordinate> dfs_visited;
+    
+    // min and max of map size
     private int xStart = 0;
     private int xEnd = World.MAP_WIDTH - 1;
     private int yStart = 0;
     private int yEnd = World.MAP_HEIGHT - 1;
 
-    private static Coordinate[] DIRECTIONS = {
-            new Coordinate(-1,0), //W
-            new Coordinate(+1,0), //E
-            new Coordinate(0,-1), //S
-            new Coordinate(0,+1)  //N
-    };
-    
     
     public MapManager() {
 
@@ -108,6 +134,7 @@ public class MapManager implements MapManagerInterface {
         return true;
     }
 
+    @Override
     public void initialMap(HashMap<Coordinate, MapTile> tiles) {
         tiles.forEach((coord,tile) -> {
             switch (tile.getType()) {
@@ -235,14 +262,14 @@ public class MapManager implements MapManagerInterface {
         return (xStart <= coord.x && coord.x <= xEnd) && (yStart <= coord.y && coord.y <= yEnd);
     }
 
-
-    private HashSet<Coordinate> dfs_visited;
-
+    /**
+     * Mark the coordinates that are reachable
+     */
     private void markReachable() {
         dfs_visited = new HashSet<>();
         for (int y = yEnd; y>=yStart; --y) {
             for (int x = xStart; x<=xEnd; ++x) {
-                if (this.getCell(x,y).type == Cell.CellType.START) {
+                if (this.getCell(x,y).type == CellType.START) {
                     dfsConnectedArea(new Coordinate(x,y));
                     break;
                 }
@@ -258,6 +285,11 @@ public class MapManager implements MapManagerInterface {
         }
     }
 
+    /**
+     * Find the areas that are connected using dfs
+     * 
+     * @param currentLocation
+     */
     private void dfsConnectedArea (Coordinate currentLocation) {
         if (dfs_visited.contains(currentLocation)) {
             return;
@@ -265,13 +297,13 @@ public class MapManager implements MapManagerInterface {
         dfs_visited.add(currentLocation);
         reachable.add(currentLocation);
 
-        for (Coordinate direction : DIRECTIONS) {
+        for (Coordinate direction : Util.ANTICLOCKWISE_DIRECTION) {
             int newX = currentLocation.x + direction.x;
             int newY = currentLocation.y + direction.y;
             Coordinate newCoord = new Coordinate(newX,newY);
 
             if (this.isWithinBoard(newCoord)) {
-                if (this.getCell(newCoord.x, newCoord.y).type!=Cell.CellType.WALL) {
+                if (this.getCell(newCoord.x, newCoord.y).type != CellType.WALL) {
                     dfsConnectedArea(newCoord);
                 }
             }

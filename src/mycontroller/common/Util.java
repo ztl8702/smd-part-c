@@ -1,9 +1,16 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.common;
 
 import utilities.Coordinate;
 import world.WorldSpatial;
 
 import static world.WorldSpatial.Direction.*;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Physics / Math helper methods and constants
@@ -11,14 +18,30 @@ import static world.WorldSpatial.Direction.*;
  */
 public class Util {
     /**
+     * Four directions, in anti-clockwise order
+     */
+	public static final List<Coordinate> ANTICLOCKWISE_DIRECTION = Arrays.asList(
+            new Coordinate(0, 1),  //N
+            new Coordinate(-1, 0), //W
+            new Coordinate(0, -1), //S
+            new Coordinate(1, 0)   //E
+    );    
+
+    /**
      * Max speed when cruising
      */
     public static float MAX_CRUISING_SPEED = 5.0f;
+    
     /**
      * Our (estimated) deceleration due to braking. The lower the value, the earlier the car starts braking,
      * but the risk of overruning will also be lower.
      */
     public static float DECELERATION = 1.99f;
+    
+    /**
+     * Our (estimated) aceleration due to applyForwardAcceleration. The lower the value, the earlier the car 
+     * starts accelerating, but the risk of overruning will also be lower.
+     */
     public static float ACCELERATION = 1.99f;
 
     /**
@@ -31,16 +54,16 @@ public class Util {
         if ((-45 <= currentAngle && currentAngle <= 45) || (currentAngle >= 360 - 45)) {
             return EAST;
         } else if (45 < currentAngle && currentAngle <= 135) {
-            return WorldSpatial.Direction.NORTH;
+            return NORTH;
         } else if (135 < currentAngle && currentAngle <= 225) {
-            return WorldSpatial.Direction.WEST;
+            return WEST;
         } else {
-            return WorldSpatial.Direction.SOUTH;
+            return SOUTH;
         }
     }
 
     /**
-     * Converts WorldSpatial.Direction to degrees
+     * Converts WorldSpatial.Direction to angle degrees
      *
      * @param orientation
      * @return
@@ -62,9 +85,9 @@ public class Util {
 
 
     /**
-     * Converts WorldSpatial.Direction to delta change in x,y
-     *
-     * Say EAST => (+1,0);
+     * Converts WorldSpatial.Direction to delta change in (x,y). For example, EAST => (+1,0).
+     * 
+     * @param orientation
      * @return
      */
     public static Coordinate orientationToDelta(WorldSpatial.Direction orientation) {
@@ -93,14 +116,13 @@ public class Util {
         int xDelta = now.x - prev.x;
         int yDelta = now.y - prev.y;
         if (xDelta == 1 && yDelta == 0) {
-            // east
             return EAST;
         } else if (xDelta == -1 && yDelta == 0) {
-            return WorldSpatial.Direction.WEST;
+            return WEST;
         } else if (xDelta == 0 && yDelta == 1) {
-            return WorldSpatial.Direction.NORTH;
+            return NORTH;
         } else if (xDelta == 0 && yDelta == -1) {
-            return WorldSpatial.Direction.SOUTH;
+            return SOUTH;
         } else {
             // this should not happen at all.
             // but if it does there is something wrong with our path finder
@@ -116,12 +138,14 @@ public class Util {
     }
 
     /**
-     * Next tile in direction
-     *
+     * Get the coordinate of the tile in infront of the car
+     * 
+     * @param startingPosition
+     * @param startingDirection
      * @return
      */
     public static Coordinate getTileAhead(Coordinate startingPosition, WorldSpatial.Direction startingDirection) {
-        return getTileAheadNth(startingPosition, startingDirection,1);
+        return getTileAheadNth(startingPosition, startingDirection, 1);
     }
 
     /**
@@ -150,14 +174,22 @@ public class Util {
     }
 
     /**
-     * Next tile in reverse direction
-     *
+     * Get the coordinate of the tile behind the car
+     * 
+     * @param currentPosition
+     * @param currentOrientation
      * @return
      */
     public static Coordinate getTileBehind(Coordinate currentPosition, WorldSpatial.Direction currentOrientation) {
         return getTileAhead(currentPosition, getOppositeOrientation(currentOrientation));
     }
 
+    /**
+     * Get the opposite orientation of where the car is currently facing
+     * 
+     * @param orientation
+     * @return
+     */
     public static WorldSpatial.Direction getOppositeOrientation(WorldSpatial.Direction orientation) {
         if (orientation == null) {
             warn("getOppositeOrientation", "orientation is null!");
@@ -180,7 +212,8 @@ public class Util {
     }
 
     /**
-     * Which orientation I am facing after, say turning Left from East?
+     * Get the orientation the car is facing after turning
+     * 
      * @param original
      * @param turningMode
      * @return
@@ -218,24 +251,41 @@ public class Util {
     }
 
     /**
-     * Clones a Coordinate
+     * Return a copy of the coordinate
+     * 
+     * @param a the coordinate
+     * @return
      */
     public static Coordinate cloneCoordinate(Coordinate a) {
         return new Coordinate(a.x, a.y);
     }
 
     /**
-     * Gets the distance required for speed change.
+     * Gets the distance required for speed change. (deccelerating)
      * @param speedFrom
      * @param speedTo
      * @return
      */
     public static double getStoppingDistance(double speedFrom, double speedTo) {
-        return (speedFrom * speedFrom - speedTo * speedTo) / (2.0 * (double)DECELERATION);
+        double result = (speedFrom * speedFrom - speedTo * speedTo) / (2.0 * (double)DECELERATION);
+        if (result < 0) {
+            warn("getStoppingDistance", "Negative distance! Check calling function for bugs.");
+        }
+        return result;
     }
 
+    /**
+     * Gets the distance required for speed change. (accelerating)
+     * @param speedFrom
+     * @param speedTo
+     * @return
+     */
     public static double getAccelerateDistance(double speedFrom, double speedTo) {
-        return (speedTo * speedTo - speedFrom * speedFrom) / (2.0 * (double)ACCELERATION);
+        double result = (speedTo * speedTo - speedFrom * speedFrom) / (2.0 * (double)ACCELERATION);
+        if (result < 0) {
+            warn("getAccelerateDistance", "Negative distance! Check calling function for bugs.");
+        }
+        return result;
     }
 
     /**
@@ -257,7 +307,4 @@ public class Util {
         Logger.printWarning("Util." + methodName, message);
     }
 
-
 }
-
-

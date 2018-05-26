@@ -1,3 +1,8 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.routecompiler;
 
 import mycontroller.autopilot.AutoPilot;
@@ -8,7 +13,7 @@ import java.util.Queue;
 
 /**
  * RouteCompile converts a list of coordinates (output of PathFinder) to
- * a bunch of AutoPilots who are going to carry out the path by taking turns
+ * AutoPilots which carry out the path by taking turns
  * controlling the car (one AutoPilot a time)
  */
 public interface RouteCompiler {

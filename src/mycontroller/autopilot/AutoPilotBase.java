@@ -1,8 +1,11 @@
-package mycontroller.autopilot;
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
 
-import mycontroller.common.Cell;
-import mycontroller.mapmanager.MapManagerInterface;
+package mycontroller.autopilot;
 import utilities.Coordinate;
+import mycontroller.mapmanager.MapManagerInterface;
 
 /**
  * Base implementation of AutoPilot, providing some helper methods for its

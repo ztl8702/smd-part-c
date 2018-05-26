@@ -1,11 +1,15 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.autopilot;
 
 /**
  * The output of AutoPilot
  *
- * This is a mediator between AutoPilot and Controller
- *
- * So that AutoPilot is not manipulating the car controls directly
+ * This is a mediator between AutoPilot, Navigator and Controller,
+ * so that AutoPilot is not manipulating the car controls directly.
  */
 public class ActuatorAction {
     /**

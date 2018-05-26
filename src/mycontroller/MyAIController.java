@@ -1,3 +1,8 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller;
 
 import java.util.ArrayList;
@@ -7,55 +12,55 @@ import java.util.Set;
 
 import mycontroller.autopilot.AutoPilotFactory;
 
+import world.Car;
+import tiles.MapTile;
+import utilities.Coordinate;
 import controller.CarController;
 
+import mycontroller.autopilot.AutoPilotFactory;
 import mycontroller.autopilot.ActuatorAction;
 import mycontroller.autopilot.SensorInfo;
 import mycontroller.common.Logger;
 import mycontroller.common.Cell.CellType;
 import mycontroller.mapmanager.MapManager;
 import mycontroller.mapmanager.MapManagerInterface;
-
 import mycontroller.navigator.DefaultNavigator;
 import mycontroller.navigator.Navigator;
 import mycontroller.pathfinder.*;
-import world.Car;
-import world.World;
-import tiles.MapTile;
-import utilities.Coordinate;
 
+//TODO: VERY BIG TODO, can't hard code the value for when to switch to recovery mode, DISCUSS with Radium
 
+/**
+ * Our main controller class that keeps track of different states of the game
+ * and delegates work to other classes to find path and execute car movement
+ */
 public class MyAIController extends CarController {
-    public enum Goal {
-        Explore,
-        Finish,
-        Recover
-    }
 
-    public enum State {
-        ExecutingExploringPath,
-        ExecutingFinishPath,
-        ExecutingRecoverPath,
-        WaitingToRegainHealth,
+    private enum Goal { 
+        Explore,    // explore the map (to see more tiles and find key locations)
+        Finish,     // finish the game (to pick up keys and navigate to Finish tile)
+        Recover     // to regain health
+    }
+    
+    private  enum State { 
+        ExecutingExploringPath, // on the way to explore the map
+        ExecutingFinishPath,    // on the way to a key or to the Finish tile
+        ExecutingRecoverPath,   // on the way to a health tile
+        WaitingToRegainHealth,  // staying on a health tile
         Idle
     }
 
-    private static final boolean DEBUG = true;
-
-
-    private MapManagerInterface mapManager;
-
-    /**
-     * State is what we are doing
-     */
     private State currentState;
-    /**
-     * Goal is what we what to do
-     */
     private Goal currentGoal;
-
+    private MapManagerInterface mapManager;
     private Navigator navigator;
-
+    
+    /**
+     * MyAIController constructor that initialises 
+     * the map for updating and
+     * autopilot
+     * @param car
+     */
     public MyAIController(Car car) {
         super(car);
 
@@ -136,9 +141,9 @@ public class MyAIController extends CarController {
                     }
                     break;
                     case Recover: {
-                        if (DEBUG) System.err.println("i came in here");
+                        Logger.printDebug("MyAIController", "before getHealthPath");
                         ArrayList<Coordinate> path = getHealthPath();
-                        if (DEBUG) System.err.println("found path");
+                        Logger.printDebug("MyAIController", "after getHealthPath");
                         navigator.loadNewPath(path);
                         changeState(State.ExecutingRecoverPath);
                     }
@@ -168,23 +173,19 @@ public class MyAIController extends CarController {
 
         }
 
-        /**
-         // car hit a wall
-         //TODO maybe make a method to check ifCollided
-         if(getSpeed() == 0 && startedMoving) {
-         ReverseMode reverseMode = new ReverseMode();
-         }
-
-         // health is lower than danger threshold
-         if(getHealth() <= DANGER_THRESHOLD) {
-         RecoveryPathFinder recoveryPathFinder = new RecoveryPathFinder();
-         }
-         if (DEBUG) System.out.printf("current unseen count: %d\n", mapManager.getUnseen().size());
-         **/
+        //TODO: make new ReverseMode Interrupt when car collide with wall
     }
 
+    /**
+     * Ask the navigator to decide what action to do next.
+     * (Navigator will then delegate to AutoPilot) 
+     * 
+     * @see DefaultNavigator
+     * @see AutoPilot
+     * 
+     * @param delta
+     */
     private void navigatorUpdate(float delta) {
-
         ActuatorAction action = navigator.update(delta, SensorInfo.fromController(this));
         if (action.brake) {
             this.applyBrake();
@@ -207,7 +208,7 @@ public class MyAIController extends CarController {
      * Gets a path to find all keys and to the finish tile,
      * by calling A* path finding algorithm
      *
-     * @return
+     * @return ArrayList<Coordinate> path to goal 
      */
     private ArrayList<Coordinate> getAStarPath() {
         return new FinisherPathFinder(mapManager, this.getKey()).getPath(
@@ -218,6 +219,12 @@ public class MyAIController extends CarController {
                 );
     }
 
+    /**
+     * Finds the best path to a nearest health tile,
+     * using A* search
+     * 
+     * @return ArrayList<Coordinate> path to goal
+     */
     private ArrayList<Coordinate> getHealthPath() {
         return new HealthPathFinder(mapManager).getPath(
                 new Coordinate(this.getPosition()),
@@ -228,6 +235,11 @@ public class MyAIController extends CarController {
 
     }
 
+    /**
+     * Change the currentGoal
+     * 
+     * @param newGoal
+     */
     private void changeGoal(Goal newGoal) {
         if (newGoal != currentGoal) {
             Logger.printDebug("MyAIController", "Change Goal: " + currentGoal + "->" + newGoal);
@@ -235,6 +247,11 @@ public class MyAIController extends CarController {
         }
     }
 
+    /**
+     * Change the currentState
+     * 
+     * @param newState
+     */
     private void changeState(State newState) {
         if (newState != currentState) {
             Logger.printDebug("MyAIController", "Change State: " + currentState + "->" + newState);
@@ -243,7 +260,7 @@ public class MyAIController extends CarController {
     }
 
     /**
-     * Whether the car is on a HealthTile
+     * Check if car is on a HealthTile
      *
      * @return
      */
@@ -252,13 +269,21 @@ public class MyAIController extends CarController {
         return (mapManager.getCell(now.x, now.y)).type == CellType.HEALTH;
     }
 
+    /**
+     * Check if car is low on health
+     * 
+     * @return
+     */
     private boolean isLowHealth() {
         return this.getHealth() <= 60;
     }
 
+    /**
+     * Check if car has regain enough health
+     * 
+     * @return
+     */
     private boolean isEnoughHealth() {
         return this.getHealth() >= 99; // avoid rounding error
     }
-
-
 }
