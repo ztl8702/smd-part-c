@@ -1,6 +1,7 @@
 package mycontroller.navigator;
 
 import mycontroller.autopilot.*;
+import mycontroller.common.Cell;
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManager;
@@ -8,6 +9,7 @@ import mycontroller.mapmanager.MapManagerInterface;
 import mycontroller.routecompiler.DefaultRouteCompiler;
 import mycontroller.routecompiler.RouteCompiler;
 import utilities.Coordinate;
+import world.World;
 import world.WorldSpatial;
 
 import java.util.ArrayList;
@@ -104,8 +106,13 @@ public class DefaultNavigator implements Navigator {
                         Coordinate nextnextCell = nextCell == null ? null : Util.getTileAhead(nextCell, carInfo.getOrientation());
                         int distanceToWall =  wallAhead(carInfo.getTileX(), carInfo.getTileY(), carInfo.getOrientation())-1;
                         double stoppingDistance = Util.getStoppingDistance(carInfo.getSpeed(),0);
-                        if ( (double)distanceToWall >= stoppingDistance) {
-                            // make sure there is enough stopping distance
+                        if ( (double)distanceToWall >= stoppingDistance && // make sure there is enough stopping distance
+                                !lavaTilesAhead(carInfo.getTileX(),   // and there is no Lava on our "stopping zone"
+                                        carInfo.getTileY(),
+                                        carInfo.getOrientation(),
+                                        (int)Math.ceil(distanceToWall))
+                                ) {
+
                             ArrayList<AutoPilot> stopping = new ArrayList<>();
 
                             stopping.add(new EmergencyStopAutoPilot(mapManager));
@@ -143,6 +150,27 @@ public class DefaultNavigator implements Navigator {
                 return i;
             }
         }
+    }
+
+    /**
+     * Is there any lava tiles ahead? We don't want to interrupt on a lava tile.
+     * @param x
+     * @param y
+     * @param direction
+     * @return
+     */
+    private boolean lavaTilesAhead(int x, int y, WorldSpatial.Direction direction, int distance) {
+        for (int i = 0; i<=distance;++i) {
+            Coordinate location = Util.getTileAheadNth(new Coordinate(x,y),direction, distance);
+            if (mapManager.isWithinBoard(location)) {
+                if (mapManager.getCell(location.x,location.y).type == Cell.CellType.LAVA) {
+                    return true;
+                }
+            } else {
+                break;
+            }
+        }
+        return false;
     }
 
     @Override
