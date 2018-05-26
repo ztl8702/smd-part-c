@@ -39,11 +39,11 @@ public class FinisherPathFinder extends PathFinderBase {
     
     @Override
     public ArrayList<Coordinate> getPath(Coordinate startPosition, 
-    									 Coordinate goalPosition, 
-    									 float startingSpeed, 
-    									 float startingAngle) {
+                                         Coordinate goalPosition, 
+                                         float startingSpeed, 
+                                         float startingAngle) {
         
-    	return doGetPath(startPosition, startingSpeed, startingAngle);
+        return doGetPath(startPosition, startingSpeed, startingAngle);
     }
 
     /**
@@ -90,10 +90,10 @@ public class FinisherPathFinder extends PathFinderBase {
      * @return
      */
     private ArrayList<Coordinate> doGetPath(Coordinate startPosition, 
-    		float startingSpeed, float startingAngle) {
+            float startingSpeed, float startingAngle) {
 
         PathFinder finisher = new AStarPathFinder(mapManager, 
-        		MAX_SEARCH_DEPTH, World.MAP_WIDTH, World.MAP_HEIGHT);
+                MAX_SEARCH_DEPTH, World.MAP_WIDTH, World.MAP_HEIGHT);
 
         ArrayList<Coordinate> finalPath = new ArrayList<>();
 
@@ -120,9 +120,9 @@ public class FinisherPathFinder extends PathFinderBase {
 
                 if (subPath != null) {
                     
-                	// gets the ending direction
+                    // gets the ending direction
                     WorldSpatial.Direction endingOrientation = 
-                    		Util.inferDirection(new Coordinate(goalX, goalY),
+                            Util.inferDirection(new Coordinate(goalX, goalY),
                             subPath.get(subPath.size() - 2));
                     
                     lastAngle = Util.orientationToAngle(endingOrientation);

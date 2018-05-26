@@ -5,8 +5,9 @@
 
 package mycontroller;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
+
+import mycontroller.autopilot.*;
 
 import world.Car;
 import tiles.MapTile;
@@ -14,8 +15,6 @@ import utilities.Coordinate;
 import controller.CarController;
 
 import mycontroller.autopilot.AutoPilotFactory;
-import mycontroller.autopilot.ActuatorAction;
-import mycontroller.autopilot.SensorInfo;
 import mycontroller.common.Logger;
 import mycontroller.common.Cell.CellType;
 import mycontroller.mapmanager.MapManager;
@@ -25,26 +24,30 @@ import mycontroller.navigator.Navigator;
 import mycontroller.pathfinder.*;
 
 //TODO: VERY BIG TODO, can't hard code the value for when to switch to recovery mode, DISCUSS with Radium
+// Radium: Yeah. But we might also try to use different health thresholds in different situations.
 
 /**
  * Our main controller class that keeps track of different states of the game
  * and delegates work to other classes to find path and execute car movement
  */
 public class MyAIController extends CarController {
-	
-	//TODO: refactor to be in Logger
-    private static final boolean DEBUG = true;
 
-    public enum Goal { //TODO: should be private?
-        Explore,
-        Finish,
-        Recover
+    private static final float ENOUGH_HEALTH = 100-1; // -1 to avoid rounding errors
+    private static final float LOW_HEALTH = 60;
+
+    private enum Goal { 
+        Explore,    // explore the map (to see more tiles and find key locations)
+        Finish,     // finish the game (to pick up keys and navigate to Finish tile)
+        Recover,    // to regain health
+        UnStuck     // to reverse when stuck or hitting the wall
     }
-    public enum State { //TODO: should be private?
-        ExecutingExploringPath,
-        ExecutingFinishPath,
-        ExecutingRecoverPath,
-        WaitingToRegainHealth,
+    
+    private enum State {
+        ExecutingExploringPath, // on the way to explore the map
+        ExecutingFinishPath,    // on the way to a key or to the Finish tile
+        ExecutingRecoverPath,   // on the way to a health tile
+        WaitingToRegainHealth,  // staying on a health tile
+        Reversing,              // reversing to recover from wall-hitting or stucking
         Idle
     }
 
@@ -52,15 +55,10 @@ public class MyAIController extends CarController {
     private Goal currentGoal;
     private MapManagerInterface mapManager;
     private Navigator navigator;
+
+    private static final double STUCK_THRESHOLD = 1.0; // 1.0 seconds;
+    private double stuckTimeCounter = 0.0;
     
-
-
-    /**
-     * MyAIController constructor that initialises 
-     * the map for updating and
-     * autopilot
-     * @param car
-     */
     public MyAIController(Car car) {
         super(car);
 
@@ -90,18 +88,21 @@ public class MyAIController extends CarController {
                 if (mapManager.foundAllKeys(this.getKey())) {
                     changeGoal(Goal.Finish);
                 }
-                if (isLowHealth()) { // low health warning
+                if (isLowHealth() && seenHealthTile()) { // low health warning
+                    // can only change to Recover mode
+                    // if we know where is the HealthTile
+                    // otherwise we can only wait to die
                     changeGoal(Goal.Recover);
                 }
                 break;
             case Finish:
-                if (isLowHealth()) { // low health warning
+                if (isLowHealth() && seenHealthTile()) { // low health warning
                     changeGoal(Goal.Recover);
                 }
                 break;
             case Recover:
                 if (isEnoughHealth()) {
-                    // health recovered, go back to ....
+                    // health recovered, go back to either Finish or Explore
                     if (mapManager.foundAllKeys(this.getKey())) {
                         changeGoal(Goal.Finish);
                     } else {
@@ -109,9 +110,18 @@ public class MyAIController extends CarController {
                     }
                 }
                 break;
+            case UnStuck:
+                if (!isStuck() && currentState == State.Idle) {
+                    // unstucked, go back to either Finish or Explore
+                    if (mapManager.foundAllKeys(this.getKey())) {
+                        changeGoal(Goal.Finish);
+                    } else {
+                        changeGoal(Goal.Explore);
+                    }
+                }
         }
 
-        // Should we interrupt the Navigator
+        // Should we interrupt the Navigator?
         if ((currentState == State.ExecutingExploringPath || currentState == State.ExecutingFinishPath)
                 && currentGoal == Goal.Recover) {
             // health is low, we need to stop
@@ -122,7 +132,7 @@ public class MyAIController extends CarController {
             navigator.requestInterrupt();
         }
 
-        // State change
+        // Secondly, process State change
         switch (currentState) {
             case Idle:
                 switch (currentGoal) {
@@ -130,21 +140,21 @@ public class MyAIController extends CarController {
                         PathFinder wallFollower = new WallFollowingPathFinder(mapManager);
                         ArrayList<Coordinate> path = wallFollower.getPath(
                                 new Coordinate(this.getPosition()), null, this.getSpeed(), this.getAngle());
-                        navigator.loadNewPath(path);
+                        navigator.loadNewPath(path, false);
                         changeState(State.ExecutingExploringPath);
                     }
                     break;
                     case Finish: {
                         ArrayList<Coordinate> path = getAStarPath();
-                        navigator.loadNewPath(path);
+                        navigator.loadNewPath(path, false);
                         changeState(State.ExecutingFinishPath);
                     }
                     break;
                     case Recover: {
-                        if (DEBUG) System.err.println("i came in here");
+                        Logger.printDebug("MyAIController", "before getHealthPath");
                         ArrayList<Coordinate> path = getHealthPath();
-                        if (DEBUG) System.err.println("found path");
-                        navigator.loadNewPath(path);
+                        Logger.printDebug("MyAIController", "after getHealthPath");
+                        navigator.loadNewPath(path, true);
                         changeState(State.ExecutingRecoverPath);
                     }
                     break;
@@ -169,19 +179,66 @@ public class MyAIController extends CarController {
                     changeState(State.Idle);
                 }
                 break;
+            case Reversing:
+                if (navigator.isIdle()){
+                    changeState(State.Idle);
+                }
             // have not found solution, keep exploring
 
         }
 
-        //TODO: make new ReverseMode Interrupt when car collide with wall
+        if (currentState == State.Idle
+                || currentState == State.ExecutingExploringPath
+                || currentState == State.ExecutingFinishPath) {
+            // TODO: should we "unstuck" while we are recoverying for health?
+            // will it end up in a "unstuck"->recover->"unstuck"->recover loop?
+            if (isStopped()) {
+                stuckTimeCounter += delta;
+            } else {
+                stuckTimeCounter = 0;
+            }
+
+        }
+
+        if (isStuck()) {
+            stuckTimeCounter = 0;
+            changeGoal(Goal.UnStuck);
+            if (currentState!=State.Reversing) {
+                navigator.forceInterrupt();
+                navigator.loadAutoPilots(new ArrayList<>(Arrays.asList(
+                        new ReverseAutoPilot(mapManager)
+                )));
+                changeState(State.Reversing);
+            }
+        }
+    }
+
+    private boolean isStuck(){
+        return this.stuckTimeCounter > STUCK_THRESHOLD;
+    }
+
+    private boolean isStopped() {
+        return this.getSpeed() < 0.1;
     }
 
     /**
-     * Tell the navigator what action to do next 
+     * Do we know any HealthTile locations?
+     * @return
+     */
+    private boolean seenHealthTile() {
+        return mapManager.getHealthTiles().size() > 0;
+    }
+
+    /**
+     * Ask the navigator to decide what action to do next.
+     * (Navigator will then delegate to AutoPilot) 
+     * 
+     * @see DefaultNavigator
+     * @see AutoPilot
+     * 
      * @param delta
      */
     private void navigatorUpdate(float delta) {
-
         ActuatorAction action = navigator.update(delta, SensorInfo.fromController(this));
         if (action.brake) {
             this.applyBrake();
@@ -271,7 +328,7 @@ public class MyAIController extends CarController {
      * @return
      */
     private boolean isLowHealth() {
-        return this.getHealth() <= 60;
+        return this.getHealth() <= LOW_HEALTH;
     }
 
     /**
@@ -280,6 +337,6 @@ public class MyAIController extends CarController {
      * @return
      */
     private boolean isEnoughHealth() {
-        return this.getHealth() >= 99; // avoid rounding error
+        return this.getHealth() >= ENOUGH_HEALTH; // avoid rounding error
     }
 }

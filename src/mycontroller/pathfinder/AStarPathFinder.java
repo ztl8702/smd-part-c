@@ -19,8 +19,8 @@ import world.WorldSpatial;
 import world.WorldSpatial.Direction;
 
 public class AStarPathFinder extends PathFinderBase {
-	
-	//TODO: refactor to be in Logger
+    
+    //TODO: refactor to be in Logger
     private boolean DEBUG_GET_TILE_BEHIND = false;
 
     /**
@@ -42,7 +42,7 @@ public class AStarPathFinder extends PathFinderBase {
         @Override
         public float getCost(int x, int y, int tx, int ty) {
 
-        	// using current position, which is the current node
+            // using current position, which is the current node
             Cell cell = mapManager.getCell(x, y);
             CellType cellType = null;
             if (cell != null) {
@@ -56,7 +56,7 @@ public class AStarPathFinder extends PathFinderBase {
                 if (cellType == CellType.LAVA) {
                     return 50;
                 }
-            	return 5;
+                return 5;
             }
 
             if (cellType == CellType.LAVA) {
@@ -65,7 +65,7 @@ public class AStarPathFinder extends PathFinderBase {
             }
 
             if (cellType == CellType.HEALTH) {
-            	// favour health tiles
+                // favour health tiles
                 return 1;
             }
 
@@ -181,7 +181,6 @@ public class AStarPathFinder extends PathFinderBase {
             // search through all the neighbours of the current node evaluating
             // them as next steps
             for (Coordinate d : Util.ANTICLOCKWISE_DIRECTION) {
-
                 // determine the location of the neighbour and evaluate it
                 int xp = d.x + current.x;
                 int yp = d.y + current.y;
@@ -194,13 +193,7 @@ public class AStarPathFinder extends PathFinderBase {
                         info("maxdepth is " + maxDepth);
                         info(String.format("%d\n%d\n", current.x, current.y));
                     }
-
-//					System.out.println(getTileBehind(Direction.EAST, 0, 0).toString());
-//					System.out.println(getTileBehind(Direction.NORTH, 0, 0).toString());
-//					System.out.println(getTileBehind(Direction.WEST, 0, 0).toString());
-//					System.out.println(getTileBehind(Direction.SOUTH, 0, 0).toString());
-//					System.exit(-1);
-                    
+                   
                     Coordinate tileBehind = getTileBehind(current.direction, current.x, current.y);
 
                     if (DEBUG_GET_TILE_BEHIND) {

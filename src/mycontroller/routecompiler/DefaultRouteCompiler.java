@@ -7,6 +7,7 @@ package mycontroller.routecompiler;
 
 import mycontroller.autopilot.AutoPilot;
 import mycontroller.autopilot.AutoPilotFactory;
+import mycontroller.autopilot.EmergencyStopAutoPilot;
 import mycontroller.autopilot.TurningAutoPilot;
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
@@ -19,10 +20,12 @@ import java.util.Queue;
 
 
 //TODO: for Radium to comment
+
 /**
- * Naive RouteCompiler
- * Does the basic stuff, assumes speed is always 1.
- * Optimisations can be added later.
+ * Naive RouteCompiler implementation
+ * Converts a path to AutoPilots
+ *
+ * @see RouteCompiler
  */
 public class DefaultRouteCompiler extends RouteCompilerBase {
 
@@ -40,8 +43,8 @@ public class DefaultRouteCompiler extends RouteCompilerBase {
                 // this is the first coordinate
                 lastAction = new Action();
                 lastAction.type = ActionType.GoStraight;
-                lastAction.start = cloneCoordinate(thisCoord);
-                lastAction.finish = cloneCoordinate(thisCoord);
+                lastAction.start = Util.cloneCoordinate(thisCoord);
+                lastAction.finish = Util.cloneCoordinate(thisCoord);
                 lastAction.goStraightDirection = null;
                 // we don't know the direction yet
             } else {
@@ -50,7 +53,7 @@ public class DefaultRouteCompiler extends RouteCompilerBase {
                         // now we know the direction
                         WorldSpatial.Direction drt = Util.inferDirection(thisCoord, lastAction.finish);
 
-                        lastAction.finish = cloneCoordinate(thisCoord);
+                        lastAction.finish = Util.cloneCoordinate(thisCoord);
                         lastAction.goStraightDirection = drt;
 
                     } else {
@@ -59,14 +62,14 @@ public class DefaultRouteCompiler extends RouteCompilerBase {
 
                         if (drt == lastAction.goStraightDirection) {
                             // good, just append the new coordinate to the last action
-                            lastAction.finish = cloneCoordinate(thisCoord);
+                            lastAction.finish = Util.cloneCoordinate(thisCoord);
                         } else {
                             // ah! we need to turn
 
                             // figure out which way to turn
                             WorldSpatial.RelativeDirection turningMode = whichWayToTurn(drt, lastAction.goStraightDirection);
 
-                            Coordinate lastActionFinishBeforeBackOff = cloneCoordinate(lastAction.finish);
+                            Coordinate lastActionFinishBeforeBackOff = Util.cloneCoordinate(lastAction.finish);
                             // lastAction back off by one tile
                             switch (lastAction.goStraightDirection) {
                                 case EAST:
@@ -92,13 +95,13 @@ public class DefaultRouteCompiler extends RouteCompilerBase {
                                 lastAction.type = ActionType.TurnRight;
                             }
 
-                            lastAction.start = cloneCoordinate(actionList.get(actionList.size() - 1).finish);
-                            lastAction.finish = cloneCoordinate(thisCoord);
+                            lastAction.start = Util.cloneCoordinate(actionList.get(actionList.size() - 1).finish);
+                            lastAction.finish = Util.cloneCoordinate(thisCoord);
 
                             actionList.add(lastAction);
                             lastAction = new Action();
-                            lastAction.start = cloneCoordinate(lastActionFinishBeforeBackOff);
-                            lastAction.finish = cloneCoordinate(thisCoord);
+                            lastAction.start = Util.cloneCoordinate(lastActionFinishBeforeBackOff);
+                            lastAction.finish = Util.cloneCoordinate(thisCoord);
                             lastAction.type = ActionType.GoStraight;
                             lastAction.goStraightDirection = Util.inferDirection(lastAction.finish, lastAction.start);
                         }
@@ -119,40 +122,44 @@ public class DefaultRouteCompiler extends RouteCompilerBase {
         }
 
         // filter out any no-ops ( going straight actions that starts and ends on the same cell;
-        actionList.removeIf(action -> (action.type == ActionType.GoStraight && action.start.x == action.finish.x && action.start.y == action.finish.y));
+        actionList.removeIf(action ->
+                (action.type == ActionType.GoStraight
+                        && action.start.x == action.finish.x
+                        && action.start.y == action.finish.y));
 
         // process speed limits
         for (int i = 0; i < actionList.size(); ++i) {
             Action currentAction = actionList.get(i);
-            Action prevAction = i-1 >=0 ? actionList.get(i-1) : null;
-            Action nextAction = i+1 < actionList.size() ? actionList.get(i+1) : null;
-            Action nextnextAction = i+2 < actionList.size() ? actionList.get(i+2) : null;
+            Action prevAction = i - 1 >= 0 ? actionList.get(i - 1) : null;
+            Action nextAction = i + 1 < actionList.size() ? actionList.get(i + 1) : null;
+            Action nextnextAction = i + 2 < actionList.size() ? actionList.get(i + 2) : null;
 
-            if (i == actionList.size() -1) {
+            if (i == actionList.size() - 1) {
                 // last action => must stop
                 currentAction.speedLimit = 0f;
 
             } else if (currentAction.type == ActionType.GoStraight) {
-                if ((nextAction.type == ActionType.TurnLeft || nextAction.type == ActionType.TurnRight)||
-                        (nextnextAction == null || nextnextAction.type == ActionType.TurnLeft || nextnextAction.type == ActionType.TurnRight)) {
+                if ((nextAction.type == ActionType.TurnLeft || nextAction.type == ActionType.TurnRight) ||
+                        (nextnextAction == null ||
+                                nextnextAction.type == ActionType.TurnLeft ||
+                                nextnextAction.type == ActionType.TurnRight)) {
                     // following by consecutive turnings
-                    currentAction.speedLimit = (float)TurningAutoPilot.MAX_TURNING_SPEED_U_TURN;
+                    currentAction.speedLimit = (float) Util.MAX_TURNING_SPEED_U_TURN;
                 } else if (nextAction.type == ActionType.TurnLeft || nextAction.type == ActionType.TurnRight) {
-                    currentAction.speedLimit = (float)TurningAutoPilot.MAX_TURNING_SPEED;
+                    currentAction.speedLimit = (float) Util.MAX_TURNING_SPEED;
                 } else {
-                    currentAction.speedLimit = (float)Util.MAX_CRUISING_SPEED;
+                    currentAction.speedLimit = (float) Util.MAX_CRUISING_SPEED;
                 }
             } else if (currentAction.type == ActionType.TurnLeft || currentAction.type == ActionType.TurnRight) {
-                if ((nextAction!=null && (nextAction.type == ActionType.TurnLeft || nextAction.type==ActionType.TurnRight)) ||
-                        (prevAction!=null && (prevAction.type == ActionType.TurnLeft || prevAction.type==ActionType.TurnRight))) {
+                if ((nextAction != null && (nextAction.type == ActionType.TurnLeft || nextAction.type == ActionType.TurnRight)) ||
+                        (prevAction != null && (prevAction.type == ActionType.TurnLeft || prevAction.type == ActionType.TurnRight))) {
                     // part of a series of consecutive turnings
-                    currentAction.speedLimit = (float) TurningAutoPilot.MAX_TURNING_SPEED_U_TURN;
+                    currentAction.speedLimit = (float) Util.MAX_TURNING_SPEED_U_TURN;
 
                 } else {
-                    currentAction.speedLimit = (float) TurningAutoPilot.MAX_TURNING_SPEED;
+                    currentAction.speedLimit = (float) Util.MAX_TURNING_SPEED;
                 }
-            }
-            else {
+            } else {
                 // this should not happen
                 // if it does, warn the programmer
 
@@ -171,27 +178,38 @@ public class DefaultRouteCompiler extends RouteCompilerBase {
                         // last action => stop
                         output.add(AutoPilotFactory.forwardTo(a.start, a.finish, 0f));
                     } else {
-                        if (a==actionList.get(0) || Util.dis(a.start,a.finish) > 1) {
+                        if (a == actionList.get(0) || Util.dis(a.start, a.finish) > 1) {
                             output.add(AutoPilotFactory.forwardTo(a.start, a.finish, a.speedLimit));
                         }
 
                     }
                     break;
                 case TurnLeft:
-                    output.add(AutoPilotFactory.turn(a.start, a.finish, WorldSpatial.RelativeDirection.LEFT, a.speedLimit));
+                    output.add(
+                            AutoPilotFactory.turn(
+                                    a.start,
+                                    a.finish,
+                                    WorldSpatial.RelativeDirection.LEFT,
+                                    a.speedLimit));
                     break;
                 case TurnRight:
-                    output.add(AutoPilotFactory.turn(a.start, a.finish, WorldSpatial.RelativeDirection.RIGHT, a.speedLimit));
+                    output.add(
+                            AutoPilotFactory.turn(
+                                    a.start,
+                                    a.finish,
+                                    WorldSpatial.RelativeDirection.RIGHT,
+                                    a.speedLimit));
                     break;
             }
         }
+
 
         printOutput(output);
 
         return output;
     }
 
-   private WorldSpatial.RelativeDirection whichWayToTurn(WorldSpatial.Direction now, WorldSpatial.Direction prev) {
+    private WorldSpatial.RelativeDirection whichWayToTurn(WorldSpatial.Direction now, WorldSpatial.Direction prev) {
         switch (prev) {
             case EAST:
                 if (now == WorldSpatial.Direction.NORTH) {
@@ -229,7 +247,8 @@ public class DefaultRouteCompiler extends RouteCompilerBase {
     }
 
     /**
-     * For debug
+     * Prints a list of AutoPilots
+     * For debug only
      */
     private static void printOutput(Queue<AutoPilot> autoPilots) {
         System.out.println("\n\n\n===================================\n");
@@ -246,7 +265,4 @@ public class DefaultRouteCompiler extends RouteCompilerBase {
 
     }
 
-    private Coordinate cloneCoordinate(Coordinate a) {
-        return new Coordinate(a.x, a.y);
-    }
 }

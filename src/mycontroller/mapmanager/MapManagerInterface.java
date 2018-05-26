@@ -12,7 +12,25 @@ import utilities.Coordinate;
 import java.util.HashMap;
 import java.util.Set;
 
-// TODO: We might remove this later to make it static
+/**
+ * MapManager(Interface) is the "memory system" of our driving system
+ * It remembers and constructs the map as the car sees more and more 
+ * tiles.
+ * 
+ * And it responds to queries from RouteCompiler, AutoPilot and Navigator,
+ * about information on the map.
+ * 
+ * It is actually intended to be a singleton, but as for why we make it an
+ * interface rather than static class:
+ *  - We want to have flexibility of swapping out different implementations.
+ *    For example, when unittesting our path finding algorithms, we can use 
+ *    a "mock" implementation of MapManagerInterface that loads the map from
+ *    a text file (rather than getting it through exploring the interface).
+ *    That way we can test our algorithms without the simulation system.
+ * 
+ *  - Also, by defining an interface explicitly,  it is clearer to our team
+ *    what features a MapMananger should provide. 
+ */
 public interface MapManagerInterface {
 
     /**

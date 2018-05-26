@@ -9,7 +9,6 @@ import utilities.Coordinate;
 import world.WorldSpatial;
 
 import static world.WorldSpatial.Direction.*;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -18,7 +17,9 @@ import java.util.List;
  * used throughout our driving system
  */
 public class Util {
-
+    /**
+     * Four directions, in anti-clockwise order
+     */
 	public static final List<Coordinate> ANTICLOCKWISE_DIRECTION = Arrays.asList(
             new Coordinate(0, 1),  //N
             new Coordinate(-1, 0), //W
@@ -30,7 +31,32 @@ public class Util {
      * Max speed when cruising
      */
     public static float MAX_CRUISING_SPEED = 5.0f;
-    
+
+    /**
+     * Max turning speed when turning followed by moving straight
+     *
+     * 1 2 3 4 5
+     *         6
+     *         7
+     *         8 9 10
+     */
+    public static final double MAX_TURNING_SPEED = 2.0;
+    /**
+     * Max turning speed when turning followed by turning
+     *
+     * L-turn
+     * 1 2 3
+     *     4 5 6
+     *
+     * or
+     *
+     * width-2 U-turn
+     * 1 2 3
+     * 6 5 4
+     *
+     */
+    public static final double MAX_TURNING_SPEED_U_TURN = 0.7;
+
     /**
      * Our (estimated) deceleration due to braking. The lower the value, the earlier the car starts braking,
      * but the risk of overruning will also be lower.
@@ -38,8 +64,8 @@ public class Util {
     public static float DECELERATION = 1.99f;
     
     /**
-     * Our (estimated) aceleration due to braking. The lower the value, the earlier the car starts braking,
-     * but the risk of overruning will also be lower.
+     * Our (estimated) aceleration due to applyForwardAcceleration. The lower the value, the earlier the car 
+     * starts accelerating, but the risk of overruning will also be lower.
      */
     public static float ACCELERATION = 1.99f;
 
@@ -84,7 +110,7 @@ public class Util {
 
 
     /**
-     * Converts WorldSpatial.Direction to delta change in (x,y)
+     * Converts WorldSpatial.Direction to delta change in (x,y). For example, EAST => (+1,0).
      * 
      * @param orientation
      * @return
@@ -144,7 +170,7 @@ public class Util {
      * @return
      */
     public static Coordinate getTileAhead(Coordinate startingPosition, WorldSpatial.Direction startingDirection) {
-        return getTileAheadNth(startingPosition, startingDirection,1);
+        return getTileAheadNth(startingPosition, startingDirection, 1);
     }
 
     /**
@@ -252,7 +278,7 @@ public class Util {
     /**
      * Return a copy of the coordinate
      * 
-     * @param a
+     * @param a the coordinate
      * @return
      */
     public static Coordinate cloneCoordinate(Coordinate a) {
@@ -260,17 +286,31 @@ public class Util {
     }
 
     /**
-     * Gets the distance required for speed change.
+     * Gets the distance required for speed change. (deccelerating)
      * @param speedFrom
      * @param speedTo
      * @return
      */
     public static double getStoppingDistance(double speedFrom, double speedTo) {
-        return (speedFrom * speedFrom - speedTo * speedTo) / (2.0 * (double)DECELERATION);
+        double result = (speedFrom * speedFrom - speedTo * speedTo) / (2.0 * (double)DECELERATION);
+        if (result < 0) {
+            warn("getStoppingDistance", "Negative distance! Check calling function for bugs.");
+        }
+        return result;
     }
 
+    /**
+     * Gets the distance required for speed change. (accelerating)
+     * @param speedFrom
+     * @param speedTo
+     * @return
+     */
     public static double getAccelerateDistance(double speedFrom, double speedTo) {
-        return (speedTo * speedTo - speedFrom * speedFrom) / (2.0 * (double)ACCELERATION);
+        double result = (speedTo * speedTo - speedFrom * speedFrom) / (2.0 * (double)ACCELERATION);
+        if (result < 0) {
+            warn("getAccelerateDistance", "Negative distance! Check calling function for bugs.");
+        }
+        return result;
     }
 
     /**
@@ -282,6 +322,17 @@ public class Util {
     }
 
 
+    /**
+     * Euclidean distance
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     * @return
+     */
+    public static double eDis(double x1, double y1, double x2, double y2) {
+        return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+    }
     /**
      * Print warning message (for warnings internal to Util only)
      *

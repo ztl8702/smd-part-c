@@ -13,12 +13,18 @@ import utilities.Coordinate;
 import java.security.InvalidParameterException;
 
 /**
- * An AutoPilot that knows how to go from tile A to tile B going straight forward.
- * 
+ * An composite AutoPilot that knows how to go from tile A to tile B by going straight forward.
+ *
+ * Under the hood, it uses MainSpeedAutoPilot to control the speed,
+ * and ReCentreAutoPilot to make sure the car travels on the centre line and avoids walls
  */
 public class ForwardToAutoPilot extends AutoPilotBase {
 
-
+    /**
+     * How much deviate from the centre line should we start to recentre the car.
+     *
+     * Should be set to slightly higher than the WALL_BUFFER, but less than 2*WALL_BUFFER
+     */
     private static double RECENTER_EPS = 0.22;
 
     public enum TrackingAxis {
@@ -94,7 +100,6 @@ public class ForwardToAutoPilot extends AutoPilotBase {
                 if (nextCell == null) {
                     nextCell = car.getCoordinate();
                 }
-                // TODO: only recentre if there is wall on the opposite side
                 if (trackingAxis == TrackingAxis.X) {
                     double newCentreLineY = getCentreLineY(nextCell.x, nextCell.y);
                     if (!isWall(nextCell.x, nextCell.y) && Math.abs(car.getY() - newCentreLineY ) > RECENTER_EPS) {
@@ -225,6 +230,9 @@ public class ForwardToAutoPilot extends AutoPilotBase {
      */
     private double getSpeedLimit(double distanceFromTarget, double speedTarget) {
         distanceFromTarget = Math.max(0.0, distanceFromTarget);
-        return Math.min(Util.MAX_CRUISING_SPEED, Math.sqrt(2.0 * Util.DECELERATION * distanceFromTarget + speedTarget * speedTarget));
+        return Math.min(
+                Util.MAX_CRUISING_SPEED,
+                Math.sqrt(2.0 * Util.DECELERATION * distanceFromTarget + speedTarget * speedTarget)
+        );
     }
 }
