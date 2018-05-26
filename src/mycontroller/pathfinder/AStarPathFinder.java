@@ -148,6 +148,7 @@ public class AStarPathFinder extends PathFinderBase {
         open.clear();
         open.add(nodes[sx][sy]);
 
+        // TODO: this can cause index out of bound if the map is not bounded by walls
         nodes[tx][ty].parent = null;
 
         // while we haven't found the goal and haven't exceeded our max search depth
@@ -227,7 +228,7 @@ public class AStarPathFinder extends PathFinderBase {
 
     private void innerLoop(int xp, int yp, int tx, int ty,
                            Node current, ArrayList<Node> closed, SortedList open, int maxDepth) {
-        if (!isWall(xp, yp)) {
+        if (!isWall(xp, yp) && mapManager.isWithinBoard(new Coordinate(xp,yp))) {
             // the cost to get to this node is cost the current plus the movement
             // cost to reach this node. Note that the heursitic value is only used
             // in the sorted open list
