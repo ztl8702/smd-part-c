@@ -12,6 +12,22 @@ import utilities.Coordinate;
 
 import java.util.ArrayList;
 
+/**
+ * Navigator is the higher-level coordinator of our driving system.
+ *
+ * Like a navigator on a ship, it asks its minions (i.e. AutoPilots) to
+ * do the heavy-lifting. It supervises AutoPilots, making sure that
+ * they can carry out their duties one-by-one and no AutoPilot is acting
+ * when it should not be activated.
+ *
+ * However, unlike a GPS "navigator", our Navigator does not do the path
+ * finding: that job is delegated to other subsystems:
+ *   - it accepts a path found by the PathFinder
+ *   - and asks RouteCompiler to produce AutoPilots
+ *
+ * @see AutoPilot
+ * @see PathFinder
+ */
 public interface Navigator {
 	
     /**
@@ -19,7 +35,7 @@ public interface Navigator {
      * 
      * @param path
      */
-    void loadNewPath(ArrayList<Coordinate> path);
+    void loadNewPath(ArrayList<Coordinate> path, boolean forceStop);
 
     /**
      * Load the new autoPilots
@@ -60,7 +76,8 @@ public interface Navigator {
     float getPercentageCompleted();
 
     /**
-     * Request Navigator to stop navigating on the current path
+     * Politely request Navigator to stop navigating on the current path,
+     * Navigator will wait until an appropriate moment to stop.
      *
      * Note: this does not guarantee stopping immediately,
      * Navigator might be in some critical state, like turning, which
@@ -69,5 +86,12 @@ public interface Navigator {
      * Always use isIdle() to check;
      */
     void requestInterrupt();
+
+    /**
+     * Force the navigator to stop navigation.
+     * This is only used in emergency, like hitting the wall.
+     */
+    void forceInterrupt();
+
 
 }

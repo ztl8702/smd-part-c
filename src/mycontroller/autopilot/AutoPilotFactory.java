@@ -29,4 +29,8 @@ public class AutoPilotFactory {
     public static AutoPilot maintainSpeed(float speed) {
         return new MaintainSpeedAutoPilot(mapManager, speed);
     }
+
+    public static AutoPilot stop() {
+        return new EmergencyStopAutoPilot(mapManager);
+    }
 }

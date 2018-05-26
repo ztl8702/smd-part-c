@@ -19,9 +19,18 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
+/**
+ * Default (naive) implementation of the Navigator.
+ *
+ * (We planned to have different implementations, but didn't have the time.)
+ *
+ * More information is in the interface.
+ * @see Navigator
+ */
 public class DefaultNavigator implements Navigator {
 
     private enum State {Idle, Navigating, AttemptingToStop}
+
     private boolean interruptRequested = false;
     private State state = State.Idle;
 
@@ -35,13 +44,16 @@ public class DefaultNavigator implements Navigator {
 
 
     @Override
-    public void loadNewPath(ArrayList<Coordinate> path) {
+    public void loadNewPath(ArrayList<Coordinate> path, boolean forceStop) {
         switch (state) {
             case Idle:
-                if (path!=null && !path.isEmpty()){
+                if (path != null && !path.isEmpty()) {
                     this.opt = null;
-                    RouteCompiler  compiler = new DefaultRouteCompiler();
+                    RouteCompiler compiler = new DefaultRouteCompiler();
                     this.upcomingOpts = compiler.compile(path);
+                    if (forceStop) {
+                        upcomingOpts.add(AutoPilotFactory.stop());
+                    }
                     this.changeState(State.Navigating);
                 }
                 break;
@@ -57,40 +69,40 @@ public class DefaultNavigator implements Navigator {
     public void loadAutoPilots(ArrayList<AutoPilot> autoPilots) {
         this.opt = null;
         this.upcomingOpts = new LinkedList<>();
-        for (AutoPilot a : autoPilots){
+        for (AutoPilot a : autoPilots) {
             this.upcomingOpts.add(a);
         }
     }
 
     /**
      * Use the auto pilot to handle current update
+     *
      * @param delta
      * @param car
      * @return
      */
     private ActuatorAction autoPilotHandle(float delta, SensorInfo car) {
         while (!upcomingOpts.isEmpty() && upcomingOpts.peek().canTakeCharge()
-                && (this.opt == null || this.opt.canBeSwappedOut()) ) {
-            info(upcomingOpts.peek()+"taking charge");
+                && (this.opt == null || this.opt.canBeSwappedOut())) {
+            info(upcomingOpts.peek() + "taking charge");
             this.opt = upcomingOpts.remove();
         }
 
-        info(String.format("delta=%.6f (%.6f, %.6f)\n", delta,car.getX(),car.getY()));
+        info(String.format("delta=%.6f (%.6f, %.6f)\n", delta, car.getX(), car.getY()));
         ActuatorAction action = ActuatorAction.nothing();
 
-        if (opt!=null) {
+        if (opt != null) {
             action = opt.handle(delta, car);
         }
         info(String.format("Current AutoPilot: %s", opt));
 
         // look ahead by two
-        if (!this.upcomingOpts.isEmpty()){
-            this.upcomingOpts.peek().handle(delta,car);
+        if (!this.upcomingOpts.isEmpty()) {
+            this.upcomingOpts.peek().handle(delta, car);
 
-            if (upcomingOpts.size() >=2){
-                ((LinkedList<AutoPilot>)upcomingOpts).get(1).handle(delta,car);
+            if (upcomingOpts.size() >= 2) {
+                ((LinkedList<AutoPilot>) upcomingOpts).get(1).handle(delta, car);
             }
-
 
         }
 
@@ -104,16 +116,16 @@ public class DefaultNavigator implements Navigator {
             case Navigating:
                 ActuatorAction action = autoPilotHandle(delta, carInfo);
                 if (interruptRequested) {
-                    if (canCurrentAutoPilotBeStopped()){
+                    if (canCurrentAutoPilotBeStopped()) {
                         Coordinate nextCell = Util.getTileAhead(carInfo.getCoordinate(), carInfo.getOrientation());
                         Coordinate nextnextCell = nextCell == null ? null : Util.getTileAhead(nextCell, carInfo.getOrientation());
-                        int distanceToWall =  wallAhead(carInfo.getTileX(), carInfo.getTileY(), carInfo.getOrientation())-1;
-                        double stoppingDistance = Util.getStoppingDistance(carInfo.getSpeed(),0);
-                        if ( (double)distanceToWall >= stoppingDistance && // make sure there is enough stopping distance
+                        int distanceToWall = wallAhead(carInfo.getTileX(), carInfo.getTileY(), carInfo.getOrientation()) - 1;
+                        double stoppingDistance = Util.getStoppingDistance(carInfo.getSpeed(), 0);
+                        if ((double) distanceToWall >= stoppingDistance && // make sure there is enough stopping distance
                                 !lavaTilesAhead(carInfo.getTileX(),   // and there is no Lava on our "stopping zone"
                                         carInfo.getTileY(),
                                         carInfo.getOrientation(),
-                                        (int)Math.ceil(distanceToWall))
+                                        (int) Math.ceil(distanceToWall))
                                 ) {
 
                             ArrayList<AutoPilot> stopping = new ArrayList<>();
@@ -141,6 +153,7 @@ public class DefaultNavigator implements Navigator {
 
     /**
      * How many tiles away from the wall ahead?
+     *
      * @param x
      * @param y
      * @param direction
@@ -148,8 +161,8 @@ public class DefaultNavigator implements Navigator {
      */
     private int wallAhead(int x, int y, WorldSpatial.Direction direction) {
         for (int i = 1; ; i++) {
-            Coordinate ahead = Util.getTileAheadNth(new Coordinate(x,y), direction, i);
-            if (mapManager.isWall(ahead.x, ahead.y)){
+            Coordinate ahead = Util.getTileAheadNth(new Coordinate(x, y), direction, i);
+            if (mapManager.isWall(ahead.x, ahead.y)) {
                 return i;
             }
         }
@@ -157,16 +170,17 @@ public class DefaultNavigator implements Navigator {
 
     /**
      * Is there any lava tiles ahead? We don't want to interrupt on a lava tile.
+     *
      * @param x
      * @param y
      * @param direction
      * @return
      */
     private boolean lavaTilesAhead(int x, int y, WorldSpatial.Direction direction, int distance) {
-        for (int i = 0; i<=distance;++i) {
-            Coordinate location = Util.getTileAheadNth(new Coordinate(x,y),direction, distance);
+        for (int i = 0; i <= distance; ++i) {
+            Coordinate location = Util.getTileAheadNth(new Coordinate(x, y), direction, distance);
             if (mapManager.isWithinBoard(location)) {
-                if (mapManager.getCell(location.x,location.y).type == Cell.CellType.LAVA) {
+                if (mapManager.getCell(location.x, location.y).type == Cell.CellType.LAVA) {
                     return true;
                 }
             } else {
@@ -196,12 +210,21 @@ public class DefaultNavigator implements Navigator {
         }
     }
 
-	@Override
-	public boolean isIdle() {
-        return this.state == State.Idle;
-	}
+    @Override
+    public void forceInterrupt() {
+        changeState(State.Idle);
+        interruptRequested = false;
+        opt = null;
+        upcomingOpts = new LinkedList<>();
+        changeState(State.Navigating);
+    }
 
-	private boolean hasNoMoreAutoPilots() {
+    @Override
+    public boolean isIdle() {
+        return this.state == State.Idle;
+    }
+
+    private boolean hasNoMoreAutoPilots() {
         if (this.upcomingOpts.isEmpty() && (this.opt == null || this.opt.canBeSwappedOut())) {
             return true;
         } else {
@@ -209,7 +232,7 @@ public class DefaultNavigator implements Navigator {
         }
     }
 
-	private boolean canCurrentAutoPilotBeStopped() {
+    private boolean canCurrentAutoPilotBeStopped() {
         if (this.opt == null || this.opt.canBeSwappedOut()) {
             return true;
         } else {
@@ -217,14 +240,14 @@ public class DefaultNavigator implements Navigator {
         }
     }
 
-	private void changeState(State newState) {
+    private void changeState(State newState) {
         if (state != newState) {
-            info("Changing state "+state+"-> "+newState);
+            info("Changing state " + state + "-> " + newState);
             state = newState;
         }
     }
 
-	private void info(String message) {
+    private void info(String message) {
         Logger.printDebug("DefaultNavigator", message);
     }
 }
