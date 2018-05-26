@@ -50,7 +50,7 @@ public class MapManager implements MapManagerInterface {
     /**
      * Coordinates of tiles already seen by dfs search
      */
-    private HashSet<Coordinate> dfs_visited;
+    private HashSet<Coordinate> visited_dfs;
     
     // min and max of map size
     private int xStart = 0;
@@ -264,7 +264,7 @@ public class MapManager implements MapManagerInterface {
      * Mark the coordinates that are reachable
      */
     private void markReachable() {
-        dfs_visited = new HashSet<>();
+        visited_dfs = new HashSet<>();
         for (int y = yEnd; y>=yStart; --y) {
             for (int x = xStart; x<=xEnd; ++x) {
                 if (this.getCell(x,y).type == CellType.START) {
@@ -289,10 +289,10 @@ public class MapManager implements MapManagerInterface {
      * @param currentLocation
      */
     private void dfsConnectedArea (Coordinate currentLocation) {
-        if (dfs_visited.contains(currentLocation)) {
+        if (visited_dfs.contains(currentLocation)) {
             return;
         }
-        dfs_visited.add(currentLocation);
+        visited_dfs.add(currentLocation);
         reachable.add(currentLocation);
 
         for (Coordinate direction : Util.ANTICLOCKWISE_DIRECTION) {
