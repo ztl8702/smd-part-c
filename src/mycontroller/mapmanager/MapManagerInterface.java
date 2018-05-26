@@ -1,3 +1,8 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.mapmanager;
 
 import mycontroller.common.Cell;
@@ -7,7 +12,7 @@ import utilities.Coordinate;
 import java.util.HashMap;
 import java.util.Set;
 
-// TODO: We might remove this later
+// TODO: We might remove this later to make it static
 public interface MapManagerInterface {
 
     /**
@@ -38,14 +43,40 @@ public interface MapManagerInterface {
      */
     boolean isReachable(int x, int y);
 
+
+    /**
+     * Whether a tile is wall or not.
+     *
+     * NOTE: out of boundary tiles are treated as Walls
+     * @param x
+     * @param y
+     * @return
+     */
+    boolean isWall(int x, int y);
     /**
      * Gets any one of the Finish Tile
      * @return
      */
     Coordinate getFinishTile();
+    
+    /**
+     * Get coordinate of a specified key
+     * @param keyNumber
+     * @return
+     */
     Coordinate getKeyCoordinate(int keyNumber);
 
+    /**
+     * Get locations not yet explored
+     * @return
+     */
     Set<Coordinate> getUnseenLocations();
+    
+    /**
+     * Get location of health tiles
+     * @return
+     */
+    Set<Coordinate> getHealthTiles();
 
     /**
      * Whether we have found all the keys we need;
@@ -54,12 +85,24 @@ public interface MapManagerInterface {
      */
     boolean foundAllKeys(int currentKey);
 
-
+    /**
+     * Initialise map.
+     * Should only be called once
+     *
+     * @param tiles
+     */
     void initialMap(HashMap<Coordinate, MapTile> tiles);
+    
+    /**
+     * Update map
+     * @param tiles
+     */
     void updateView(HashMap<Coordinate, MapTile> tiles);
 
+    /**
+     * Check if coordinate is within the board
+     * @param coord
+     * @return
+     */
     boolean isWithinBoard(Coordinate coord);
-
-
-
 }

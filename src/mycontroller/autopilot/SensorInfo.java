@@ -1,9 +1,12 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.autopilot;
 
-import com.badlogic.gdx.math.Vector2;
 import controller.CarController;
 import utilities.Coordinate;
-import world.Car;
 import world.WorldSpatial;
 
 /**

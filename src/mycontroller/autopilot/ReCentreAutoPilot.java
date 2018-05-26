@@ -1,13 +1,18 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.autopilot;
 
-import world.Car;
-import world.World;
+import mycontroller.common.Logger;
+import mycontroller.mapmanager.MapManagerInterface;
 import world.WorldSpatial;
 
 /**
  * Recentres a moving car to a certain position along the X or Y axis.
  */
-public class ReCentreAutoPilot extends BaseAutoPilot {
+public class ReCentreAutoPilot extends AutoPilotBase {
     public enum CentringAxis {
         X, Y
     }
@@ -16,8 +21,14 @@ public class ReCentreAutoPilot extends BaseAutoPilot {
         Idle, TurningA, GoingStraight, TurningBack, Finished
     }
 
-    private static double MAX_TURNING_ANGLE = 45;
-    private static double TURNING_EPS = 0.05;
+    /**
+     * Maximum speed when recentring begins
+     */
+    public static double MAX_SWITCH_LANE_SPEED = 2.0f;
+
+    private static double MAX_TURNING_ANGLE = 30;
+    private static double TURNING_EPS = 0.05; // angle
+    private static double DISTANCE_MARGIN = 0.01;
 
     private CentringAxis axis;
     private State state;
@@ -28,7 +39,8 @@ public class ReCentreAutoPilot extends BaseAutoPilot {
 
     private SensorInfo lastInfo = null;
 
-    public ReCentreAutoPilot(CentringAxis axis, float target) {
+    public ReCentreAutoPilot(MapManagerInterface mapManager, CentringAxis axis, float target) {
+        super(mapManager);
         this.axis = axis;
         state = State.Idle;
         this.target = target;
@@ -41,6 +53,15 @@ public class ReCentreAutoPilot extends BaseAutoPilot {
         double y = car.getY();
         double angle = car.getAngle();
 
+        if (car.getSpeed() > (float) MAX_SWITCH_LANE_SPEED) {
+            // oops, this might be an issue
+            // warn the programmer
+
+            Logger.printWarning("ReCentreAutoPilot",
+                    String.format("Overspeed, current speed=%.6f, limit=%.6f", car.getSpeed(), MAX_SWITCH_LANE_SPEED));
+
+        }
+
         switch (state) {
             case Idle:
                 if (canStartTurning(car)) {
@@ -48,7 +69,7 @@ public class ReCentreAutoPilot extends BaseAutoPilot {
                     originalAngle = car.getAngle();
 
                     turningMode = getTurningMode(orientation, getPosOnCentringAxis(car));
-                    changeState(State.TurningA);
+                    if (turningMode !=null) changeState(State.TurningA);
 
                 }
 
@@ -150,7 +171,7 @@ public class ReCentreAutoPilot extends BaseAutoPilot {
         double angleDiffRad = angleDifference(originalAngle, carInfo.getAngle())* Math.PI/180.0;
         double distanceNeededForTurningBack = getDistanceForTurningBack(carInfo.getSpeed(),angleDiffRad);
 
-        return distanceNeededForTurningBack >= distanceFromTarget; // +DISTANCE MARGIN
+        return distanceNeededForTurningBack >= distanceFromTarget - DISTANCE_MARGIN;
     }
 
     @Override

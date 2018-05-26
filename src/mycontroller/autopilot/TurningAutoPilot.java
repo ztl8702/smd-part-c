@@ -1,18 +1,48 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.autopilot;
 
+import mycontroller.common.Logger;
+import mycontroller.common.Util;
+import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
-import world.Car;
 import world.WorldSpatial;
 import world.WorldSpatial.RelativeDirection;
 import world.WorldSpatial.Direction;
 
 import java.security.InvalidParameterException;
 
-public class TurningAutoPilot extends BaseAutoPilot {
+public class TurningAutoPilot extends AutoPilotBase {
 
-    // TODO: Handle situation where the MAINTAIN_SPEED cannot be reached before
-    // turning
-    public static final float MAINTAIN_SPEED = 1.1f;
+
+    /**
+     * Max turning speed when turning followed by moving straight
+     *
+     * 1 2 3 4 5
+     *         6
+     *         7
+     *         8 9 10
+     */
+    public static final double MAX_TURNING_SPEED = 2.0;
+    /**
+     * Max turning speed when turning followed by turning
+     *
+     * L-turn
+     * 1 2 3
+     *     4 5 6
+     *
+     * or
+     *
+     * width-2 U-turn
+     * 1 2 3
+     * 6 5 4
+     *
+     */
+    public static final double MAX_TURNING_SPEED_U_TURN = 0.7;
+    private static final double TURNING_OVERRUN_DISTANCE = 0.001;
 
     private enum TurningType {
         EastToNorth, EastToSouth
@@ -27,13 +57,21 @@ public class TurningAutoPilot extends BaseAutoPilot {
     private State state;
     private Coordinate fromTile;
     private Coordinate toTile;
-    // TODO: Check if WorldSpatial.Direction and WorldSpatial.RelativeDirection is
-    // in the interface that we can use
     private Direction fromDirection;
     private Direction toDirection;
     private RelativeDirection turningMode;
 
-    public TurningAutoPilot(Coordinate fromTile, Coordinate toTile, RelativeDirection turningMode) {
+
+    private double turningSpeed;
+
+    public TurningAutoPilot(MapManagerInterface mapManager,
+                            Coordinate fromTile,
+                            Coordinate toTile,
+                            RelativeDirection turningMode,
+                            double turningSpeed) {
+        super(mapManager);
+        this.turningSpeed = turningSpeed;
+
         // figure out which direction we are turning from and which direction we are turning to
         if (fromTile.x + 1 == toTile.x && fromTile.y + 1 == toTile.y && turningMode == RelativeDirection.LEFT) {
             fromDirection = Direction.EAST;
@@ -68,7 +106,7 @@ public class TurningAutoPilot extends BaseAutoPilot {
         this.turningMode = turningMode;
 
         // let some other AutoPilot care about the speed
-        maintainSpeedOpt = new MaintainSpeedAutoPilot(MAINTAIN_SPEED);
+        maintainSpeedOpt = AutoPilotFactory.maintainSpeed((float)turningSpeed);
         state = State.Waiting;
     }
 
@@ -76,17 +114,43 @@ public class TurningAutoPilot extends BaseAutoPilot {
     public ActuatorAction handle(float delta, SensorInfo car) {
         Coordinate coord = new Coordinate(car.getTileX(), car.getTileY());
 
-        if (DEBUG_AUTOPILOT) System.out.printf("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x,
-                this.getCentreLineX(toTile.x), d(), this.getCentreLineX(toTile.x) - d(), car.getX());
+        Logger.printInfo("TurningAutoPilot",
+                String.format("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x,
+                this.getCentreLineX(toTile.x,toTile.y), d(turningSpeed), this.getCentreLineX(toTile.x, toTile.y) - d(turningSpeed), car.getX()
+                )
+        );
 
         switch (this.state) {
             case Waiting:
                 if (reachedBufferArea(coord, car.getOrientation())) {
                     changeState(State.ReachTurningSpeed);
-                }
+                } 
                 break;
             case ReachTurningSpeed:
-                if (reachedTurningPoint(car.getX(), car.getY())) {
+                // Handle situation where the turningSpeed cannot be reached
+                if (Math.abs(car.getSpeed() - turningSpeed)>0.01 && car.getSpeed()>MAX_TURNING_SPEED_U_TURN-0.01) {
+
+                    double distanceToReachSpeed = car.getSpeed() > turningSpeed ?
+                            Util.getStoppingDistance(car.getSpeed(), turningSpeed)
+                            : Util.getAccelerateDistance(car.getSpeed(), turningSpeed);
+                    double distanceToTurn = d(turningSpeed);
+                    double availableDistance =  distanceFromTarget(car.getX(), car.getY());
+                    if (distanceToReachSpeed+distanceToTurn > availableDistance) {
+                        Logger.printWarning("TurningAutoPilot", "I cannot reduce speed to turningSpeed!");
+                        // if we can still do it using current speed?
+                        if (d(car.getSpeed())- TURNING_OVERRUN_DISTANCE >= availableDistance) {
+                            Logger.printWarning("TurningAutoPilot",
+                                    String.format("But we can still turn!, changing turingSpeed to %.5f", car.getSpeed()));
+
+                        } else {
+                            Logger.printWarning("TurningAutoPilot","PANIC!!!!!");
+                        }
+                        turningSpeed = car.getSpeed();
+                        maintainSpeedOpt = AutoPilotFactory.maintainSpeed(car.getSpeed());
+                    }
+                }
+                
+                if (reachedTurningPoint(car.getX(), car.getY(), Math.min(car.getSpeed(),turningSpeed))) {
                     changeState(State.StartTurning);
                 }
                 break;
@@ -153,22 +217,30 @@ public class TurningAutoPilot extends BaseAutoPilot {
      * @param y
      * @return
      */
-    private boolean reachedTurningPoint(float x, float y) {
-    	
-//    	float buffer = 0.01f;
+    private boolean reachedTurningPoint(float x, float y, double currentSpeed) {
+        return distanceFromTarget(x,y) <=  d(currentSpeed) - TURNING_OVERRUN_DISTANCE;
+    }
+
+    /**
+     * How far away are we from the position when we should stop turning at
+     * @param x
+     * @param y
+     * @return
+     */
+    private double distanceFromTarget(double x, double y) {
         switch (fromDirection) {
             case WEST:
-                return (double)x <= this.getCentreLineX(toTile.x) + d() - (-0.1); // overrun a little bit to avoid hitting the wall
+                return x - this.getCentreLineX(toTile.x, toTile.y);
             case EAST:
-                return (double)x >= this.getCentreLineX(toTile.x) - d() + (-0.1);
+                return this.getCentreLineX(toTile.x, toTile.y) - x;
             case NORTH:
-                return (double)y >= this.getCentreLineY(toTile.y) - d() + 0.005;
+                return this.getCentreLineY(toTile.x, toTile.y) - y;
             case SOUTH:
-                return (double)y <= this.getCentreLineY(toTile.y) + d() - 0.005;
+                return y - this.getCentreLineY(toTile.x, toTile.y);
             default:
-                return false;
+                Logger.printWarning("TurningAutoPilot", "something is wrong");
+                return 0;
         }
-
     }
 
     /**
@@ -219,9 +291,9 @@ public class TurningAutoPilot extends BaseAutoPilot {
      * Gets the distances ahead of the target tiles' centre line at which we need to
      * start turning.
      */
-    private double d() {
+    private double d(double speed) {
         // This formula comes from a bit of calculus.
-        return (6.0 / 5.0 / Math.PI) * (double) (MAINTAIN_SPEED);
+        return (6.0 / 5.0 / Math.PI) * (speed);
     }
 
     @Override

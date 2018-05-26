@@ -1,10 +1,18 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.autopilot;
 
+
+import mycontroller.common.Logger;
+import mycontroller.mapmanager.MapManagerInterface;
 
 /**
  * An AutoPilot that maintains the car speed at a given value.
  */
-public class MaintainSpeedAutoPilot extends BaseAutoPilot {
+public class MaintainSpeedAutoPilot extends AutoPilotBase {
 	public static float SPEED_EPS = 0.005f;
 	private float target;
 
@@ -19,7 +27,8 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 	 * 
 	 * @param target The speed to maintain at.
 	 */
-	public MaintainSpeedAutoPilot(float target) {
+	public MaintainSpeedAutoPilot(MapManagerInterface mapManager, float target) {
+		super(mapManager);
 		this.target = target;
 	}
 
@@ -83,7 +92,7 @@ public class MaintainSpeedAutoPilot extends BaseAutoPilot {
 
 	private void changeState(State newState) {
 		if (this.state != newState) {
-			if (DEBUG_AUTOPILOT) System.out.println("[MaintinSpeedOperator] state change: " + this.state + " -> " + newState);
+			Logger.printInfo("MaintinSpeedOperator","state change: " + this.state + " -> " + newState);
 			this.state = newState;
 
 			if (newState == State.Accelerating) {

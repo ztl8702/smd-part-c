@@ -1,3 +1,13 @@
+
+
+/** TODO: POTENTIALL TO REMOVE **/
+
+
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.testing.scanningcontroller;
 
 import java.awt.Font;

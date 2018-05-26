@@ -1,192 +1,285 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import world.Car;
+import tiles.MapTile;
+import utilities.Coordinate;
 import controller.CarController;
 
+import mycontroller.autopilot.AutoPilotFactory;
 import mycontroller.autopilot.ActuatorAction;
 import mycontroller.autopilot.SensorInfo;
+import mycontroller.common.Logger;
+import mycontroller.common.Cell.CellType;
 import mycontroller.mapmanager.MapManager;
 import mycontroller.mapmanager.MapManagerInterface;
-
 import mycontroller.navigator.DefaultNavigator;
 import mycontroller.navigator.Navigator;
 import mycontroller.pathfinder.*;
-import world.Car;
-import world.World;
-import tiles.MapTile;
-import utilities.Coordinate;
 
+//TODO: VERY BIG TODO, can't hard code the value for when to switch to recovery mode, DISCUSS with Radium
 
-
+/**
+ * Our main controller class that keeps track of different states of the game
+ * and delegates work to other classes to find path and execute car movement
+ */
 public class MyAIController extends CarController {
 	
-	public enum State { Explore, Finish, Recover }
-	
-	private static final boolean DEBUG = false;
-	
-	private boolean startedMoving;
-	
-	private final int DANGER_THRESHOLD = 20;
-	
-	private MapManagerInterface mapManager;
-	private State currentState;
-	private Navigator navigator;
+	//TODO: refactor to be in Logger
+    private static final boolean DEBUG = true;
 
-	public MyAIController(Car car) {
-		super(car);
+    public enum Goal { //TODO: should be private?
+        Explore,
+        Finish,
+        Recover
+    }
+    public enum State { //TODO: should be private?
+        ExecutingExploringPath,
+        ExecutingFinishPath,
+        ExecutingRecoverPath,
+        WaitingToRegainHealth,
+        Idle
+    }
 
-		this.startedMoving = false;
-		this.currentState = State.Explore;
-		
-		mapManager = new MapManager();
-		mapManager.initialMap(this.getMap());
-		navigator = new DefaultNavigator();
-
-	}
-
-	@Override
-	public void update(float delta) {
-		
-		// gets what the car can see
-		HashMap<Coordinate, MapTile> currentView = getView();
-		
-		// update key to mapManager
-//		mapManager.updateKey(this.getKey());
-
-		// update the mapManager
-		mapManager.updateView(currentView);
-		
-		
-		// have not found solution, keep exploring
-		if(!startedMoving && currentState == State.Explore) {
-
-			PathFinder wallFollower = new WallFollowingPathFinder(mapManager);
-
-			ArrayList<Coordinate> path = wallFollower.getPath(
-					new Coordinate(this.getPosition()), null, this.getSpeed(), this.getAngle());
-
-			navigator.loadNewPath(path);
-			//RouteCompiler compiler = new DefaultRouteCompiler();
-
-			//compiler.compile(path);
-			//exit(-1);
-			startedMoving = true;
-			
-		} else {
-			ActuatorAction action = navigator.update(delta,SensorInfo.fromController(this));
-			if (action.brake) {
-				this.applyBrake();
-			}
-			if (action.forward) {
-				this.applyForwardAcceleration();
-			}
-			if (action.backward) {
-				this.applyReverseAcceleration();
-			}
-			if (action.turnLeft) {
-				this.turnLeft(delta);
-			}
-			if (action.turnRight) {
-				this.turnRight(delta);
-			}
-		}
-		
-		
-		// once all keys have been found
-		if (mapManager.foundAllKeys(this.getKey())) {
-			
-			int maxSearchDepth = 500;
-			PathFinder finisher = new AStarPathFinder(mapManager, maxSearchDepth, World.MAP_WIDTH, World.MAP_HEIGHT);
-			
-			ArrayList<Coordinate> finalPath = new ArrayList<>();
-	        ArrayList<Coordinate> subPath = null;
-	        
-	        Coordinate currentPosition = new Coordinate(this.getPosition());
-	        // initial position before search
-	        int cX = currentPosition.x;
-	        int cY = currentPosition.y;
-	        		
-			// loop through all the keys and set key coordinate end location
-			for( int i = this.getKey()-1; i>=1; i-- ) {
-				
-				Coordinate k = mapManager.getKeyCoordinate(i);
-//				if (k == null) {
-//					System.err.println("cant locate key position" + i);
-//				} else {
-////					System.out.println("finding key number" + i);
-//				}
-
-				subPath = finisher.getPath(new Coordinate(cX, cY), 
-						new Coordinate(k.x, k.y), this.getSpeed(), this.getAngle());
-				
-//				System.err.println(mapManager.printBoard());
-				
-				if (subPath != null) {
-//					System.out.println("found path for :" + "from" + cX+cY+"to"+keyPosition.toString());
-					finalPath.addAll(subPath);
-					System.out.println(finalPath.toString());
-					cX = k.x;
-					cY = k.y;
-				}
-				else {
-					System.err.println("Problem finding path with astar" + "from" + cX + "," + cY + "to" + k.x + "," + k.y);
-				}
-			}
-			// done with getting all keys, now go to finish tile
-			Coordinate finalKeyPosition = mapManager.getKeyCoordinate(1);
-			Coordinate finishTile = mapManager.getFinishTile();
-			subPath = finisher.getPath(new Coordinate(finalKeyPosition.x, finalKeyPosition.y), 
-					new Coordinate(finishTile.x, finishTile.y), this.getSpeed(), this.getAngle());
-//			System.err.println(mapManager.printBoard());
-			
-//			System.out.println("managed to get final subpath");
-			if (subPath != null) {
-				finalPath.addAll(subPath);
-				System.out.println("FINAL PATH: " + finalPath.toString());
-			}
-			
-			
-			
-			
-			// print out the result		
-			System.out.println("************************ASTAR***************** Path found!!!!");
-			System.out.println(finalPath.toString());
-//			for (Coordinate c : finalPath) {
-//				System.out.printf("(%d,%d)->", c.x, c.y);
-//			}
-
-//			System.out.println("\n====================================\n\n\n\n\n");
-
-		}
+    private State currentState;
+    private Goal currentGoal;
+    private MapManagerInterface mapManager;
+    private Navigator navigator;
+    
 
 
+    /**
+     * MyAIController constructor that initialises 
+     * the map for updating and
+     * autopilot
+     * @param car
+     */
+    public MyAIController(Car car) {
+        super(car);
 
-		/**
-		// car hit a wall
-		//TODO maybe make a method to check ifCollided
-		if(getSpeed() == 0 && startedMoving) {
-			ReverseMode reverseMode = new ReverseMode();
-		}
-		
-		// health is lower than danger threshold
-		if(getHealth() <= DANGER_THRESHOLD) {
-			RecoveryPathFinder recoveryPathFinder = new RecoveryPathFinder();
-		}
-		
-		
-		
-		if(mapManager.foundSolution()) {
-			FinisherPathFinder finisherPathFinder = new FinisherPathFinder();
-			
-//			new Node(parentNode, goalNode, gCost, x, y)
-//			finisherPathFinder.aStarSearch(Node startNode, Node goalNode);
-		}
-		
-		
-		if (DEBUG) System.out.printf("current unseen count: %d\n", mapManager.getUnseen().size());	
-		**/
-	}
+        this.currentState = State.Idle;
+        this.currentGoal = Goal.Explore;
 
+        mapManager = new MapManager();
+        mapManager.initialMap(this.getMap());
+        navigator = new DefaultNavigator(mapManager);
+        AutoPilotFactory.initialise(mapManager);
+
+    }
+
+    @Override
+    public void update(float delta) {
+
+        // gets what the car can see
+        HashMap<Coordinate, MapTile> currentView = getView();
+
+        // update the mapManager
+        mapManager.updateView(currentView);
+        navigatorUpdate(delta);
+
+        // First, figure the goal
+        switch (currentGoal) {
+            case Explore:
+                if (mapManager.foundAllKeys(this.getKey())) {
+                    changeGoal(Goal.Finish);
+                }
+                if (isLowHealth()) { // low health warning
+                    changeGoal(Goal.Recover);
+                }
+                break;
+            case Finish:
+                if (isLowHealth()) { // low health warning
+                    changeGoal(Goal.Recover);
+                }
+                break;
+            case Recover:
+                if (isEnoughHealth()) {
+                    // health recovered, go back to ....
+                    if (mapManager.foundAllKeys(this.getKey())) {
+                        changeGoal(Goal.Finish);
+                    } else {
+                        changeGoal(Goal.Explore);
+                    }
+                }
+                break;
+        }
+
+        // Should we interrupt the Navigator
+        if ((currentState == State.ExecutingExploringPath || currentState == State.ExecutingFinishPath)
+                && currentGoal == Goal.Recover) {
+            // health is low, we need to stop
+            navigator.requestInterrupt();
+        }
+        if (currentState == State.ExecutingExploringPath && currentGoal == Goal.Finish) {
+            // don't need to explore anymore
+            navigator.requestInterrupt();
+        }
+
+        // State change
+        switch (currentState) {
+            case Idle:
+                switch (currentGoal) {
+                    case Explore: {
+                        PathFinder wallFollower = new WallFollowingPathFinder(mapManager);
+                        ArrayList<Coordinate> path = wallFollower.getPath(
+                                new Coordinate(this.getPosition()), null, this.getSpeed(), this.getAngle());
+                        navigator.loadNewPath(path);
+                        changeState(State.ExecutingExploringPath);
+                    }
+                    break;
+                    case Finish: {
+                        ArrayList<Coordinate> path = getAStarPath();
+                        navigator.loadNewPath(path);
+                        changeState(State.ExecutingFinishPath);
+                    }
+                    break;
+                    case Recover: {
+                        if (DEBUG) System.err.println("i came in here");
+                        ArrayList<Coordinate> path = getHealthPath();
+                        if (DEBUG) System.err.println("found path");
+                        navigator.loadNewPath(path);
+                        changeState(State.ExecutingRecoverPath);
+                    }
+                    break;
+                }
+            case ExecutingExploringPath:
+                if (navigator.isIdle()) {
+                    changeState(State.Idle);
+                }
+                break;
+            case ExecutingFinishPath:
+                if (navigator.isIdle()) {
+                    changeState(State.Idle);
+                }
+                break;
+            case ExecutingRecoverPath:
+                if (navigator.isIdle() && onHealthTile()) {
+                    changeState(State.WaitingToRegainHealth);
+                }
+                break;
+            case WaitingToRegainHealth:
+                if (isEnoughHealth()) {
+                    changeState(State.Idle);
+                }
+                break;
+            // have not found solution, keep exploring
+
+        }
+
+        //TODO: make new ReverseMode Interrupt when car collide with wall
+    }
+
+    /**
+     * Tell the navigator what action to do next 
+     * @param delta
+     */
+    private void navigatorUpdate(float delta) {
+
+        ActuatorAction action = navigator.update(delta, SensorInfo.fromController(this));
+        if (action.brake) {
+            this.applyBrake();
+        }
+        if (action.forward) {
+            this.applyForwardAcceleration();
+        }
+        if (action.backward) {
+            this.applyReverseAcceleration();
+        }
+        if (action.turnLeft) {
+            this.turnLeft(delta);
+        }
+        if (action.turnRight) {
+            this.turnRight(delta);
+        }
+    }
+
+   /**
+     * Gets a path to find all keys and to the finish tile,
+     * by calling A* path finding algorithm
+     *
+     * @return ArrayList<Coordinate> path to goal 
+     */
+    private ArrayList<Coordinate> getAStarPath() {
+        return new FinisherPathFinder(mapManager, this.getKey()).getPath(
+                new Coordinate(this.getPosition()),
+                null, // finisher doesn't care about goalPosition, it will figure out by itself
+                    this.getSpeed(),
+                    this.getAngle()
+                );
+    }
+
+    /**
+     * Finds the best path to a nearest health tile,
+     * using A* search
+     * 
+     * @return ArrayList<Coordinate> path to goal
+     */
+    private ArrayList<Coordinate> getHealthPath() {
+        return new HealthPathFinder(mapManager).getPath(
+                new Coordinate(this.getPosition()),
+                null, // we don't have a goal position here, it is up to HealthPathFinder to figure out
+                this.getSpeed(),
+                this.getAngle()
+        );
+
+    }
+
+    /**
+     * Change the currentGoal
+     * 
+     * @param newGoal
+     */
+    private void changeGoal(Goal newGoal) {
+        if (newGoal != currentGoal) {
+            Logger.printDebug("MyAIController", "Change Goal: " + currentGoal + "->" + newGoal);
+            currentGoal = newGoal;
+        }
+    }
+
+    /**
+     * Change the currentState
+     * 
+     * @param newState
+     */
+    private void changeState(State newState) {
+        if (newState != currentState) {
+            Logger.printDebug("MyAIController", "Change State: " + currentState + "->" + newState);
+            currentState = newState;
+        }
+    }
+
+    /**
+     * Check if car is on a HealthTile
+     *
+     * @return
+     */
+    private boolean onHealthTile() {
+        Coordinate now = new Coordinate(this.getPosition());
+        return (mapManager.getCell(now.x, now.y)).type == CellType.HEALTH;
+    }
+
+    /**
+     * Check if car is low on health
+     * 
+     * @return
+     */
+    private boolean isLowHealth() {
+        return this.getHealth() <= 60;
+    }
+
+    /**
+     * Check if car has regain enough health
+     * 
+     * @return
+     */
+    private boolean isEnoughHealth() {
+        return this.getHealth() >= 99; // avoid rounding error
+    }
 }

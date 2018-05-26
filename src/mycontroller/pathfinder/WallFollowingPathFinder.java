@@ -1,52 +1,49 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.pathfinder;
 
 import java.util.*;
 
 import mycontroller.common.Cell;
-import mycontroller.mapmanager.MapManager;
+import mycontroller.common.Cell.CellType;
+import mycontroller.common.Logger;
+import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
 import world.WorldSpatial;
 
-public class WallFollowingPathFinder implements PathFinder {
-	
-	public static final List<Coordinate> ANTICLOCKWISE_DIRECTION = Arrays.asList(
-			new Coordinate(0,1), //N
-			new Coordinate(-1,0), //W
-			new Coordinate(0,-1), //S
-			new Coordinate(1,0) //E
-			);
+public class WallFollowingPathFinder extends PathFinderBase {
 
-    private MapManagerInterface mapManager;
+    public static final List<WorldSpatial.Direction> ANTICLOCKWISE_DIRECTION = Arrays.asList(
+            WorldSpatial.Direction.NORTH,
+            WorldSpatial.Direction.WEST,
+            WorldSpatial.Direction.SOUTH,
+            WorldSpatial.Direction.EAST
+    );
+
     private Coordinate startingPosition;
     private float startingSpeed;
     private WorldSpatial.Direction startingDirection;
-    
-    private boolean isWallLeft = false;
+
 
     public WallFollowingPathFinder(MapManagerInterface mapManager) {
-		this.mapManager = mapManager;
-	}
-    
-    @Override
-	public ArrayList<Coordinate> getPath(Coordinate currentPosition, 
-			Coordinate goalPosition, float currentSpeed,float currentAngle) {
-    	
+        super(mapManager);
+    }
 
-        this.startingPosition = currentPosition;
+    @Override
+    public ArrayList<Coordinate> getPath(Coordinate startPosition,
+                                         Coordinate goalPosition,
+                                         float currentSpeed,
+                                         float currentAngle) {
+
+        this.startingPosition = startPosition;
         startingSpeed = currentSpeed;
 
         // figure out the direction
-
-        if (currentAngle <= 90) {
-            startingDirection = WorldSpatial.Direction.EAST;
-        } else if (currentAngle <= 180) {
-            startingDirection = WorldSpatial.Direction.NORTH;
-        } else if (currentAngle <= 270) {
-            startingDirection = WorldSpatial.Direction.WEST;
-        } else {
-            startingDirection = WorldSpatial.Direction.SOUTH;
-        }
+        startingDirection = Util.angleToOrientation(currentAngle);
 
         ArrayList<Coordinate> finalPath = new ArrayList<>();
         ArrayList<Coordinate> path1 = null;
@@ -56,25 +53,39 @@ public class WallFollowingPathFinder implements PathFinder {
             e.printStackTrace();
         }
 
-        ArrayList<Coordinate> path2 = findPathFollowingWallDFS(
-                path1.isEmpty() ? currentPosition : path1.get(path1.size() - 1),
+        WorldSpatial.Direction wallFollowingStartDirection;
+        if (path1.isEmpty() || path1.size() < 2) {
+            wallFollowingStartDirection = startingDirection;
+        } else {
+            Coordinate lastTile = path1.get(path1.size()-1);
+            Coordinate secondLastTile = path1.get(path1.size()-2);
+            WorldSpatial.Direction lastDirection = Util.inferDirection(lastTile, secondLastTile);
+            if (nextToWall(lastTile, lastDirection, WorldSpatial.RelativeDirection.LEFT) ||
+                    nextToWall(lastTile,lastDirection,WorldSpatial.RelativeDirection.RIGHT)) {
+                wallFollowingStartDirection = lastDirection;
+            }
+            else {
+                wallFollowingStartDirection = Util.getTurnedOrientation(lastDirection,WorldSpatial.RelativeDirection.RIGHT);
+            }
+
+        }
+        ArrayList<Coordinate> path2 = findPathFollowingWall(
+                path1.isEmpty() ? startPosition : path1.get(path1.size() - 1),
+                wallFollowingStartDirection,
                 new HashSet<>(path1));
-        //path1.remove(path1.size() - 1);
         finalPath.addAll(path1);
         finalPath.addAll(path2);
-
-
-//        System.out.println("Path found!!!!, path1 len= "+path1.size());
-//        for (Coordinate c : finalPath) {
-//            System.out.printf("(%d,%d)->", c.x, c.y);
-//
-//        }
 
         return finalPath;
     }
 
 
-    private ArrayList<Coordinate> findPathToClosestWallBFS() throws Exception {
+    /**
+     * Find a path to closest wall to follow
+     * 
+     * @return
+     */
+    private ArrayList<Coordinate> findPathToClosestWallBFS() {
 
 
         Queue<Coordinate> queue = new LinkedList<Coordinate>();
@@ -86,24 +97,9 @@ public class WallFollowingPathFinder implements PathFinder {
         parent.put(startingPosition, null);
 
         // add the next tile in direction
-        Coordinate nextLocationInDirection = null;
-        switch (startingDirection) {
-            case EAST:
-                nextLocationInDirection = new Coordinate(startingPosition.x + 1, startingPosition.y);
-                break;
-            case WEST:
-                nextLocationInDirection = new Coordinate(startingPosition.x - 1, startingPosition.y);
-                break;
-            case NORTH:
-                nextLocationInDirection = new Coordinate(startingPosition.x, startingPosition.y + 1);
-                break;
-            case SOUTH:
-                nextLocationInDirection = new Coordinate(startingPosition.x, startingPosition.y - 1);
-                break;
+        Coordinate nextLocationInDirection = Util.getTileAhead(startingPosition, startingDirection);
 
-        }
-
-        assert (mapManager.getCell(nextLocationInDirection.x, nextLocationInDirection.y).type != Cell.CellType.WALL);
+        assert (mapManager.getCell(nextLocationInDirection.x, nextLocationInDirection.y).type != CellType.WALL);
         queue.add(nextLocationInDirection);
         visited.add(nextLocationInDirection);
         parent.put(nextLocationInDirection, startingPosition);
@@ -114,15 +110,16 @@ public class WallFollowingPathFinder implements PathFinder {
             Coordinate head = queue.remove();
 
 
-            for (Coordinate c : ANTICLOCKWISE_DIRECTION) {
-            	Coordinate newCoord = new Coordinate(head.x + c.x, head.y + c.y);
+            for (WorldSpatial.Direction d : ANTICLOCKWISE_DIRECTION) {
+                Coordinate c = Util.orientationToDelta(d);
+                Coordinate newCoord = new Coordinate(head.x + c.x, head.y + c.y);
                 if (!visited.contains(newCoord)) {
                     Cell mapTile = mapManager.getCell(newCoord.x, newCoord.y);
-                    if (mapTile != null && mapTile.type != Cell.CellType.WALL) {
+                    if (mapTile != null && mapTile.type != CellType.WALL) {
                         queue.add(newCoord);
                         visited.add(newCoord);
                         parent.put(newCoord, head);
-                        if (nextToWall(newCoord)) {
+                        if (nextToWallAnySide(newCoord)) {
                             // found
                             ArrayList<Coordinate> path = new ArrayList<>();
 
@@ -139,66 +136,171 @@ public class WallFollowingPathFinder implements PathFinder {
                 }
             }
         }
-        return null;
+        Logger.printWarning(this.getClass().getName(), "BFS ended without a path");
+        return new ArrayList<>();
     }
 
 
-    private Stack<Coordinate> stack;
+    /**
+     * Find a path using wall following algorithm, after already followed a wall
+     * 
+     * @param start
+     * @param startingDirection
+     * @param visited
+     * @return
+     */
+    private ArrayList<Coordinate> findPathFollowingWall(Coordinate start, WorldSpatial.Direction startingDirection, Set<Coordinate> visited) {
 
-
-    private boolean dfs(Coordinate currentLocation, Set<Coordinate> visited) {
-
-        boolean isFound = false;
-        // goes through W -> S -> N -> E
-        for (Coordinate c : ANTICLOCKWISE_DIRECTION) {
-            Coordinate newCoord = new Coordinate(currentLocation.x + c.x, currentLocation.y + c.y);
-            Cell mapTile = mapManager.getCell(newCoord.x, newCoord.y);
-            if (mapTile != null && mapTile.type != Cell.CellType.WALL && nextToWall(newCoord)) {
-                if (!visited.contains(newCoord)) {
-                    isFound = true;
-                    visited.add(newCoord);
-                    stack.push(newCoord);
-                    if (dfs(newCoord, visited)) {
-                        return true;
-                    }
-                    stack.pop();
-                    visited.remove(newCoord);
-                }
-            }
-        }
-
-        if (!isFound) {
-            return true;
-        }
-        return false;
-    }
-
-    private ArrayList<Coordinate> findPathFollowingWallDFS(Coordinate start, Set<Coordinate> visited) {
-
-        stack = new Stack<Coordinate>();
-        boolean result = dfs(start, visited);
-        assert (result);
+        WorldSpatial.RelativeDirection whichSideFollowing = whichSideIsWall(start, startingDirection);
+        WorldSpatial.RelativeDirection turnWhenLoseWall = whichSideFollowing;
+        WorldSpatial.RelativeDirection turnWhenHitWall = (whichSideFollowing == WorldSpatial.RelativeDirection.LEFT)?WorldSpatial.RelativeDirection.RIGHT : WorldSpatial.RelativeDirection.LEFT;
 
         ArrayList<Coordinate> path = new ArrayList<>();
-        while (!stack.isEmpty()) {
-            path.add(stack.pop());
-        }
+        Coordinate currentCell = Util.cloneCoordinate(start);
+        WorldSpatial.Direction currentDirection = startingDirection;
+        if (!(nextToWall(currentCell, currentDirection, whichSideFollowing)))
+            throw new AssertionError();
 
-        Collections.reverse(path);
+        while (true) {
+            Coordinate tileAhead = Util.getTileAhead(currentCell,currentDirection);
+            if (nextToWall(tileAhead, currentDirection, whichSideFollowing)
+                    && !(isWall(tileAhead.x, tileAhead.y) || isNarrowRoad(tileAhead.x, tileAhead.y, currentDirection))) {
+                currentCell = tileAhead;
+
+            } else if (isWall(tileAhead.x, tileAhead.y)|| isNarrowRoad(tileAhead.x, tileAhead.y, currentDirection)) {
+                // hit wall
+                currentDirection = Util.getTurnedOrientation(currentDirection, turnWhenHitWall);
+                //Coordinate tileRight = Util.getTileAhead(currentCell, currentDirection);
+                continue;
+                //currentCell = tileRight;
+            } else {
+                // miss wall
+                currentDirection = Util.getTurnedOrientation(currentDirection, turnWhenLoseWall);
+                Coordinate tileLeft = Util.getTileAhead(tileAhead, currentDirection);
+                path.add(Util.cloneCoordinate(tileAhead));
+                visited.add(Util.cloneCoordinate(tileAhead));
+                currentCell = tileLeft;
+            }
+            path.add(Util.cloneCoordinate(currentCell));
+            if (visited.contains(currentCell)) {
+                break;
+            } else {
+                visited.add(Util.cloneCoordinate(currentCell));
+            }
+        }
         return path;
 
     }
+    
+    // TODO: move to PathFinderBase
+    protected boolean isWall(int x, int y) {
+        if (!mapManager.isWithinBoard(new Coordinate(x,y))) {
+            return true;
+        } else {
+            Cell c = mapManager.getCell(x,y);
+            return c.type == CellType.WALL;
+        }
 
-    private boolean nextToWall(Coordinate c) {
-    	
-        for (int xDelta = -1; xDelta <= 1; xDelta += 1) {
-            for (int yDelta = -1; yDelta <= 1; yDelta += 1) {
-                if (!(xDelta == 0 && yDelta == 0)) {
-                    Coordinate newCoord = new Coordinate(c.x + xDelta, c.y + yDelta);
-                    Cell mapTile = mapManager.getCell(newCoord.x, newCoord.y);
-                    if (mapTile != null && mapTile.type == Cell.CellType.WALL) {
-                        return true;
-                    }
+    }
+
+    /**
+     * Check to see if the road is narrow (eg. 1 tile wide) //TODO: is this correct?
+     * 
+     * @param x
+     * @param y
+     * @param movingDirection
+     * @return
+     */
+    protected boolean isNarrowRoad(int x, int y, WorldSpatial.Direction movingDirection) {
+        Coordinate left = Util.getTileAhead(new Coordinate(x,y), Util.getTurnedOrientation(movingDirection,WorldSpatial.RelativeDirection.LEFT));
+        Coordinate right = Util.getTileAhead(new Coordinate(x,y), Util.getTurnedOrientation(movingDirection,WorldSpatial.RelativeDirection.RIGHT));
+        return (isWall(left.x, left.y) && isWall(right.x, right.y));
+    }
+
+    
+    /**
+     * Get the side of the car where there is a wall
+     * 
+     * @param c
+     * @param orientation
+     * @return
+     */
+    private WorldSpatial.RelativeDirection whichSideIsWall(Coordinate c, WorldSpatial.Direction orientation) {
+        switch (orientation) {
+            case EAST:
+                if (isWall(c.x,c.y+1)) {
+                    return WorldSpatial.RelativeDirection.LEFT;
+                } else if (isWall(c.x,c.y-1)) {
+                    return WorldSpatial.RelativeDirection.RIGHT;
+                }
+            case WEST:
+                if (isWall(c.x,c.y-1)) {
+                    return WorldSpatial.RelativeDirection.LEFT;
+                } else if (isWall(c.x,c.y+1)) {
+                    return WorldSpatial.RelativeDirection.RIGHT;
+                }
+            case NORTH:
+                if (isWall(c.x-1,c.y)) {
+                    return WorldSpatial.RelativeDirection.LEFT;
+                } else if (isWall(c.x+1,c.y)) {
+                    return WorldSpatial.RelativeDirection.RIGHT;
+                }
+            case SOUTH:
+                if (isWall(c.x+1,c.y)) {
+                    return WorldSpatial.RelativeDirection.LEFT;
+                } else if (isWall(c.x-1,c.y)) {
+                    return WorldSpatial.RelativeDirection.RIGHT;
+                }
+        }
+        return null;
+    }
+
+    /**
+     * If a particular side of the car is next to wall
+     * @param c
+     * @param orientation
+     * @param whichSide
+     * @return
+     */
+    private boolean nextToWall(Coordinate c, WorldSpatial.Direction orientation, WorldSpatial.RelativeDirection whichSide) {
+        switch (whichSide) {
+            case LEFT:
+                switch (orientation){
+                    case EAST:
+                        return isWall(c.x, c.y+1);
+                    case WEST:
+                        return isWall(c.x, c.y-1);
+                    case NORTH:
+                        return isWall(c.x-1, c.y);
+                    case SOUTH:
+                        return isWall(c.x+1, c.y);
+                }
+            case RIGHT:
+                switch (orientation){
+                    case EAST:
+                        return isWall(c.x, c.y-1);
+                    case WEST:
+                        return isWall(c.x, c.y+1);
+                    case NORTH:
+                        return isWall(c.x+1, c.y);
+                    case SOUTH:
+                        return isWall(c.x-1, c.y);
+                }
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * If any side of the car is next to a wall
+     * @param c
+     * @return
+     */
+    private boolean nextToWallAnySide(Coordinate c) {
+        for (WorldSpatial.Direction d: WorldSpatial.Direction.values()) {
+            for (WorldSpatial.RelativeDirection r: WorldSpatial.RelativeDirection.values()) {
+                if (nextToWall(c, d, r)) {
+                    return true;
                 }
             }
         }

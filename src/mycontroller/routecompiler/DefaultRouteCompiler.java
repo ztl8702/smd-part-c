@@ -1,40 +1,30 @@
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.routecompiler;
 
 import mycontroller.autopilot.AutoPilot;
-import mycontroller.autopilot.ForwardToAutoPilot;
+import mycontroller.autopilot.AutoPilotFactory;
 import mycontroller.autopilot.TurningAutoPilot;
-import org.apache.logging.log4j.core.util.ArrayUtils;
+import mycontroller.common.Logger;
+import mycontroller.common.Util;
 import utilities.Coordinate;
 import world.WorldSpatial;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
+
+//TODO: for Radium to comment
 /**
  * Naive RouteCompiler
- * <p>
  * Does the basic stuff, assumes speed is always 1.
- * <p>
  * Optimisations can be added later.
  */
-public class DefaultRouteCompiler implements RouteCompiler {
-
-    // some dirty ad-hoc data structures, meant for internal use
-    // don't need to be reflected in UML (i guess)
-    enum ActionType {
-        GoStraight, TurnLeft, TurnRight
-    }
-
-    ;
-
-    private class Action {
-        public ActionType type;
-        public Coordinate start;
-        public Coordinate finish;
-        public WorldSpatial.Direction goStraightDirection;
-    }
+public class DefaultRouteCompiler extends RouteCompilerBase {
 
     @Override
     public Queue<AutoPilot> compile(ArrayList<Coordinate> path) {
@@ -58,14 +48,14 @@ public class DefaultRouteCompiler implements RouteCompiler {
                 if (lastAction.type == ActionType.GoStraight) {
                     if (lastAction.goStraightDirection == null) {
                         // now we know the direction
-                        WorldSpatial.Direction drt = getDirection(thisCoord, lastAction.finish);
+                        WorldSpatial.Direction drt = Util.inferDirection(thisCoord, lastAction.finish);
 
                         lastAction.finish = cloneCoordinate(thisCoord);
                         lastAction.goStraightDirection = drt;
 
                     } else {
                         // we already have a direction, now check if we are on the same direction
-                        WorldSpatial.Direction drt = getDirection(thisCoord, lastAction.finish);
+                        WorldSpatial.Direction drt = Util.inferDirection(thisCoord, lastAction.finish);
 
                         if (drt == lastAction.goStraightDirection) {
                             // good, just append the new coordinate to the last action
@@ -110,7 +100,7 @@ public class DefaultRouteCompiler implements RouteCompiler {
                             lastAction.start = cloneCoordinate(lastActionFinishBeforeBackOff);
                             lastAction.finish = cloneCoordinate(thisCoord);
                             lastAction.type = ActionType.GoStraight;
-                            lastAction.goStraightDirection = getDirection(lastAction.finish, lastAction.start);
+                            lastAction.goStraightDirection = Util.inferDirection(lastAction.finish, lastAction.start);
                         }
 
                     }
@@ -131,6 +121,44 @@ public class DefaultRouteCompiler implements RouteCompiler {
         // filter out any no-ops ( going straight actions that starts and ends on the same cell;
         actionList.removeIf(action -> (action.type == ActionType.GoStraight && action.start.x == action.finish.x && action.start.y == action.finish.y));
 
+        // process speed limits
+        for (int i = 0; i < actionList.size(); ++i) {
+            Action currentAction = actionList.get(i);
+            Action prevAction = i-1 >=0 ? actionList.get(i-1) : null;
+            Action nextAction = i+1 < actionList.size() ? actionList.get(i+1) : null;
+            Action nextnextAction = i+2 < actionList.size() ? actionList.get(i+2) : null;
+
+            if (i == actionList.size() -1) {
+                // last action => must stop
+                currentAction.speedLimit = 0f;
+
+            } else if (currentAction.type == ActionType.GoStraight) {
+                if ((nextAction.type == ActionType.TurnLeft || nextAction.type == ActionType.TurnRight)||
+                        (nextnextAction == null || nextnextAction.type == ActionType.TurnLeft || nextnextAction.type == ActionType.TurnRight)) {
+                    // following by consecutive turnings
+                    currentAction.speedLimit = (float)TurningAutoPilot.MAX_TURNING_SPEED_U_TURN;
+                } else if (nextAction.type == ActionType.TurnLeft || nextAction.type == ActionType.TurnRight) {
+                    currentAction.speedLimit = (float)TurningAutoPilot.MAX_TURNING_SPEED;
+                } else {
+                    currentAction.speedLimit = (float)Util.MAX_CRUISING_SPEED;
+                }
+            } else if (currentAction.type == ActionType.TurnLeft || currentAction.type == ActionType.TurnRight) {
+                if ((nextAction!=null && (nextAction.type == ActionType.TurnLeft || nextAction.type==ActionType.TurnRight)) ||
+                        (prevAction!=null && (prevAction.type == ActionType.TurnLeft || prevAction.type==ActionType.TurnRight))) {
+                    // part of a series of consecutive turnings
+                    currentAction.speedLimit = (float) TurningAutoPilot.MAX_TURNING_SPEED_U_TURN;
+
+                } else {
+                    currentAction.speedLimit = (float) TurningAutoPilot.MAX_TURNING_SPEED;
+                }
+            }
+            else {
+                // this should not happen
+                // if it does, warn the programmer
+
+                Logger.printWarning("DefaultRouteCompiler", "Something wrong in speed calculation!");
+            }
+        }
 
         // convert to autopilots
 
@@ -141,46 +169,29 @@ public class DefaultRouteCompiler implements RouteCompiler {
                 case GoStraight:
                     if (actionList.indexOf(a) == actionList.size() - 1) {
                         // last action => stop
-                        output.add(new ForwardToAutoPilot(a.start, a.finish, 0f));
+                        output.add(AutoPilotFactory.forwardTo(a.start, a.finish, 0f));
                     } else {
-                        output.add(new ForwardToAutoPilot(a.start, a.finish, TurningAutoPilot.MAINTAIN_SPEED));
-                    }
+                        if (a==actionList.get(0) || Util.dis(a.start,a.finish) > 1) {
+                            output.add(AutoPilotFactory.forwardTo(a.start, a.finish, a.speedLimit));
+                        }
 
+                    }
                     break;
                 case TurnLeft:
-                    output.add(new TurningAutoPilot(a.start, a.finish, WorldSpatial.RelativeDirection.LEFT));
+                    output.add(AutoPilotFactory.turn(a.start, a.finish, WorldSpatial.RelativeDirection.LEFT, a.speedLimit));
                     break;
                 case TurnRight:
-                    output.add(new TurningAutoPilot(a.start, a.finish, WorldSpatial.RelativeDirection.RIGHT));
+                    output.add(AutoPilotFactory.turn(a.start, a.finish, WorldSpatial.RelativeDirection.RIGHT, a.speedLimit));
                     break;
             }
         }
 
-//        printOutput(output);
+        printOutput(output);
 
         return output;
     }
 
-    private WorldSpatial.Direction getDirection(Coordinate now, Coordinate prev) {
-        int xDelta = now.x - prev.x;
-        int yDelta = now.y - prev.y;
-        if (xDelta == 1 && yDelta == 0) {
-            // east
-            return WorldSpatial.Direction.EAST;
-        } else if (xDelta == -1 && yDelta == 0) {
-            return WorldSpatial.Direction.WEST;
-        } else if (xDelta == 0 && yDelta == 1) {
-            return WorldSpatial.Direction.NORTH;
-        } else if (xDelta == 0 && yDelta == -1) {
-            return WorldSpatial.Direction.SOUTH;
-        } else {
-            // this should not happen at all.
-            // but if it does there is something wrong with our path finder
-            return null;
-        }
-    }
-
-    private WorldSpatial.RelativeDirection whichWayToTurn(WorldSpatial.Direction now, WorldSpatial.Direction prev) {
+   private WorldSpatial.RelativeDirection whichWayToTurn(WorldSpatial.Direction now, WorldSpatial.Direction prev) {
         switch (prev) {
             case EAST:
                 if (now == WorldSpatial.Direction.NORTH) {

@@ -1,3 +1,13 @@
+
+
+/** TODO: POTENTIALL TO REMOVE **/
+
+
+/*
+ * Group number: 117
+ * Therrense Lua (782578), Tianlei Zheng (773109)
+ */
+
 package mycontroller.testing;
 
 import java.io.File;
@@ -32,14 +42,12 @@ public class AlgorithmTester {
         AStarPathFinder finisher = new AStarPathFinder(map, 500,
                 0, new Coordinate(startX, startY), 0, 90, width, height);
         ArrayList<Coordinate> path = finisher.findPath(startX, startY, endX, endY);
->>>>>>> master
+
+
         // print out the result
         System.out.println("*****ASTAR***** Path found!!!!");
-
         System.out.println(path.toString());
-<<<<<<< HEAD
 
-=======
 */
 
 
