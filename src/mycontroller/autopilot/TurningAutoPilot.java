@@ -13,7 +13,30 @@ public class TurningAutoPilot extends AutoPilotBase {
 
     // TODO: Handle situation where the MAINTAIN_SPEED cannot be reached before
     // turning
-    public static final float MAINTAIN_SPEED = 0.5f;
+    /**
+     * Max turning speed when turning followed by moving straight
+     *
+     * 1 2 3 4 5
+     *         6
+     *         7
+     *         8 9 10
+     */
+    public static final double MAX_TURNING_SPEED = 2.0;
+    /**
+     * Max turning speed when turning followed by turning
+     *
+     * L-turn
+     * 1 2 3
+     *     4 5 6
+     *
+     * or
+     *
+     * width-2 U-turn
+     * 1 2 3
+     * 6 5 4
+     *
+     */
+    public static final double MAX_TURNING_SPEED_U_TURN = 0.7;
 
     private enum TurningType {
         EastToNorth, EastToSouth
@@ -28,14 +51,20 @@ public class TurningAutoPilot extends AutoPilotBase {
     private State state;
     private Coordinate fromTile;
     private Coordinate toTile;
-    // TODO: Check if WorldSpatial.Direction and WorldSpatial.RelativeDirection is
-    // in the interface that we can use
     private Direction fromDirection;
     private Direction toDirection;
     private RelativeDirection turningMode;
 
-    public TurningAutoPilot(MapManagerInterface mapManager, Coordinate fromTile, Coordinate toTile, RelativeDirection turningMode) {
+
+    private double turningSpeed;
+
+    public TurningAutoPilot(MapManagerInterface mapManager,
+                            Coordinate fromTile,
+                            Coordinate toTile,
+                            RelativeDirection turningMode,
+                            double turningSpeed) {
         super(mapManager);
+        this.turningSpeed = turningSpeed;
 
         // figure out which direction we are turning from and which direction we are turning to
         if (fromTile.x + 1 == toTile.x && fromTile.y + 1 == toTile.y && turningMode == RelativeDirection.LEFT) {
@@ -71,7 +100,7 @@ public class TurningAutoPilot extends AutoPilotBase {
         this.turningMode = turningMode;
 
         // let some other AutoPilot care about the speed
-        maintainSpeedOpt = new MaintainSpeedAutoPilot(mapManager, MAINTAIN_SPEED);
+        maintainSpeedOpt = new MaintainSpeedAutoPilot(mapManager, (float)turningSpeed);
         state = State.Waiting;
     }
 
@@ -226,7 +255,7 @@ public class TurningAutoPilot extends AutoPilotBase {
      */
     private double d() {
         // This formula comes from a bit of calculus.
-        return (6.0 / 5.0 / Math.PI) * (double) (MAINTAIN_SPEED);
+        return (6.0 / 5.0 / Math.PI) * (turningSpeed);
     }
 
     @Override

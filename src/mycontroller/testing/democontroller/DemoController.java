@@ -28,7 +28,7 @@ public class DemoController extends CarController {
         ArrayList<AutoPilot> upcomingOpts = new ArrayList<>();
         upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(2, 3), new Coordinate(4, 3), 0));
         upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(4, 3), new Coordinate(6, 3), 2));
-        upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(6, 3), new Coordinate(7, 4), WorldSpatial.RelativeDirection.LEFT));
+        upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(6, 3), new Coordinate(7, 4), WorldSpatial.RelativeDirection.LEFT,2));
 
         //upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(7, 3), new Coordinate(7, 12), 0));
         //upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(7, 6), new Coordinate(7, 7), 5));
@@ -36,18 +36,18 @@ public class DemoController extends CarController {
        // upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(7, 7), new Coordinate(7, 12), 0));
 
         upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(7, 4), new Coordinate(7, 12), 0));
-        upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(7, 12), new Coordinate(6, 13), WorldSpatial.RelativeDirection.LEFT));
+        upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(7, 12), new Coordinate(6, 13), WorldSpatial.RelativeDirection.LEFT,2));
         upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(6, 13), new Coordinate(2, 13), 0));
-        upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(2, 13), new Coordinate(1, 14), WorldSpatial.RelativeDirection.RIGHT));
+        upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(2, 13), new Coordinate(1, 14), WorldSpatial.RelativeDirection.RIGHT,2));
         upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(1, 14), new Coordinate(1, 17), 0));
-        upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(1, 17), new Coordinate(2, 18), WorldSpatial.RelativeDirection.RIGHT));
+        upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(1, 17), new Coordinate(2, 18), WorldSpatial.RelativeDirection.RIGHT,2));
         upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(2, 18), new Coordinate(8, 18), 0));
-        upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(9, 18), new Coordinate(10, 17), WorldSpatial.RelativeDirection.RIGHT));
+        upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(9, 18), new Coordinate(10, 17), WorldSpatial.RelativeDirection.RIGHT,2));
         upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(10, 17), new Coordinate(10, 15), 1));
         // U Turn
         // currently U-turn only works at speed 1
-        upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(10, 15), new Coordinate(11, 14), WorldSpatial.RelativeDirection.LEFT));
-        upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(10, 14), new Coordinate(11, 15), WorldSpatial.RelativeDirection.LEFT));
+        upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(10, 15), new Coordinate(11, 14), WorldSpatial.RelativeDirection.LEFT,2));
+        upcomingOpts.add(new TurningAutoPilot(mapManager, new Coordinate(10, 14), new Coordinate(11, 15), WorldSpatial.RelativeDirection.LEFT,2));
         upcomingOpts.add(new ForwardToAutoPilot(mapManager, new Coordinate(11, 15), new Coordinate(11, 17), 0));
 
         navigator.loadAutoPilots(upcomingOpts);

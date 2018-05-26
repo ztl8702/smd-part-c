@@ -1,5 +1,6 @@
 package mycontroller.autopilot;
 
+import mycontroller.common.Logger;
 import mycontroller.mapmanager.MapManagerInterface;
 import world.WorldSpatial;
 
@@ -14,6 +15,11 @@ public class ReCentreAutoPilot extends AutoPilotBase {
     public enum State {
         Idle, TurningA, GoingStraight, TurningBack, Finished
     }
+
+    /**
+     * Maximum speed when recentring begins
+     */
+    public static double MAX_SWITCH_LANE_SPEED = 2.0f;
 
     private static double MAX_TURNING_ANGLE = 30;
     private static double TURNING_EPS = 0.05; // angle
@@ -41,6 +47,15 @@ public class ReCentreAutoPilot extends AutoPilotBase {
         double x = car.getX();
         double y = car.getY();
         double angle = car.getAngle();
+
+        if (car.getSpeed() > (float) MAX_SWITCH_LANE_SPEED) {
+            // oops, this might be an issue
+            // warn the programmer
+
+            Logger.printWarning("ReCentreAutoPilot",
+                    String.format("Overspeed, current speed=%.6f, limit=%.6f", car.getSpeed(), MAX_SWITCH_LANE_SPEED));
+
+        }
 
         switch (state) {
             case Idle:

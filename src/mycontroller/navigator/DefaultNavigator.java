@@ -72,9 +72,15 @@ public class DefaultNavigator implements Navigator {
         }
         info(String.format("Current AutoPilot: %s", opt));
 
-        // only look ahead by one
+        // look ahead by two
         if (!this.upcomingOpts.isEmpty()){
             this.upcomingOpts.peek().handle(delta,car);
+
+            if (upcomingOpts.size() >=2){
+                ((LinkedList<AutoPilot>)upcomingOpts).get(1).handle(delta,car);
+            }
+
+
         }
 
         return action;

@@ -12,12 +12,15 @@ import java.security.InvalidParameterException;
  * 
  */
 public class ForwardToAutoPilot extends AutoPilotBase {
-    private static float CRUISING_SPEED = 5.0f;
+    /**
+     * Max speed when cruising
+     */
+    public static float MAX_CRUISING_SPEED = 5.0f;
     /**
      * Our (estimated) deceleration due to braking. The lower the value, the earlier the car starts braking,
      * but the risk of overruning will also be lower.
      */
-    private static float DECELERATION = 2.0f;
+    private static float DECELERATION = 1.7f;
 
     private static double RECENTER_EPS = 0.02;
 
@@ -223,6 +226,6 @@ public class ForwardToAutoPilot extends AutoPilotBase {
      */
     private double getSpeedLimit(double distanceFromTarget, double speedTarget) {
         distanceFromTarget = Math.max(0.0, distanceFromTarget);
-        return Math.min(CRUISING_SPEED, Math.sqrt(2.0 * DECELERATION * distanceFromTarget + speedTarget * speedTarget));
+        return Math.min(MAX_CRUISING_SPEED, Math.sqrt(2.0 * DECELERATION * distanceFromTarget + speedTarget * speedTarget));
     }
 }
