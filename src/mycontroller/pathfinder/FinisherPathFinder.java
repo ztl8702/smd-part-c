@@ -1,5 +1,7 @@
 package mycontroller.pathfinder;
 
+import mycontroller.common.Cell;
+import mycontroller.common.Logger;
 import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
@@ -49,8 +51,16 @@ public class FinisherPathFinder extends PathFinderBase {
         Queue<Coordinate> wayPoints = new LinkedList<>();
 
         if (isColdStart) {
+
             // if the car is not moving, we must move ahead first.
-            wayPoints.add(Util.getTileAhead(startingPosition, startingOrientation));
+            Coordinate locationAhead = Util.getTileAhead(startingPosition, startingOrientation);
+            Cell cellAhead = mapManager.getCell(locationAhead.x, locationAhead.y);
+            if (cellAhead !=null && cellAhead.type != Cell.CellType.WALL) {
+                wayPoints.add(Util.getTileAhead(startingPosition, startingOrientation));
+            } else {
+                Logger.printWarning("FinisherPathFinder","Cold start but there is no space ahead!");
+            }
+
         }
 
         // loop through all the keys and set key coordinate end location

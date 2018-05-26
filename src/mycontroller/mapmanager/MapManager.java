@@ -63,6 +63,17 @@ public class MapManager implements MapManagerInterface {
         return this.reachable.contains(new Coordinate(x,y));
     }
 
+
+    @Override
+    public boolean isWall(int x, int y) {
+        if (!isWithinBoard(new Coordinate(x,y))) {
+            return true;
+        } else {
+            Cell c = getCell(x,y);
+            return c.type == Cell.CellType.WALL;
+        }
+    }
+
     @Override
     public Coordinate getFinishTile() {
     	for (Coordinate c : map.keySet()) {

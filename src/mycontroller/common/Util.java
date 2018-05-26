@@ -18,7 +18,7 @@ public class Util {
      * Our (estimated) deceleration due to braking. The lower the value, the earlier the car starts braking,
      * but the risk of overruning will also be lower.
      */
-    public static float DECELERATION = 1.7f;
+    public static float DECELERATION = 1.99f;
 
     /**
      * Converts angle in degrees to WorldSpatial.Direction
@@ -120,20 +120,29 @@ public class Util {
      * @return
      */
     public static Coordinate getTileAhead(Coordinate startingPosition, WorldSpatial.Direction startingDirection) {
+        return getTileAheadNth(startingPosition, startingDirection,1);
+    }
+
+    /**
+     * Next nth-tile in direction
+     *
+     * @return
+     */
+    public static Coordinate getTileAheadNth(Coordinate startingPosition, WorldSpatial.Direction startingDirection, int n) {
         // add the next tile in direction
         Coordinate nextLocationInDirection = null;
         switch (startingDirection) {
             case EAST:
-                nextLocationInDirection = new Coordinate(startingPosition.x + 1, startingPosition.y);
+                nextLocationInDirection = new Coordinate(startingPosition.x + n, startingPosition.y);
                 break;
             case WEST:
-                nextLocationInDirection = new Coordinate(startingPosition.x - 1, startingPosition.y);
+                nextLocationInDirection = new Coordinate(startingPosition.x - n, startingPosition.y);
                 break;
             case NORTH:
-                nextLocationInDirection = new Coordinate(startingPosition.x, startingPosition.y + 1);
+                nextLocationInDirection = new Coordinate(startingPosition.x, startingPosition.y + n);
                 break;
             case SOUTH:
-                nextLocationInDirection = new Coordinate(startingPosition.x, startingPosition.y - 1);
+                nextLocationInDirection = new Coordinate(startingPosition.x, startingPosition.y - n);
                 break;
         }
         return nextLocationInDirection;
@@ -221,7 +230,7 @@ public class Util {
      * @return
      */
     public static double getStoppingDistance(double speedFrom, double speedTo) {
-        return (speedFrom * speedFrom - speedTo * speedTo) / (2.0 * DECELERATION);
+        return (speedFrom * speedFrom - speedTo * speedTo) / (2.0 * (double)DECELERATION);
     }
 
 

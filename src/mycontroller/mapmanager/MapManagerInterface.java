@@ -38,6 +38,16 @@ public interface MapManagerInterface {
      */
     boolean isReachable(int x, int y);
 
+
+    /**
+     * Whether a tile is wall or not.
+     *
+     * NOTE: out of boundary tiles are treated as Walls
+     * @param x
+     * @param y
+     * @return
+     */
+    boolean isWall(int x, int y);
     /**
      * Gets any one of the Finish Tile
      * @return

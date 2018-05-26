@@ -64,7 +64,7 @@ public class MyAIController extends CarController {
 
         mapManager = new MapManager();
         mapManager.initialMap(this.getMap());
-        navigator = new DefaultNavigator();
+        navigator = new DefaultNavigator(mapManager);
         AutoPilotFactory.initialise(mapManager);
 
     }

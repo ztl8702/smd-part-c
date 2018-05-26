@@ -1,14 +1,14 @@
 package mycontroller.navigator;
 
-import mycontroller.autopilot.AutoPilot;
-import mycontroller.autopilot.ActuatorAction;
-import mycontroller.autopilot.AutoPilotFactory;
-import mycontroller.autopilot.SensorInfo;
+import mycontroller.autopilot.*;
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
+import mycontroller.mapmanager.MapManager;
+import mycontroller.mapmanager.MapManagerInterface;
 import mycontroller.routecompiler.DefaultRouteCompiler;
 import mycontroller.routecompiler.RouteCompiler;
 import utilities.Coordinate;
+import world.WorldSpatial;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -22,6 +22,12 @@ public class DefaultNavigator implements Navigator {
 
     private AutoPilot opt = null;
     private Queue<AutoPilot> upcomingOpts = new LinkedList<AutoPilot>();
+    private MapManagerInterface mapManager;
+
+    public DefaultNavigator(MapManagerInterface mapManager) {
+        this.mapManager = mapManager;
+    }
+
 
     @Override
     public void loadNewPath(ArrayList<Coordinate> path) {
@@ -96,14 +102,13 @@ public class DefaultNavigator implements Navigator {
                     if (canCurrentAutoPilotBeStopped()){
                         Coordinate nextCell = Util.getTileAhead(carInfo.getCoordinate(), carInfo.getOrientation());
                         Coordinate nextnextCell = nextCell == null ? null : Util.getTileAhead(nextCell, carInfo.getOrientation());
-
-                        if ( (carInfo.getSpeed()<=2 && nextCell!=null) ||
-                                (carInfo.getSpeed()>2 && nextnextCell !=null )) {
+                        int distanceToWall =  wallAhead(carInfo.getTileX(), carInfo.getTileY(), carInfo.getOrientation())-1;
+                        double stoppingDistance = Util.getStoppingDistance(carInfo.getSpeed(),0);
+                        if ( (double)distanceToWall >= stoppingDistance) {
                             // make sure there is enough stopping distance
                             ArrayList<AutoPilot> stopping = new ArrayList<>();
 
-                            stopping.add(AutoPilotFactory.forwardTo(carInfo.getCoordinate(),
-                                    carInfo.getSpeed()<=2 ? nextCell : nextnextCell, 0));
+                            stopping.add(new EmergencyStopAutoPilot(mapManager));
                             this.loadAutoPilots(stopping);
                             changeState(State.AttemptingToStop);
                             interruptRequested = false;
@@ -121,6 +126,22 @@ public class DefaultNavigator implements Navigator {
                 return autoPilotHandle(delta, carInfo);
             default:
                 return ActuatorAction.nothing();
+        }
+    }
+
+    /**
+     * How many tiles away from the wall ahead?
+     * @param x
+     * @param y
+     * @param direction
+     * @return
+     */
+    private int wallAhead(int x, int y, WorldSpatial.Direction direction) {
+        for (int i = 1; ; i++) {
+            Coordinate ahead = Util.getTileAheadNth(new Coordinate(x,y), direction, i);
+            if (mapManager.isWall(ahead.x, ahead.y)){
+                return i;
+            }
         }
     }
 

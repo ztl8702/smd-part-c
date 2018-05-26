@@ -21,13 +21,7 @@ public abstract class AutoPilotBase implements AutoPilot {
 
 
     protected boolean isWall(int x, int y) {
-        if (!mapManager.isWithinBoard(new Coordinate(x,y))) {
-            return true;
-        } else {
-            Cell c = mapManager.getCell(x,y);
-            return c.type == Cell.CellType.WALL;
-        }
-
+        return mapManager.isWall(x,y);
     }
     // Helper methods
     protected double getCentreLineX(int tileX, int tileY) {

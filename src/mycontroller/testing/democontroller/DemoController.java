@@ -16,9 +16,10 @@ import world.WorldSpatial;
  * DemoController is used for testing autopilots
  */
 public class DemoController extends CarController {
-
-    private Navigator navigator = new DefaultNavigator();
+    
     private MapManagerInterface mapManager = new MapManager();
+    private Navigator navigator = new DefaultNavigator(mapManager);
+
 
     public DemoController(Car car) {
         super(car);
