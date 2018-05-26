@@ -262,32 +262,11 @@ public class WallFollowingPathFinder extends PathFinderBase {
      * @return
      */
     private boolean nextToWall(Coordinate c, WorldSpatial.Direction orientation, WorldSpatial.RelativeDirection whichSide) {
-        switch (whichSide) {
-            case LEFT:
-                switch (orientation){
-                    case EAST:
-                        return isWall(c.x, c.y+1);
-                    case WEST:
-                        return isWall(c.x, c.y-1);
-                    case NORTH:
-                        return isWall(c.x-1, c.y);
-                    case SOUTH:
-                        return isWall(c.x+1, c.y);
-                }
-            case RIGHT:
-                switch (orientation){
-                    case EAST:
-                        return isWall(c.x, c.y-1);
-                    case WEST:
-                        return isWall(c.x, c.y+1);
-                    case NORTH:
-                        return isWall(c.x+1, c.y);
-                    case SOUTH:
-                        return isWall(c.x-1, c.y);
-                }
-            default:
-                return false;
-        }
+        WorldSpatial.Direction sideDirection = Util.getTurnedOrientation(orientation, whichSide);
+        Coordinate delta = Util.orientationToDelta(sideDirection);
+        Coordinate sideCoordinate = new Coordinate(c.x+delta.x, c.y+delta.y);
+        return isWall(sideCoordinate.x, sideCoordinate.y) ||
+                isNarrowRoad(sideCoordinate.x, sideCoordinate.y, sideDirection);
     }
 
     /**
