@@ -169,7 +169,10 @@ public class DefaultRouteCompiler extends RouteCompilerBase {
                         // last action => stop
                         output.add(AutoPilotFactory.forwardTo(a.start, a.finish, 0f));
                     } else {
-                        output.add(AutoPilotFactory.forwardTo(a.start, a.finish, a.speedLimit));
+                        if (a==actionList.get(0) || Util.dis(a.start,a.finish) > 1) {
+                            output.add(AutoPilotFactory.forwardTo(a.start, a.finish, a.speedLimit));
+                        }
+
                     }
                     break;
                 case TurnLeft:
