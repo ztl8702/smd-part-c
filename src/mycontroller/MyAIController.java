@@ -257,7 +257,7 @@ public class MyAIController extends CarController {
     }
 
     private boolean isEnoughHealth() {
-        return this.getHealth() >= 100; // avoid rounding error
+        return this.getHealth() >= 99; // avoid rounding error
     }
 
 

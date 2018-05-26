@@ -43,21 +43,25 @@ public class AStarPathFinder extends PathFinderBase {
             if (cell != null) {
                 cellType = cell.type;
             }
+
             
             // if node is not in close proximity to a wall
             // favour it for turning/travelling at higher speed
             if (! nextToWall(new Coordinate(x, y))) {
-            	return 3;
+                if (cellType == CellType.LAVA) {
+                    return 50;
+                }
+            	return 5;
             }
 
             if (cellType == CellType.LAVA) {
                 // disfavour lava tiles
-                return 5;
+                return 10;
             }
 
             if (cellType == CellType.HEALTH) {
             	// favour health tiles
-                return -5;
+                return 1;
             }
 
             return 0;

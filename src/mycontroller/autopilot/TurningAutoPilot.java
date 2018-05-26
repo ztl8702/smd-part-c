@@ -12,8 +12,7 @@ import java.security.InvalidParameterException;
 
 public class TurningAutoPilot extends AutoPilotBase {
 
-    // TODO:
-    // turning
+
     /**
      * Max turning speed when turning followed by moving straight
      *
