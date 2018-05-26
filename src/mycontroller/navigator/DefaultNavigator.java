@@ -216,6 +216,7 @@ public class DefaultNavigator implements Navigator {
         interruptRequested = false;
         opt = null;
         upcomingOpts = new LinkedList<>();
+        changeState(State.Navigating);
     }
 
     @Override

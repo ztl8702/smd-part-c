@@ -16,8 +16,8 @@ import mycontroller.mapmanager.MapManagerInterface;
  */
 public class ReverseAutoPilot extends AutoPilotBase {
 
-    private static final float REVERSE_DISTANCE = 0.5f;
-    private enum State {Idle, Reversing, Finished}
+    private static final float REVERSE_DISTANCE = 0.7f;
+    private enum State {Idle, Reversing, Stopping, Finished}
     private State state;
 
     /**
@@ -48,6 +48,11 @@ public class ReverseAutoPilot extends AutoPilotBase {
                     // and should be able to move again.
 
                     // this AutoPilot's job is done
+                    state = State.Stopping;
+                }
+                break;
+            case Stopping:
+                if (carStatus.getSpeed()<0.05){
                     state = State.Finished;
                 }
                 break;
@@ -57,6 +62,8 @@ public class ReverseAutoPilot extends AutoPilotBase {
         switch (state) {
             case Reversing:
                 return ActuatorAction.backward();
+            case Stopping:
+                return ActuatorAction.brake();
             default:
                 return ActuatorAction.nothing();
         }
@@ -73,7 +80,7 @@ public class ReverseAutoPilot extends AutoPilotBase {
 
     @Override
     public boolean canBeSwappedOut() {
-        if (state == State.Reversing) {
+        if (state == State.Reversing || state == State.Stopping) {
             return false;
         } else {
             return true;
