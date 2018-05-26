@@ -17,8 +17,10 @@ import tiles.LavaTrap;
 import utilities.Coordinate;
 import world.World;
 
-//TODO: make MapManager static class, remove interface ??? DISCUSS with Radium
 
+/**
+ * Basic implementaion of MapManagerInterface.
+ */
 public class MapManager implements MapManagerInterface {
 
     /**

@@ -29,14 +29,22 @@ public interface Navigator {
     void loadAutoPilots(ArrayList<AutoPilot> autoPilots);
     
     /**
-     * Check if car is idle
+     * Check if Navigator is in an Idle state. 
+     * 
+     * Navigator will 
+     * only accept new paths if it is in an Idle state.
      * 
      * @return
      */
     boolean isIdle();
     
     /**
-     * Update the AutoPilot with new actions
+     * This is the game update cycle function. MyAIController uses
+     * this to delegate the decision making on each update cycle 
+     * to Navigator.
+     * 
+     * Navigator is provided with information about the car,
+     * and it returns an ActuatorAction as a result. 
      * 
      * @param delta
      * @param carInfo

@@ -6,7 +6,11 @@
 package mycontroller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Set;
+
+import mycontroller.autopilot.AutoPilotFactory;
 
 import world.Car;
 import tiles.MapTile;
@@ -31,20 +35,18 @@ import mycontroller.pathfinder.*;
  * and delegates work to other classes to find path and execute car movement
  */
 public class MyAIController extends CarController {
-	
-	//TODO: refactor to be in Logger
-    private static final boolean DEBUG = true;
 
-    public enum Goal { //TODO: should be private?
-        Explore,
-        Finish,
-        Recover
+    private enum Goal { 
+        Explore,    // explore the map (to see more tiles and find key locations)
+        Finish,     // finish the game (to pick up keys and navigate to Finish tile)
+        Recover     // to regain health
     }
-    public enum State { //TODO: should be private?
-        ExecutingExploringPath,
-        ExecutingFinishPath,
-        ExecutingRecoverPath,
-        WaitingToRegainHealth,
+    
+    private  enum State { 
+        ExecutingExploringPath, // on the way to explore the map
+        ExecutingFinishPath,    // on the way to a key or to the Finish tile
+        ExecutingRecoverPath,   // on the way to a health tile
+        WaitingToRegainHealth,  // staying on a health tile
         Idle
     }
 
@@ -53,8 +55,6 @@ public class MyAIController extends CarController {
     private MapManagerInterface mapManager;
     private Navigator navigator;
     
-
-
     /**
      * MyAIController constructor that initialises 
      * the map for updating and
@@ -141,9 +141,9 @@ public class MyAIController extends CarController {
                     }
                     break;
                     case Recover: {
-                        if (DEBUG) System.err.println("i came in here");
+                        Logger.printDebug("MyAIController", "before getHealthPath");
                         ArrayList<Coordinate> path = getHealthPath();
-                        if (DEBUG) System.err.println("found path");
+                        Logger.printDebug("MyAIController", "after getHealthPath");
                         navigator.loadNewPath(path);
                         changeState(State.ExecutingRecoverPath);
                     }
@@ -177,11 +177,15 @@ public class MyAIController extends CarController {
     }
 
     /**
-     * Tell the navigator what action to do next 
+     * Ask the navigator to decide what action to do next.
+     * (Navigator will then delegate to AutoPilot) 
+     * 
+     * @see DefaultNavigator
+     * @see AutoPilot
+     * 
      * @param delta
      */
     private void navigatorUpdate(float delta) {
-
         ActuatorAction action = navigator.update(delta, SensorInfo.fromController(this));
         if (action.brake) {
             this.applyBrake();

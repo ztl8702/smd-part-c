@@ -20,9 +20,10 @@ import java.util.Queue;
 
 //TODO: for Radium to comment
 /**
- * Naive RouteCompiler
- * Does the basic stuff, assumes speed is always 1.
- * Optimisations can be added later.
+ * Naive RouteCompiler implementation
+ * Converts a path to AutoPilots
+ * 
+ * @see RouteCompilier
  */
 public class DefaultRouteCompiler extends RouteCompilerBase {
 

@@ -4,7 +4,7 @@
  */
 
 package mycontroller.autopilot;
-
+import utilities.Coordinate;
 import mycontroller.mapmanager.MapManagerInterface;
 
 /**

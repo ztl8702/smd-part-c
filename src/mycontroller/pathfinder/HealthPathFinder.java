@@ -29,10 +29,10 @@ public class HealthPathFinder extends PathFinderBase {
                                          float startingSpeed,
                                          float startingAngle) {
         
-    	boolean isColdStart = startingSpeed < 0.1;
-    	
+        boolean isColdStart = startingSpeed < 0.1;
+
         PathFinder finisher = new AStarPathFinder(mapManager, 
-        		MAX_SEARCH_DEPTH, World.MAP_WIDTH, World.MAP_HEIGHT);
+                MAX_SEARCH_DEPTH, World.MAP_WIDTH, World.MAP_HEIGHT);
 
         Set<Coordinate> healthTiles = mapManager.getHealthTiles();
         ArrayList<ArrayList<Coordinate>> healthPaths = new ArrayList<>(healthTiles.size());
@@ -41,7 +41,7 @@ public class HealthPathFinder extends PathFinderBase {
         
         if (isColdStart) {
             currentPosition = Util.getTileAhead(startPosition, 
-            		Util.angleToOrientation(startingAngle));
+                    Util.angleToOrientation(startingAngle));
         }
         
         // initial position before search
@@ -53,7 +53,7 @@ public class HealthPathFinder extends PathFinderBase {
             Logger.printDebug("HealthPathFinder", h.toString());
             // update distance from current location to h
             ArrayList<Coordinate> path = finisher.getPath(new Coordinate(cX, cY),
-            		new Coordinate(h.x, h.y), startingSpeed, lastAngle);
+                    new Coordinate(h.x, h.y), startingSpeed, lastAngle);
 
             if (path != null) {
                 if (isColdStart) {

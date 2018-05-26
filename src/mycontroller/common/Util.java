@@ -9,7 +9,6 @@ import utilities.Coordinate;
 import world.WorldSpatial;
 
 import static world.WorldSpatial.Direction.*;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -18,7 +17,9 @@ import java.util.List;
  * used throughout our driving system
  */
 public class Util {
-
+    /**
+     * Four directions, in anti-clockwise order
+     */
 	public static final List<Coordinate> ANTICLOCKWISE_DIRECTION = Arrays.asList(
             new Coordinate(0, 1),  //N
             new Coordinate(-1, 0), //W
@@ -38,8 +39,8 @@ public class Util {
     public static float DECELERATION = 1.99f;
     
     /**
-     * Our (estimated) aceleration due to braking. The lower the value, the earlier the car starts braking,
-     * but the risk of overruning will also be lower.
+     * Our (estimated) aceleration due to applyForwardAcceleration. The lower the value, the earlier the car 
+     * starts accelerating, but the risk of overruning will also be lower.
      */
     public static float ACCELERATION = 1.99f;
 
@@ -84,7 +85,7 @@ public class Util {
 
 
     /**
-     * Converts WorldSpatial.Direction to delta change in (x,y)
+     * Converts WorldSpatial.Direction to delta change in (x,y). For example, EAST => (+1,0).
      * 
      * @param orientation
      * @return
@@ -144,7 +145,7 @@ public class Util {
      * @return
      */
     public static Coordinate getTileAhead(Coordinate startingPosition, WorldSpatial.Direction startingDirection) {
-        return getTileAheadNth(startingPosition, startingDirection,1);
+        return getTileAheadNth(startingPosition, startingDirection, 1);
     }
 
     /**
@@ -252,7 +253,7 @@ public class Util {
     /**
      * Return a copy of the coordinate
      * 
-     * @param a
+     * @param a the coordinate
      * @return
      */
     public static Coordinate cloneCoordinate(Coordinate a) {
@@ -260,17 +261,31 @@ public class Util {
     }
 
     /**
-     * Gets the distance required for speed change.
+     * Gets the distance required for speed change. (deccelerating)
      * @param speedFrom
      * @param speedTo
      * @return
      */
     public static double getStoppingDistance(double speedFrom, double speedTo) {
-        return (speedFrom * speedFrom - speedTo * speedTo) / (2.0 * (double)DECELERATION);
+        double result = (speedFrom * speedFrom - speedTo * speedTo) / (2.0 * (double)DECELERATION);
+        if (result < 0) {
+            warn("getStoppingDistance", "Negative distance! Check calling function for bugs.");
+        }
+        return result;
     }
 
+    /**
+     * Gets the distance required for speed change. (accelerating)
+     * @param speedFrom
+     * @param speedTo
+     * @return
+     */
     public static double getAccelerateDistance(double speedFrom, double speedTo) {
-        return (speedTo * speedTo - speedFrom * speedFrom) / (2.0 * (double)ACCELERATION);
+        double result = (speedTo * speedTo - speedFrom * speedFrom) / (2.0 * (double)ACCELERATION);
+        if (result < 0) {
+            warn("getAccelerateDistance", "Negative distance! Check calling function for bugs.");
+        }
+        return result;
     }
 
     /**

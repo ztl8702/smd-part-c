@@ -5,6 +5,7 @@
 
 package mycontroller.pathfinder;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 import mycontroller.common.Cell;
@@ -13,6 +14,7 @@ import mycontroller.common.Logger;
 import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
+import world.World;
 import world.WorldSpatial;
 
 public class WallFollowingPathFinder extends PathFinderBase {
@@ -87,7 +89,6 @@ public class WallFollowingPathFinder extends PathFinderBase {
      */
     private ArrayList<Coordinate> findPathToClosestWallBFS() {
 
-
         Queue<Coordinate> queue = new LinkedList<Coordinate>();
         Set<Coordinate> visited = new HashSet<Coordinate>();
         HashMap<Coordinate, Coordinate> parent = new HashMap<>();
@@ -120,7 +121,7 @@ public class WallFollowingPathFinder extends PathFinderBase {
                         visited.add(newCoord);
                         parent.put(newCoord, head);
                         if (nextToWallAnySide(newCoord)) {
-                            // found
+                            // we have found the goal, now output the path
                             ArrayList<Coordinate> path = new ArrayList<>();
 
                             Coordinate tmp = newCoord;
@@ -142,7 +143,7 @@ public class WallFollowingPathFinder extends PathFinderBase {
 
 
     /**
-     * Find a path using wall following algorithm, after already followed a wall
+     * Find a path using wall following algorithm, after already being next to a wall
      * 
      * @param start
      * @param startingDirection
@@ -168,13 +169,11 @@ public class WallFollowingPathFinder extends PathFinderBase {
                 currentCell = tileAhead;
 
             } else if (isWall(tileAhead.x, tileAhead.y)|| isNarrowRoad(tileAhead.x, tileAhead.y, currentDirection)) {
-                // hit wall
+                // hit the wall, turn
                 currentDirection = Util.getTurnedOrientation(currentDirection, turnWhenHitWall);
-                //Coordinate tileRight = Util.getTileAhead(currentCell, currentDirection);
                 continue;
-                //currentCell = tileRight;
             } else {
-                // miss wall
+                // missed the wall, turn in the other way
                 currentDirection = Util.getTurnedOrientation(currentDirection, turnWhenLoseWall);
                 Coordinate tileLeft = Util.getTileAhead(tileAhead, currentDirection);
                 path.add(Util.cloneCoordinate(tileAhead));
@@ -204,7 +203,7 @@ public class WallFollowingPathFinder extends PathFinderBase {
     }
 
     /**
-     * Check to see if the road is narrow (eg. 1 tile wide) //TODO: is this correct?
+     * Check to see if a tile is part of a narrow road (eg. 1 tile wide) 
      * 
      * @param x
      * @param y
@@ -222,7 +221,7 @@ public class WallFollowingPathFinder extends PathFinderBase {
      * Get the side of the car where there is a wall
      * 
      * @param c
-     * @param orientation
+     * @param orientation moving direction of the car
      * @return
      */
     private WorldSpatial.RelativeDirection whichSideIsWall(Coordinate c, WorldSpatial.Direction orientation) {
