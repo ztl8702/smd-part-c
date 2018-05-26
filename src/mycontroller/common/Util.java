@@ -220,13 +220,13 @@ public class Util {
      * @param speedTo
      * @return
      */
-    private double getStoppingDistance(double speedFrom, double speedTo) {
+    public static double getStoppingDistance(double speedFrom, double speedTo) {
         return (speedFrom * speedFrom - speedTo * speedTo) / (2.0 * DECELERATION);
     }
 
 
     /**
-     * Print warning message
+     * Print warning message (for warnings internal to Util only)
      *
      * @param methodName
      * @param message

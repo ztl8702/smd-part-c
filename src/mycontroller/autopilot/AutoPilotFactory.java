@@ -20,4 +20,8 @@ public class AutoPilotFactory {
             float speed) {
         return new TurningAutoPilot(mapManager, start, end, whichWayToTurn, speed);
     }
+
+    public static AutoPilot maintainSpeed(float speed) {
+        return new MaintainSpeedAutoPilot(mapManager, speed);
+    }
 }

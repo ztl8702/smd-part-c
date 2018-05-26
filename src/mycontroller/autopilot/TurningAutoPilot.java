@@ -1,6 +1,7 @@
 package mycontroller.autopilot;
 
 import mycontroller.common.Logger;
+import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManagerInterface;
 import utilities.Coordinate;
 import world.WorldSpatial;
@@ -11,7 +12,7 @@ import java.security.InvalidParameterException;
 
 public class TurningAutoPilot extends AutoPilotBase {
 
-    // TODO: Handle situation where the MAINTAIN_SPEED cannot be reached before
+    // TODO:
     // turning
     /**
      * Max turning speed when turning followed by moving straight
@@ -37,6 +38,7 @@ public class TurningAutoPilot extends AutoPilotBase {
      *
      */
     public static final double MAX_TURNING_SPEED_U_TURN = 0.7;
+    private static final double TURNING_OVERRUN_DISTANCE = 0.001;
 
     private enum TurningType {
         EastToNorth, EastToSouth
@@ -100,7 +102,7 @@ public class TurningAutoPilot extends AutoPilotBase {
         this.turningMode = turningMode;
 
         // let some other AutoPilot care about the speed
-        maintainSpeedOpt = new MaintainSpeedAutoPilot(mapManager, (float)turningSpeed);
+        maintainSpeedOpt = AutoPilotFactory.maintainSpeed((float)turningSpeed);
         state = State.Waiting;
     }
 
@@ -118,9 +120,30 @@ public class TurningAutoPilot extends AutoPilotBase {
             case Waiting:
                 if (reachedBufferArea(coord, car.getOrientation())) {
                     changeState(State.ReachTurningSpeed);
-                }
+                } 
                 break;
             case ReachTurningSpeed:
+                // Handle situation where the turningSpeed cannot be reached
+                if (car.getSpeed() > turningSpeed) {
+
+                    double distanceToReachSpeed = Util.getStoppingDistance(car.getSpeed(), turningSpeed);
+                    double distanceToTurn = d(turningSpeed);
+                    double availableDistance =  distanceFromTarget(car.getX(), car.getY());
+                    if (distanceToReachSpeed+distanceToTurn > availableDistance) {
+                        Logger.printWarning("TurningAutoPilot", "I cannot reduce speed to turningSpeed!");
+                        // if we can still do it using current speed?
+                        if (d(car.getSpeed())- TURNING_OVERRUN_DISTANCE >= availableDistance) {
+                            Logger.printWarning("TurningAutoPilot",
+                                    String.format("But we can still turn!, changing turingSpeed to %.5f", car.getSpeed()));
+
+                        } else {
+                            Logger.printWarning("TurningAutoPilot","PANIC!!!!!");
+                        }
+                        turningSpeed = car.getSpeed();
+                        maintainSpeedOpt = AutoPilotFactory.maintainSpeed(car.getSpeed());
+                    }
+                }
+                
                 if (reachedTurningPoint(car.getX(), car.getY())) {
                     changeState(State.StartTurning);
                 }
@@ -189,8 +212,7 @@ public class TurningAutoPilot extends AutoPilotBase {
      * @return
      */
     private boolean reachedTurningPoint(float x, float y) {
-        double offset = 0.001;
-        return distanceFromTarget(x,y) <=  d(turningSpeed) - offset;
+        return distanceFromTarget(x,y) <=  d(turningSpeed) - TURNING_OVERRUN_DISTANCE;
     }
 
     /**
