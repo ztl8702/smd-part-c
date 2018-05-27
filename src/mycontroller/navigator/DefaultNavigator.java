@@ -9,7 +9,7 @@ import mycontroller.autopilot.*;
 import mycontroller.common.Cell;
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 import mycontroller.routecompiler.DefaultRouteCompiler;
 import mycontroller.routecompiler.RouteCompiler;
 import utilities.Coordinate;
@@ -36,9 +36,9 @@ public class DefaultNavigator implements Navigator {
 
     private AutoPilot opt = null;
     private Queue<AutoPilot> upcomingOpts = new LinkedList<AutoPilot>();
-    private MapManagerInterface mapManager;
+    private MapManager mapManager;
 
-    public DefaultNavigator(MapManagerInterface mapManager) {
+    public DefaultNavigator(MapManager mapManager) {
         this.mapManager = mapManager;
     }
 

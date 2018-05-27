@@ -7,7 +7,7 @@ package mycontroller.autopilot;
 
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 import utilities.Coordinate;
 
 import java.security.InvalidParameterException;
@@ -46,7 +46,7 @@ public class ForwardToAutoPilot extends AutoPilotBase {
     private AutoPilot recentringAutoPilot = null;
     private AutoPilot mainTainSpeedAutoPilot = null;
 
-    public ForwardToAutoPilot(MapManagerInterface mapManager, Coordinate from, Coordinate to, float targetSpeed) {
+    public ForwardToAutoPilot(MapManager mapManager, Coordinate from, Coordinate to, float targetSpeed) {
         super(mapManager);
         // Either x or y position of the tiles must be identical,
         // i.e. we only allow moving horizontally or vertically.

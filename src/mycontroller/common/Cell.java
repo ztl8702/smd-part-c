@@ -7,7 +7,7 @@ package mycontroller.common;
 
 /**
  * Our internal representation of the MapTile
- * for MapManager to update the map and other classes to identify tiles
+ * for DefaultMapManager to update the map and other classes to identify tiles
  */
 
 // TODO: make into factory???

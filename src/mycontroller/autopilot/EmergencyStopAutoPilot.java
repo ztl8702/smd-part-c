@@ -1,7 +1,7 @@
 package mycontroller.autopilot;
 
 import mycontroller.common.Util;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 
 /**
  * An AutoPilot that does one thing only: stops the car
@@ -12,7 +12,7 @@ public class EmergencyStopAutoPilot extends AutoPilotBase {
 
     private float lastSpeed = Integer.MAX_VALUE;
 
-    public EmergencyStopAutoPilot(MapManagerInterface mapManager) {
+    public EmergencyStopAutoPilot(MapManager mapManager) {
         super(mapManager);
     }
 

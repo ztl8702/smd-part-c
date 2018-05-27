@@ -6,7 +6,7 @@
 package mycontroller.autopilot;
 
 import mycontroller.common.Logger;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 import world.WorldSpatial;
 
 /**
@@ -45,7 +45,7 @@ public class ReCentreAutoPilot extends AutoPilotBase {
 
     private SensorInfo lastInfo = null;
 
-    public ReCentreAutoPilot(MapManagerInterface mapManager, CentringAxis axis, float target) {
+    public ReCentreAutoPilot(MapManager mapManager, CentringAxis axis, float target) {
         super(mapManager);
         this.axis = axis;
         state = State.Idle;
