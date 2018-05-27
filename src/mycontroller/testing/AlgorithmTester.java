@@ -12,16 +12,11 @@ package mycontroller.testing;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
 import mycontroller.common.Cell;
-import mycontroller.mapmanager.MapManager;
-import mycontroller.pathfinder.AStarPathFinder;
-import mycontroller.pathfinder.PathFinder;
 import utilities.Coordinate;
-import world.World;
 
 /**
  * CODE FOR TESTING PURPOSES

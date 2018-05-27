@@ -8,7 +8,7 @@ package mycontroller.pathfinder;
 import mycontroller.common.Cell;
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 import utilities.Coordinate;
 import world.World;
 import world.WorldSpatial;
@@ -31,7 +31,7 @@ public class FinisherPathFinder extends PathFinderBase {
      */
     private int currentKey = 0;
 
-    public FinisherPathFinder(MapManagerInterface mapManager, int currentKey) {
+    public FinisherPathFinder(MapManager mapManager, int currentKey) {
         super(mapManager);
         this.currentKey = currentKey;
 
@@ -92,7 +92,7 @@ public class FinisherPathFinder extends PathFinderBase {
     private ArrayList<Coordinate> doGetPath(Coordinate startPosition, 
             float startingSpeed, float startingAngle) {
 
-        PathFinder finisher = new AStarPathFinder(mapManager, 
+        PathFinder finisher = new AStarPathFinder2(mapManager,
                 MAX_SEARCH_DEPTH, World.MAP_WIDTH, World.MAP_HEIGHT);
 
         ArrayList<Coordinate> finalPath = new ArrayList<>();

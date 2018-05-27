@@ -4,8 +4,7 @@
  */
 
 package mycontroller.autopilot;
-import utilities.Coordinate;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 
 /**
  * Base implementation of AutoPilot, providing some helper methods for its
@@ -20,9 +19,9 @@ public abstract class AutoPilotBase implements AutoPilot {
      */
     public static final double WALL_BUFFER = 0.2;
 
-    protected MapManagerInterface mapManager;
+    protected MapManager mapManager;
 
-    public AutoPilotBase(MapManagerInterface mapManager) {
+    public AutoPilotBase(MapManager mapManager) {
         this.mapManager = mapManager;
     }
 
@@ -37,16 +36,19 @@ public abstract class AutoPilotBase implements AutoPilot {
      */
     protected double getCentreLineX(int tileX, int tileY) {
         double offset = 0;
-        if (mapManager.isWall(tileX+1, tileY)) {
+        if (mapManager.isWall(tileX + 1, tileY)) {
             // wall directly on the left
             offset = -WALL_BUFFER;
-        } else if (mapManager.isWall(tileX-1, tileY)) {
+        } else if (mapManager.isWall(tileX - 1, tileY)) {
             // wall directly on the right
             offset = +WALL_BUFFER;
-        } else if (mapManager.isWall(tileX+1, tileY+1) || mapManager.isWall(tileX+1, tileY-1)) {
-            offset = -WALL_BUFFER;
-        } else if (mapManager.isWall(tileX-1, tileY+1) || mapManager.isWall(tileX-1, tileY-1)) {
-            offset = +WALL_BUFFER;
+        } else if (!mapManager.isWall(tileX, tileY+1) && !mapManager.isWall(tileX, tileY-1)){
+
+            if (mapManager.isWall(tileX + 1, tileY + 1) || mapManager.isWall(tileX + 1, tileY - 1)) {
+                offset = -WALL_BUFFER;
+            } else if (mapManager.isWall(tileX - 1, tileY + 1) || mapManager.isWall(tileX - 1, tileY - 1)) {
+                offset = +WALL_BUFFER;
+            }
         }
         return TILE_WIDTH * (tileX) + offset;
     }
@@ -65,10 +67,12 @@ public abstract class AutoPilotBase implements AutoPilot {
         } else if (mapManager.isWall(tileX, tileY+1)) {
             // wall directly on the north
             offset  = -WALL_BUFFER;
-        } else if (mapManager.isWall(tileX+1, tileY-1) || mapManager.isWall(tileX-1, tileY-1)){
-            offset = +WALL_BUFFER;
-        } else if (mapManager.isWall(tileX+1, tileY+1) || mapManager.isWall(tileX-1, tileY+1)) {
-            offset = -WALL_BUFFER;
+        } else if (!mapManager.isWall(tileX-1, tileY) && !mapManager.isWall(tileX+1, tileY)) {
+            if (mapManager.isWall(tileX + 1, tileY - 1) || mapManager.isWall(tileX - 1, tileY - 1)) {
+                offset = +WALL_BUFFER;
+            } else if (mapManager.isWall(tileX + 1, tileY + 1) || mapManager.isWall(tileX - 1, tileY + 1)) {
+                offset = -WALL_BUFFER;
+            }
         }
 
         return TILE_WIDTH * (tileY) + offset;

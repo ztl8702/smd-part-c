@@ -7,14 +7,14 @@ package mycontroller.autopilot;
 
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 import utilities.Coordinate;
 
 import java.security.InvalidParameterException;
 
 /**
  * An composite AutoPilot that knows how to go from tile A to tile B by going straight forward.
- *
+ * <p>
  * Under the hood, it uses MainSpeedAutoPilot to control the speed,
  * and ReCentreAutoPilot to make sure the car travels on the centre line and avoids walls
  */
@@ -22,7 +22,7 @@ public class ForwardToAutoPilot extends AutoPilotBase {
 
     /**
      * How much deviate from the centre line should we start to recentre the car.
-     *
+     * <p>
      * Should be set to slightly higher than the WALL_BUFFER, but less than 2*WALL_BUFFER
      */
     private static double RECENTER_EPS = 0.22;
@@ -46,7 +46,7 @@ public class ForwardToAutoPilot extends AutoPilotBase {
     private AutoPilot recentringAutoPilot = null;
     private AutoPilot mainTainSpeedAutoPilot = null;
 
-    public ForwardToAutoPilot(MapManagerInterface mapManager, Coordinate from, Coordinate to, float targetSpeed) {
+    public ForwardToAutoPilot(MapManager mapManager, Coordinate from, Coordinate to, float targetSpeed) {
         super(mapManager);
         // Either x or y position of the tiles must be identical,
         // i.e. we only allow moving horizontally or vertically.
@@ -171,6 +171,10 @@ public class ForwardToAutoPilot extends AutoPilotBase {
                 mainTainSpeedAutoPilot = AutoPilotFactory.maintainSpeed((float) speedLimit);
                 return mainTainSpeedAutoPilot.handle(delta, car);
             case Recentering:
+                d = getDistanceToTarget(car.getX(), car.getY());
+                speedLimit = getSpeedLimit(d - delta * car.getSpeed() - 0.03, targetSpeed);
+                Logger.printInfo("ForwardToAutoPilot", String.format("speedLimit=%.5f\n", speedLimit));
+                mainTainSpeedAutoPilot = AutoPilotFactory.maintainSpeed((float) speedLimit);
                 ActuatorAction speedOps = mainTainSpeedAutoPilot.handle(delta, car);
                 speedOps.backward = false;
                 Logger.printInfo("ForwardToAutoPilot", String.format("recentre %s\n", recentringAutoPilot));

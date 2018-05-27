@@ -23,7 +23,7 @@ public class MapWindow {
 		t.setFont(new Font("Consolas",Font.PLAIN,20));
 		t.setText("a\nb");
 		f.add(t);
-		f.setTitle("MapManager - Map");
+		f.setTitle("DefaultMapManager - Map");
 		f.setSize(1000, 1000);
 //		f.show();
 //		f.setVisible(true);

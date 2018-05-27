@@ -14,8 +14,8 @@ import java.util.ArrayList;
 
 import controller.CarController;
 import mycontroller.autopilot.*;
+import mycontroller.mapmanager.DefaultMapManager;
 import mycontroller.mapmanager.MapManager;
-import mycontroller.mapmanager.MapManagerInterface;
 import mycontroller.navigator.DefaultNavigator;
 import mycontroller.navigator.Navigator;
 import utilities.Coordinate;
@@ -27,7 +27,7 @@ import world.WorldSpatial;
  */
 public class DemoController extends CarController {
     
-    private MapManagerInterface mapManager = new MapManager();
+    private MapManager mapManager = new DefaultMapManager();
     private Navigator navigator = new DefaultNavigator(mapManager);
 
 
