@@ -19,7 +19,7 @@ import world.WorldSpatial;
 
 public class WallFollowingPathFinder extends PathFinderBase {
 
-    public static final List<WorldSpatial.Direction> ANTICLOCKWISE_DIRECTION = Arrays.asList(
+    public static final List<WorldSpatial.Direction> ANTICLOCKWISE_ORIENTATIONS = Arrays.asList(
             WorldSpatial.Direction.NORTH,
             WorldSpatial.Direction.WEST,
             WorldSpatial.Direction.SOUTH,
@@ -110,7 +110,7 @@ public class WallFollowingPathFinder extends PathFinderBase {
             Coordinate head = queue.remove();
 
 
-            for (WorldSpatial.Direction d : ANTICLOCKWISE_DIRECTION) {
+            for (WorldSpatial.Direction d : ANTICLOCKWISE_ORIENTATIONS) {
                 Coordinate c = Util.orientationToDelta(d);
                 Coordinate newCoord = new Coordinate(head.x + c.x, head.y + c.y);
                 if (!visited.contains(newCoord)) {
@@ -149,11 +149,16 @@ public class WallFollowingPathFinder extends PathFinderBase {
      * @param visited
      * @return
      */
-    private ArrayList<Coordinate> findPathFollowingWall(Coordinate start, WorldSpatial.Direction startingDirection, Set<Coordinate> visited) {
+    private ArrayList<Coordinate> findPathFollowingWall(Coordinate start,
+                                                        WorldSpatial.Direction startingDirection,
+                                                        Set<Coordinate> visited) {
 
         WorldSpatial.RelativeDirection whichSideFollowing = whichSideIsWall(start, startingDirection);
         WorldSpatial.RelativeDirection turnWhenLoseWall = whichSideFollowing;
-        WorldSpatial.RelativeDirection turnWhenHitWall = (whichSideFollowing == WorldSpatial.RelativeDirection.LEFT) ? WorldSpatial.RelativeDirection.RIGHT : WorldSpatial.RelativeDirection.LEFT;
+        WorldSpatial.RelativeDirection turnWhenHitWall =
+                (whichSideFollowing == WorldSpatial.RelativeDirection.LEFT) ?
+                        WorldSpatial.RelativeDirection.RIGHT :
+                        WorldSpatial.RelativeDirection.LEFT;
 
         ArrayList<Coordinate> path = new ArrayList<>();
         Coordinate currentCell = Util.cloneCoordinate(start);
@@ -254,7 +259,9 @@ public class WallFollowingPathFinder extends PathFinderBase {
      * @param whichSide
      * @return
      */
-    private boolean nextToWall(Coordinate c, WorldSpatial.Direction orientation, WorldSpatial.RelativeDirection whichSide) {
+    private boolean nextToWall(Coordinate c,
+                               WorldSpatial.Direction orientation,
+                               WorldSpatial.RelativeDirection whichSide) {
         WorldSpatial.Direction sideDirection = Util.getTurnedOrientation(orientation, whichSide);
         Coordinate delta = Util.orientationToDelta(sideDirection);
         Coordinate sideCoordinate = new Coordinate(c.x + delta.x, c.y + delta.y);
