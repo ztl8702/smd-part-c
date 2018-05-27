@@ -5,7 +5,7 @@
 
 package mycontroller.pathfinder;
 
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 
 /**
  * This abstract base class implements some common functionality shared by
@@ -15,10 +15,10 @@ public abstract class PathFinderBase implements PathFinder {
 
     // TODO: move common code between different path finders here
 
-    protected MapManagerInterface mapManager;
+    protected MapManager mapManager;
     protected static int MAX_SEARCH_DEPTH = 500;
 
-    public PathFinderBase(MapManagerInterface mapManager) {
+    public PathFinderBase(MapManager mapManager) {
         this.mapManager = mapManager;
     }
 }

@@ -5,16 +5,14 @@
 
 package mycontroller.pathfinder;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 import utilities.Coordinate;
-import world.World;
 import world.WorldSpatial;
 
 public class WallFollowingPathFinder extends PathFinderBase {
@@ -31,7 +29,7 @@ public class WallFollowingPathFinder extends PathFinderBase {
     private WorldSpatial.Direction startingDirection;
 
 
-    public WallFollowingPathFinder(MapManagerInterface mapManager) {
+    public WallFollowingPathFinder(MapManager mapManager) {
         super(mapManager);
     }
 

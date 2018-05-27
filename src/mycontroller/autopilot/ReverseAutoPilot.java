@@ -6,7 +6,7 @@
 package mycontroller.autopilot;
 
 import mycontroller.common.Util;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 
 /**
  * A simple AutoPilot that reverse the car a little bit.
@@ -26,7 +26,7 @@ public class ReverseAutoPilot extends AutoPilotBase {
     private float startX, startY;
 
 
-    public ReverseAutoPilot(MapManagerInterface mapManager) {
+    public ReverseAutoPilot(MapManager mapManager) {
         super(mapManager);
         state = State.Idle;
     }

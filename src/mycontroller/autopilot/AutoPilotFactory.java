@@ -5,7 +5,7 @@
 
 package mycontroller.autopilot;
 
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 import utilities.Coordinate;
 import world.WorldSpatial;
 
@@ -16,13 +16,13 @@ import world.WorldSpatial;
  */
 public class AutoPilotFactory {
 
-    private static MapManagerInterface mapManager;
+    private static MapManager mapManager;
 
     /**
      * Saves the reference to MapManager, so that it can be injected later
      * @param mapManager
      */
-    public static void initialise(MapManagerInterface mapManager) {
+    public static void initialise(MapManager mapManager) {
         AutoPilotFactory.mapManager = mapManager;
     }
 

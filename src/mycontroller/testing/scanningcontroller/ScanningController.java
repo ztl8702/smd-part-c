@@ -13,8 +13,8 @@ package mycontroller.testing.scanningcontroller;
 import java.util.HashMap;
 
 import controller.CarController;
+import mycontroller.mapmanager.DefaultMapManager;
 import mycontroller.mapmanager.MapManager;
-import mycontroller.mapmanager.MapManagerInterface;
 import tiles.MapTile;
 import utilities.Coordinate;
 import world.Car;
@@ -37,7 +37,7 @@ public class ScanningController extends CarController {
 	
 	// Offset used to differentiate between 0 and 360 degrees
 	private int EAST_THRESHOLD = 3;
-	private MapManagerInterface stateMan;
+	private MapManager stateMan;
 	public ScanningController(Car car) {
 		super(car);
 		HashMap<Coordinate, MapTile> m = getMap();
@@ -50,7 +50,7 @@ public class ScanningController extends CarController {
 			
 		}
 		
-		stateMan = new MapManager();
+		stateMan = new DefaultMapManager();
 		stateMan.initialMap(this.getMap());
 	}
 	

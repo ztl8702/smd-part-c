@@ -7,7 +7,7 @@ package mycontroller.autopilot;
 
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 import utilities.Coordinate;
 import world.WorldSpatial;
 import world.WorldSpatial.RelativeDirection;
@@ -39,7 +39,7 @@ public class TurningAutoPilot extends AutoPilotBase {
 
     private double turningSpeed;
 
-    public TurningAutoPilot(MapManagerInterface mapManager,
+    public TurningAutoPilot(MapManager mapManager,
                             Coordinate fromTile,
                             Coordinate toTile,
                             RelativeDirection turningMode,

@@ -12,7 +12,7 @@ import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 
 import utilities.Coordinate;
 import world.WorldSpatial;
@@ -115,7 +115,7 @@ public class AStarPathFinder extends PathFinderBase {
      * @param width
      * @param height
      */
-    public AStarPathFinder(MapManagerInterface mapManager, int maxSearchDistance, int width, int height) {
+    public AStarPathFinder(MapManager mapManager, int maxSearchDistance, int width, int height) {
         super(mapManager);
         this.maxSearchDistance = maxSearchDistance;
 

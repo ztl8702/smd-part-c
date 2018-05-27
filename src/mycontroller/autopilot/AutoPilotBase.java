@@ -4,8 +4,7 @@
  */
 
 package mycontroller.autopilot;
-import utilities.Coordinate;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 
 /**
  * Base implementation of AutoPilot, providing some helper methods for its
@@ -20,9 +19,9 @@ public abstract class AutoPilotBase implements AutoPilot {
      */
     public static final double WALL_BUFFER = 0.2;
 
-    protected MapManagerInterface mapManager;
+    protected MapManager mapManager;
 
-    public AutoPilotBase(MapManagerInterface mapManager) {
+    public AutoPilotBase(MapManager mapManager) {
         this.mapManager = mapManager;
     }
 

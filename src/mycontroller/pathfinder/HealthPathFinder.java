@@ -7,7 +7,7 @@ package mycontroller.pathfinder;
 
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 import utilities.Coordinate;
 import world.World;
 
@@ -19,7 +19,7 @@ import java.util.*;
  */
 public class HealthPathFinder extends PathFinderBase {
 
-    public HealthPathFinder(MapManagerInterface mapManager) {
+    public HealthPathFinder(MapManager mapManager) {
         super(mapManager);
     }
     

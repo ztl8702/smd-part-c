@@ -9,6 +9,7 @@ import java.util.*;
 
 import mycontroller.autopilot.*;
 
+import mycontroller.mapmanager.MapManager;
 import world.Car;
 import tiles.MapTile;
 import utilities.Coordinate;
@@ -17,8 +18,7 @@ import controller.CarController;
 import mycontroller.autopilot.AutoPilotFactory;
 import mycontroller.common.Logger;
 import mycontroller.common.Cell.CellType;
-import mycontroller.mapmanager.MapManager;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.DefaultMapManager;
 import mycontroller.navigator.DefaultNavigator;
 import mycontroller.navigator.Navigator;
 import mycontroller.pathfinder.*;
@@ -53,7 +53,7 @@ public class MyAIController extends CarController {
 
     private State currentState;
     private Goal currentGoal;
-    private MapManagerInterface mapManager;
+    private MapManager mapManager;
     private Navigator navigator;
 
     private static final double STUCK_THRESHOLD = 1.0; // 1.0 seconds;
@@ -65,7 +65,7 @@ public class MyAIController extends CarController {
         this.currentState = State.Idle;
         this.currentGoal = Goal.Explore;
 
-        mapManager = new MapManager();
+        mapManager = new DefaultMapManager();
         mapManager.initialMap(this.getMap());
         navigator = new DefaultNavigator(mapManager);
         AutoPilotFactory.initialise(mapManager);
