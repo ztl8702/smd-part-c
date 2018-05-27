@@ -13,6 +13,7 @@ import utilities.Coordinate;
 import world.World;
 import world.WorldSpatial;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -95,49 +96,15 @@ public class FinisherPathFinder extends PathFinderBase {
         PathFinder finisher = new AStarPathFinder2(mapManager,
                 MAX_SEARCH_DEPTH, World.MAP_WIDTH, World.MAP_HEIGHT);
 
-        ArrayList<Coordinate> finalPath = new ArrayList<>();
 
         Queue<Coordinate> wayPoints = createKeyWayPoints(startPosition,
                 startingSpeed,
                 Util.angleToOrientation(startingAngle));
 
-        // initial position before search
-        int cX = startPosition.x;
-        int cY = startPosition.y;
-        float lastAngle = startingAngle;
-
-        // visit way points one by one
-        while (!wayPoints.isEmpty()) {
-            Coordinate nextWayPoint = wayPoints.remove();
-            int goalX = nextWayPoint.x;
-            int goalY = nextWayPoint.y;
-            if (!(goalX == cX && goalY == cY)) {
-                ArrayList<Coordinate> subPath = finisher.getPath(
-                        new Coordinate(cX, cY),
-                        new Coordinate(goalX, goalY),
-                        startingSpeed, // can change this to optimise
-                        lastAngle);
-
-                if (subPath != null) {
-                    
-                    // gets the ending direction
-                    WorldSpatial.Direction endingOrientation = 
-                            Util.inferDirection(new Coordinate(goalX, goalY),
-                            subPath.get(subPath.size() - 2));
-                    
-                    lastAngle = Util.orientationToAngle(endingOrientation);
+        return wayPointsToPath(finisher, wayPoints, startPosition, startingSpeed, startingAngle);
 
 
-                    if (!finalPath.isEmpty()) {
-                        // remove first coordinate to avoid repetition
-                        subPath.remove(0);
-                    }
-                    finalPath.addAll(subPath);
-                    cX = goalX;
-                    cY = goalY;
-                }
-            }
-        }
-        return finalPath;
     }
+
+
 }

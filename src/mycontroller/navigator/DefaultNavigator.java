@@ -78,30 +78,30 @@ public class DefaultNavigator implements Navigator {
      * Use the auto pilot to handle current update
      *
      * @param delta
-     * @param car
+     * @param carInfo
      * @return
      */
-    private ActuatorAction autoPilotHandle(float delta, SensorInfo car) {
+    private ActuatorAction autoPilotHandle(float delta, SensorInfo carInfo) {
         while (!upcomingOpts.isEmpty() && upcomingOpts.peek().canTakeCharge()
                 && (this.opt == null || this.opt.canBeSwappedOut())) {
             info(upcomingOpts.peek() + "taking charge");
             this.opt = upcomingOpts.remove();
         }
 
-        info(String.format("delta=%.6f (%.6f, %.6f)\n", delta, car.getX(), car.getY()));
+        info(String.format("delta=%.6f (%.6f, %.6f)\n", delta, carInfo.getX(), carInfo.getY()));
         ActuatorAction action = ActuatorAction.nothing();
 
         if (opt != null) {
-            action = opt.handle(delta, car);
+            action = opt.handle(delta, carInfo);
         }
         info(String.format("Current AutoPilot: %s", opt));
 
         // look ahead by two
         if (!this.upcomingOpts.isEmpty()) {
-            this.upcomingOpts.peek().handle(delta, car);
+            this.upcomingOpts.peek().handle(delta, carInfo);
 
             if (upcomingOpts.size() >= 2) {
-                ((LinkedList<AutoPilot>) upcomingOpts).get(1).handle(delta, car);
+                ((LinkedList<AutoPilot>) upcomingOpts).get(1).handle(delta, carInfo);
             }
 
         }

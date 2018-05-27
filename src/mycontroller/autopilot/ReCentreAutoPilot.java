@@ -53,47 +53,47 @@ public class ReCentreAutoPilot extends AutoPilotBase {
     }
 
     @Override
-    public ActuatorAction handle(float delta, SensorInfo car) {
-        lastInfo = car;
-        double x = car.getX();
-        double y = car.getY();
-        double angle = car.getAngle();
+    public ActuatorAction handle(float delta, SensorInfo carInfo) {
+        lastInfo = carInfo;
+        double x = carInfo.getX();
+        double y = carInfo.getY();
+        double angle = carInfo.getAngle();
 
-        if (car.getSpeed() > (float) MAX_SWITCH_LANE_SPEED) {
+        if (carInfo.getSpeed() > (float) MAX_SWITCH_LANE_SPEED) {
             // oops, this might be an issue
             // warn the programmer
 
             Logger.printWarning("ReCentreAutoPilot",
-                    String.format("Overspeed, current speed=%.6f, limit=%.6f", car.getSpeed(), MAX_SWITCH_LANE_SPEED));
+                    String.format("Overspeed, current speed=%.6f, limit=%.6f", carInfo.getSpeed(), MAX_SWITCH_LANE_SPEED));
 
         }
 
         switch (state) {
             case Idle:
-                if (canStartTurning(car)) {
-                    orientation = car.getOrientation();
-                    originalAngle = car.getAngle();
+                if (canStartTurning(carInfo)) {
+                    orientation = carInfo.getOrientation();
+                    originalAngle = carInfo.getAngle();
 
-                    turningMode = getTurningMode(orientation, getPosOnCentringAxis(car));
+                    turningMode = getTurningMode(orientation, getPosOnCentringAxis(carInfo));
                     if (turningMode != null) changeState(State.TurningA);
 
                 }
 
                 break;
             case TurningA:
-                if (shouldTurnBack(car)) {
+                if (shouldTurnBack(carInfo)) {
                     changeState(State.TurningBack);
-                } else if (angleDifference(originalAngle, car.getAngle()) >= MAX_TURNING_ANGLE) {
+                } else if (angleDifference(originalAngle, carInfo.getAngle()) >= MAX_TURNING_ANGLE) {
                     changeState(State.GoingStraight);
                 }
                 break;
             case GoingStraight:
-                if (shouldTurnBack(car)) {
+                if (shouldTurnBack(carInfo)) {
                     changeState(State.TurningBack);
                 }
                 break;
             case TurningBack:
-                if (angleDifference(originalAngle, car.getAngle()) <= TURNING_EPS) {
+                if (angleDifference(originalAngle, carInfo.getAngle()) <= TURNING_EPS) {
                     changeState(State.Finished);
                 }
                 break;
@@ -125,7 +125,7 @@ public class ReCentreAutoPilot extends AutoPilotBase {
     }
 
 
-    private boolean canStartTurning(SensorInfo car) {
+    private boolean canStartTurning(SensorInfo carInfo) {
         return true;
     }
 
@@ -261,7 +261,7 @@ public class ReCentreAutoPilot extends AutoPilotBase {
      * @param theta turning angle (delta from the target orientation) in radians
      * @return
      */
-    private double d(double theta) {
+    private double getDistanceBeforeTurningBack(double theta) {
         // Some calculus
         // integrate sin(a-a*6/5/pi*x) from 0 to a*6/5/pi
 

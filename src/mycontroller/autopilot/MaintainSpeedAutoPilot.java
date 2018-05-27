@@ -7,6 +7,7 @@ package mycontroller.autopilot;
 
 
 import mycontroller.common.Logger;
+import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManager;
 
 /**
@@ -17,7 +18,12 @@ public class MaintainSpeedAutoPilot extends AutoPilotBase {
     /**
      * Error margin when comparing speed values
      */
-	public static float SPEED_EPS = 0.005f;
+	private static float SPEED_EPS = 0.005f;
+
+    /**
+     * For circuit breaker
+     */
+    private static float UNDERSPEED_TIMEOUT = 0.5f;
 
 	/**
      * Target speed
@@ -50,14 +56,14 @@ public class MaintainSpeedAutoPilot extends AutoPilotBase {
 	private float recoveringReverseTime = 0;
 
 	@Override
-	public ActuatorAction handle(float delta, SensorInfo car) {
-		float currentSpeed = car.getSpeed();
+	public ActuatorAction handle(float delta, SensorInfo carInfo) {
+		float currentSpeed = carInfo.getSpeed();
 		switch (this.state) {
 		case Accelerating:
 			if (currentSpeed < target) {
-				if (currentSpeed < 0.1f) {
+				if (currentSpeed < Util.STOPPED_THRESHOLD) {
 					underSpeedTime += delta;
-					if (underSpeedTime > 0.5) {
+					if (underSpeedTime > UNDERSPEED_TIMEOUT) {
 						// Circuit breaker mechanism: if the car does not move, we need to
 						// back off for a while before pressing the pedal again.
 						// This is needed due to a bug in the Simulation.

@@ -21,7 +21,7 @@ import java.security.InvalidParameterException;
 public class ForwardToAutoPilot extends AutoPilotBase {
 
     /**
-     * How much deviate from the centre line should we start to recentre the car.
+     * How much deviate from the centre line should we start to recentre the carInfo.
      * <p>
      * Should be set to slightly higher than the WALL_BUFFER, but less than 2*WALL_BUFFER
      */
@@ -76,19 +76,19 @@ public class ForwardToAutoPilot extends AutoPilotBase {
     }
 
     @Override
-    public ActuatorAction handle(float delta, SensorInfo car) {
-        Coordinate coord = new Coordinate(car.getTileX(), car.getTileY());
+    public ActuatorAction handle(float delta, SensorInfo carInfo) {
+        Coordinate coord = new Coordinate(carInfo.getTileX(), carInfo.getTileY());
         switch (state) {
             case Idle:
                 if (
                         (trackingAxis == TrackingAxis.X
-                                && (inRange(car.getX(), fromPos, toPos)
+                                && (inRange(carInfo.getX(), fromPos, toPos)
                                 || coord.x == Math.round(fromPos)
                         )
                                 && coord.y == Math.round(otherAxis))
                                 ||
                                 (trackingAxis == TrackingAxis.Y
-                                        && (inRange(car.getY(), fromPos, toPos)
+                                        && (inRange(carInfo.getY(), fromPos, toPos)
                                         || coord.y == Math.round(fromPos)
                                 )
                                         && coord.x == Math.round(otherAxis))) {
@@ -97,17 +97,17 @@ public class ForwardToAutoPilot extends AutoPilotBase {
 
                     // This means this AutoPilot can start performing its duty!
 
-                    //if (car.getOrientation() == theOrientation){
+                    //if (carInfo.getOrientation() == theOrientation){
                     changeState(State.On);
                     //}
                 }
                 break;
             case On:
                 if ((trackingAxis == TrackingAxis.X
-                        && !(inRange(car.getX(), fromPos, toPos)
+                        && !(inRange(carInfo.getX(), fromPos, toPos)
                         || coord.x == Math.round(fromPos)))
                         || (trackingAxis == TrackingAxis.Y
-                        && !(inRange(car.getY(), fromPos, toPos)
+                        && !(inRange(carInfo.getY(), fromPos, toPos)
                         || coord.y == Math.round(fromPos)))
                         ) {
                     // if we have travelled past the toPos (target position),
@@ -116,30 +116,30 @@ public class ForwardToAutoPilot extends AutoPilotBase {
                 }
 
                 // Check if we should change to ReCentring State
-                if (car.getSpeed() > 1.0) {
-                    Coordinate nextCell = Util.getTileAhead(car.getCoordinate(), car.getOrientation());
+                if (carInfo.getSpeed() > 1.0) {
+                    Coordinate nextCell = Util.getTileAhead(carInfo.getCoordinate(), carInfo.getOrientation());
                     if (nextCell == null) {
-                        nextCell = car.getCoordinate();
+                        nextCell = carInfo.getCoordinate();
                     }
                     if (trackingAxis == TrackingAxis.X) {
                         double newCentreLineY = getCentreLineY(nextCell.x, nextCell.y);
                         if (!mapManager.isWall(nextCell.x, nextCell.y)
-                                && Math.abs(car.getY() - newCentreLineY) > RECENTER_EPS) {
+                                && Math.abs(carInfo.getY() - newCentreLineY) > RECENTER_EPS) {
                             // if we have diverted from centre line (Y)
                             changeState(State.Recentering);
                             Logger.printWarning("==============", "ReCentre AP Takes over");
-                            mainTainSpeedAutoPilot = AutoPilotFactory.maintainSpeed(car.getSpeed());
+                            mainTainSpeedAutoPilot = AutoPilotFactory.maintainSpeed(carInfo.getSpeed());
                             recentringAutoPilot = AutoPilotFactory.recentre(ReCentreAutoPilot.CentringAxis.Y,
                                     (float) newCentreLineY);
                         }
                     } else if (trackingAxis == TrackingAxis.Y) {
                         double newCentreLineX = getCentreLineX(nextCell.x, nextCell.y);
                         if (!mapManager.isWall(nextCell.x, nextCell.y)
-                                && Math.abs(car.getX() - newCentreLineX) > RECENTER_EPS) {
+                                && Math.abs(carInfo.getX() - newCentreLineX) > RECENTER_EPS) {
                             // if we have diverted from centre line (X)
                             changeState(State.Recentering);
                             Logger.printWarning("==============", "ReCentre AP Takes over");
-                            mainTainSpeedAutoPilot = AutoPilotFactory.maintainSpeed(car.getSpeed());
+                            mainTainSpeedAutoPilot = AutoPilotFactory.maintainSpeed(carInfo.getSpeed());
                             recentringAutoPilot = AutoPilotFactory.recentre(ReCentreAutoPilot.CentringAxis.X,
                                     (float) newCentreLineX);
                         }
@@ -165,26 +165,26 @@ public class ForwardToAutoPilot extends AutoPilotBase {
             case Idle:
                 return ActuatorAction.nothing();
             case On:
-                double d = getDistanceToTarget(car.getX(), car.getY());
-                double speedLimit = getSpeedLimit(d - delta * car.getSpeed() - 0.03, targetSpeed);
+                double d = getDistanceToTarget(carInfo.getX(), carInfo.getY());
+                double speedLimit = getSpeedLimit(d - delta * carInfo.getSpeed() - 0.03, targetSpeed);
                 Logger.printInfo("ForwardToAutoPilot", String.format("speedLimit=%.5f\n", speedLimit));
                 mainTainSpeedAutoPilot = AutoPilotFactory.maintainSpeed((float) speedLimit);
-                return mainTainSpeedAutoPilot.handle(delta, car);
+                return mainTainSpeedAutoPilot.handle(delta, carInfo);
             case Recentering:
-                d = getDistanceToTarget(car.getX(), car.getY());
-                speedLimit = getSpeedLimit(d - delta * car.getSpeed() - 0.03, targetSpeed);
+                d = getDistanceToTarget(carInfo.getX(), carInfo.getY());
+                speedLimit = getSpeedLimit(d - delta * carInfo.getSpeed() - 0.03, targetSpeed);
                 Logger.printInfo("ForwardToAutoPilot", String.format("speedLimit=%.5f\n", speedLimit));
                 mainTainSpeedAutoPilot = AutoPilotFactory.maintainSpeed((float) speedLimit);
-                ActuatorAction speedOps = mainTainSpeedAutoPilot.handle(delta, car);
+                ActuatorAction speedOps = mainTainSpeedAutoPilot.handle(delta, carInfo);
                 speedOps.backward = false;
                 Logger.printInfo("ForwardToAutoPilot", String.format("recentre %s\n", recentringAutoPilot));
-                return ActuatorAction.combine(speedOps, recentringAutoPilot.handle(delta, car));
+                return ActuatorAction.combine(speedOps, recentringAutoPilot.handle(delta, carInfo));
             case Finished:
-                if (Math.abs(car.getSpeed() - targetSpeed) < 0.1f) {
+                if (Math.abs(carInfo.getSpeed() - targetSpeed) < 0.1f) {
                     return ActuatorAction.nothing();
                 } else {
                     mainTainSpeedAutoPilot = AutoPilotFactory.maintainSpeed(targetSpeed);
-                    return mainTainSpeedAutoPilot.handle(delta, car);
+                    return mainTainSpeedAutoPilot.handle(delta, carInfo);
                 }
 
             default:
