@@ -139,7 +139,7 @@ public class DefaultRouteCompiler extends RouteCompilerBase {
                 currentAction.speedLimit = 0f;
 
             } else if (currentAction.type == ActionType.GoStraight) {
-                if ((nextAction.type == ActionType.TurnLeft || nextAction.type == ActionType.TurnRight) ||
+                if ((nextAction.type == ActionType.TurnLeft || nextAction.type == ActionType.TurnRight) &&
                         (nextnextAction == null ||
                                 nextnextAction.type == ActionType.TurnLeft ||
                                 nextnextAction.type == ActionType.TurnRight)) {
@@ -151,12 +151,15 @@ public class DefaultRouteCompiler extends RouteCompilerBase {
                     currentAction.speedLimit = (float) Util.MAX_CRUISING_SPEED;
                 }
             } else if (currentAction.type == ActionType.TurnLeft || currentAction.type == ActionType.TurnRight) {
-                if ((nextAction != null && (nextAction.type == ActionType.TurnLeft || nextAction.type == ActionType.TurnRight)) ||
-                        (prevAction != null && (prevAction.type == ActionType.TurnLeft || prevAction.type == ActionType.TurnRight))) {
+                if ((nextAction != null &&
+                        (nextAction.type == ActionType.TurnLeft || nextAction.type == ActionType.TurnRight)) ||
+                        (prevAction != null &&
+                                (prevAction.type == ActionType.TurnLeft || prevAction.type == ActionType.TurnRight))) {
                     // part of a series of consecutive turnings
                     currentAction.speedLimit = (float) Util.MAX_TURNING_SPEED_U_TURN;
 
-                } else {
+                }
+                else {
                     currentAction.speedLimit = (float) Util.MAX_TURNING_SPEED;
                 }
             } else {
@@ -167,6 +170,24 @@ public class DefaultRouteCompiler extends RouteCompilerBase {
             }
         }
 
+        // "back-propagate" the speed limit
+        for (int i =  actionList.size()-2; i >= 0; --i) {
+            Action currentAction = actionList.get(i);
+            Action nextAction = actionList.get(i + 1);
+            if (currentAction.type == ActionType.GoStraight && nextAction.speedLimit < currentAction.speedLimit) {
+                currentAction.speedLimit = nextAction.speedLimit;
+            } else if (currentAction.type == ActionType.TurnRight || currentAction.type == ActionType.TurnLeft) {
+                if (nextAction == null
+                        || (nextAction.type == ActionType.TurnLeft || nextAction.type==ActionType.TurnRight)
+                        || (nextAction.type == ActionType.GoStraight
+                            && Util.dis(nextAction.start,nextAction.finish)<=2)) {
+                    // speedlimit will not backpropagation through long GoStraight
+                    if (nextAction.speedLimit < currentAction.speedLimit) {
+                        currentAction.speedLimit = (float) Math.max(Util.MAX_TURNING_SPEED_U_TURN, nextAction.speedLimit);
+                    }
+                }
+            }
+        }
         // convert to autopilots
 
         for (Action a : actionList
