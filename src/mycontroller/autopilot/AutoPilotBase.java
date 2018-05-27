@@ -12,6 +12,7 @@ import mycontroller.mapmanager.MapManagerInterface;
  * subclasses.
  */
 public abstract class AutoPilotBase implements AutoPilot {
+
     public static final double TILE_WIDTH = 1; // 32;
 
     /**

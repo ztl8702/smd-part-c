@@ -34,7 +34,7 @@ public class ForwardToAutoPilot extends AutoPilotBase {
         X, Y
     }
 
-    public enum State {
+    private enum State {
         Idle, On, Recentering, Finished
     }
 
