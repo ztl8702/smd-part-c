@@ -23,8 +23,6 @@ import java.util.*;
  */
 public class AStarPathFinder2 extends PathFinderBase {
 
-    //TODO: refactor to be in Logger
-    private boolean DEBUG_GET_TILE_BEHIND = false;
 
     /**
      * The maximum depth of search we're willing to accept before giving up
@@ -323,19 +321,60 @@ public class AStarPathFinder2 extends PathFinderBase {
      * @return
      */
     private float getMovementCost(Node current, Node neighbour) {
-        Cell cell = mapManager.getCell(neighbour.x, neighbour.y);
 
-        float cost = 1.0f;
+        float cost = tilePenalty(neighbour.x, neighbour.y);
 
-        if (cell.type == CellType.LAVA) {
-            cost *= 10;
-        }
-
-        if (current.direction!=neighbour.direction) {
-            cost *= 5;
+        if (current.direction != neighbour.direction) {
+            cost += 10*tilePenalty(current.x, current.y);
         }
 
         return cost;
+    }
+
+    private float tilePenalty(int x, int y) {
+        Cell cell = mapManager.getCell(x, y);
+        float tilecost = 1.0f;
+        // basis
+        if (cell.type == CellType.ROAD) {
+            tilecost = 5;
+        } else if (cell.type == CellType.HEALTH) {
+            tilecost = 1;
+        } else if (cell.type == CellType.LAVA) {
+            tilecost = 50;
+        }
+
+        // addition
+        if (closeToLava(new Coordinate(x, y))) {
+            tilecost += 10;
+        }
+
+        if (closeToWall(new Coordinate(x, y))) {
+            tilecost +=5;
+        }
+        return tilecost;
+    }
+
+    private boolean closeToLava(Coordinate coord) {
+        for (Coordinate delta: Util.DIRECTIONS_EIGHT) {
+            Coordinate newCoord = new Coordinate(coord.x+delta.x , coord.y+delta.y);
+            if (mapManager.isWithinBoard(newCoord)) {
+                if (mapManager.getCell(newCoord.x, newCoord.y).type == CellType.LAVA){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean closeToWall(Coordinate coord) {
+
+        for (Coordinate delta: Util.DIRECTIONS_EIGHT) {
+            Coordinate newCoord = new Coordinate(coord.x+delta.x , coord.y+delta.y);
+            if (mapManager.isWall(newCoord.x, newCoord.y)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 

@@ -9,6 +9,7 @@ import utilities.Coordinate;
 import world.WorldSpatial;
 
 import static world.WorldSpatial.Direction.*;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,12 +21,26 @@ public class Util {
     /**
      * Four directions, in anti-clockwise order
      */
-	public static final List<Coordinate> ANTICLOCKWISE_DIRECTION = Arrays.asList(
+    public static final List<Coordinate> ANTICLOCKWISE_DIRECTION = Arrays.asList(
             new Coordinate(0, 1),  //N
             new Coordinate(-1, 0), //W
             new Coordinate(0, -1), //S
             new Coordinate(1, 0)   //E
-    );    
+    );
+
+    /**
+     * Eight directions
+     */
+    public static final List<Coordinate> DIRECTIONS_EIGHT = Arrays.asList(
+            new Coordinate(0, 1),  //N
+            new Coordinate(-1, 0), //W
+            new Coordinate(0, -1), //S
+            new Coordinate(1, 0),  //E
+            new Coordinate(1, 1),  //NE
+            new Coordinate(1, -1), //SE
+            new Coordinate(-1, 1), //NW
+            new Coordinate(-1, -1) //SW
+    );
 
     /**
      * Max speed when cruising
@@ -34,26 +49,25 @@ public class Util {
 
     /**
      * Max turning speed when turning followed by moving straight
-     *
+     * <p>
      * 1 2 3 4 5
-     *         6
-     *         7
-     *         8 9 10
+     * 6
+     * 7
+     * 8 9 10
      */
     public static final double MAX_TURNING_SPEED = 2.0;
     /**
      * Max turning speed when turning followed by turning
-     *
+     * <p>
      * L-turn
      * 1 2 3
-     *     4 5 6
-     *
+     * 4 5 6
+     * <p>
      * or
-     *
+     * <p>
      * width-2 U-turn
      * 1 2 3
      * 6 5 4
-     *
      */
     public static final double MAX_TURNING_SPEED_U_TURN = 0.7;
 
@@ -62,9 +76,9 @@ public class Util {
      * but the risk of overruning will also be lower.
      */
     public static float DECELERATION = 1.99f;
-    
+
     /**
-     * Our (estimated) aceleration due to applyForwardAcceleration. The lower the value, the earlier the car 
+     * Our (estimated) aceleration due to applyForwardAcceleration. The lower the value, the earlier the car
      * starts accelerating, but the risk of overruning will also be lower.
      */
     public static float ACCELERATION = 1.99f;
@@ -74,6 +88,7 @@ public class Util {
      * The speed below which the car is considered stopped
      */
     public static double STOPPED_THRESHOLD = 0.05;
+
     /**
      * Converts angle in degrees to WorldSpatial.Direction
      *
@@ -116,12 +131,12 @@ public class Util {
 
     /**
      * Converts WorldSpatial.Direction to delta change in (x,y). For example, EAST => (+1,0).
-     * 
+     *
      * @param orientation
      * @return
      */
     public static Coordinate orientationToDelta(WorldSpatial.Direction orientation) {
-        switch (orientation){
+        switch (orientation) {
             case NORTH:
                 return new Coordinate(0, 1);
             case WEST:
@@ -132,7 +147,7 @@ public class Util {
                 return new Coordinate(1, 0);
         }
         warn("orientationToDelta", "invalid argument");
-        return new Coordinate(0,0);
+        return new Coordinate(0, 0);
     }
 
     /**
@@ -169,7 +184,7 @@ public class Util {
 
     /**
      * Get the coordinate of the tile in infront of the car
-     * 
+     *
      * @param startingPosition
      * @param startingDirection
      * @return
@@ -205,7 +220,7 @@ public class Util {
 
     /**
      * Get the coordinate of the tile behind the car
-     * 
+     *
      * @param currentPosition
      * @param currentOrientation
      * @return
@@ -216,7 +231,7 @@ public class Util {
 
     /**
      * Get the opposite orientation of where the car is currently facing
-     * 
+     *
      * @param orientation
      * @return
      */
@@ -243,7 +258,7 @@ public class Util {
 
     /**
      * Get the orientation the car is facing after turning
-     * 
+     *
      * @param original
      * @param turningMode
      * @return
@@ -251,7 +266,7 @@ public class Util {
     public static WorldSpatial.Direction getTurnedOrientation(WorldSpatial.Direction original, WorldSpatial.RelativeDirection turningMode) {
         switch (turningMode) {
             case LEFT:
-                switch (original){
+                switch (original) {
                     case EAST:
                         return NORTH;
                     case NORTH:
@@ -282,7 +297,7 @@ public class Util {
 
     /**
      * Return a copy of the coordinate
-     * 
+     *
      * @param a the coordinate
      * @return
      */
@@ -292,12 +307,13 @@ public class Util {
 
     /**
      * Gets the distance required for speed change. (deccelerating)
+     *
      * @param speedFrom
      * @param speedTo
      * @return
      */
     public static double getStoppingDistance(double speedFrom, double speedTo) {
-        double result = (speedFrom * speedFrom - speedTo * speedTo) / (2.0 * (double)DECELERATION);
+        double result = (speedFrom * speedFrom - speedTo * speedTo) / (2.0 * (double) DECELERATION);
         if (result < 0) {
             warn("getStoppingDistance", "Negative distance! Check calling function for bugs.");
         }
@@ -306,12 +322,13 @@ public class Util {
 
     /**
      * Gets the distance required for speed change. (accelerating)
+     *
      * @param speedFrom
      * @param speedTo
      * @return
      */
     public static double getAccelerateDistance(double speedFrom, double speedTo) {
-        double result = (speedTo * speedTo - speedFrom * speedFrom) / (2.0 * (double)ACCELERATION);
+        double result = (speedTo * speedTo - speedFrom * speedFrom) / (2.0 * (double) ACCELERATION);
         if (result < 0) {
             warn("getAccelerateDistance", "Negative distance! Check calling function for bugs.");
         }
@@ -320,15 +337,17 @@ public class Util {
 
     /**
      * Manhattan distance
+     *
      * @return
      */
     public static int dis(Coordinate a, Coordinate b) {
-        return (Math.abs(a.x-b.x)+Math.abs(a.y-b.y));
+        return (Math.abs(a.x - b.x) + Math.abs(a.y - b.y));
     }
 
 
     /**
      * Euclidean distance
+     *
      * @param x1
      * @param y1
      * @param x2
@@ -336,8 +355,9 @@ public class Util {
      * @return
      */
     public static double eDis(double x1, double y1, double x2, double y2) {
-        return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+        return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
     }
+
     /**
      * Print warning message (for warnings internal to Util only)
      *
