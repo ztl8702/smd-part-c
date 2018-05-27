@@ -117,7 +117,8 @@ public class ForwardToAutoPilot extends AutoPilotBase {
                     }
                     if (trackingAxis == TrackingAxis.X) {
                         double newCentreLineY = getCentreLineY(nextCell.x, nextCell.y);
-                        if (!isWall(nextCell.x, nextCell.y) && Math.abs(car.getY() - newCentreLineY) > RECENTER_EPS) {
+                        if (!mapManager.isWall(nextCell.x, nextCell.y)
+                                && Math.abs(car.getY() - newCentreLineY) > RECENTER_EPS) {
                             // if we have diverted from centre line (Y)
                             changeState(State.Recentering);
                             Logger.printWarning("==============", "ReCentre AP Takes over");
@@ -127,7 +128,8 @@ public class ForwardToAutoPilot extends AutoPilotBase {
                         }
                     } else if (trackingAxis == TrackingAxis.Y) {
                         double newCentreLineX = getCentreLineX(nextCell.x, nextCell.y);
-                        if (!isWall(nextCell.x, nextCell.y) && Math.abs(car.getX() - newCentreLineX) > RECENTER_EPS) {
+                        if (!mapManager.isWall(nextCell.x, nextCell.y)
+                                && Math.abs(car.getX() - newCentreLineX) > RECENTER_EPS) {
                             // if we have diverted from centre line (X)
                             changeState(State.Recentering);
                             Logger.printWarning("==============", "ReCentre AP Takes over");

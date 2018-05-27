@@ -233,7 +233,7 @@ public class AStarPathFinder extends PathFinderBase {
 
     private void updateNodes(int xp, int yp, int tx, int ty,
                            Node current, ArrayList<Node> closed, SortedList open, int maxDepth) {
-        if (!isWall(xp, yp) && mapManager.isWithinBoard(new Coordinate(xp,yp))) {
+        if (!mapManager.isWall(xp, yp) && mapManager.isWithinBoard(new Coordinate(xp,yp))) {
             // the cost to get to this node is cost the current plus the movement
             // cost to reach this node. Note that the heursitic value is only used
             // in the sorted open list
@@ -294,19 +294,6 @@ public class AStarPathFinder extends PathFinderBase {
         Direction direction = Util.inferDirection(new Coordinate(tx, ty), new Coordinate(xp, yp));
         return Util.orientationToAngle(direction);
     }
-    
-    //TODO: move to PathFinderBase
-    private boolean isWall(int x, int y) {
-        boolean inMap = mapManager.isWithinBoard(new Coordinate(x, y));
-        if (inMap) {
-            Cell cell = mapManager.getCell(x, y);
-            if (cell != null) {
-                return (cell.type == CellType.WALL);
-            }
-        }
-        return false;
-    }
-
 
     /**
      * Get the heuristic cost for the given location. This determines in which
