@@ -30,7 +30,7 @@ public class Util {
     /**
      * Max speed when cruising
      */
-    public static float MAX_CRUISING_SPEED = 5.0f;
+    public static final float MAX_CRUISING_SPEED = 5.0f;
 
     /**
      * Max turning speed when turning followed by moving straight
@@ -61,19 +61,19 @@ public class Util {
      * Our (estimated) deceleration due to braking. The lower the value, the earlier the car starts braking,
      * but the risk of overruning will also be lower.
      */
-    public static float DECELERATION = 1.99f;
+    public static final float DECELERATION = 1.99f;
     
     /**
      * Our (estimated) aceleration due to applyForwardAcceleration. The lower the value, the earlier the car 
      * starts accelerating, but the risk of overruning will also be lower.
      */
-    public static float ACCELERATION = 1.99f;
+    public static final float ACCELERATION = 1.99f;
 
 
     /**
      * The speed below which the car is considered stopped
      */
-    public static double STOPPED_THRESHOLD = 0.05;
+    public static final double STOPPED_THRESHOLD = 0.05;
     /**
      * Converts angle in degrees to WorldSpatial.Direction
      *
