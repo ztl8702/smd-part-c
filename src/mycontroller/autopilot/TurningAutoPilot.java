@@ -91,7 +91,9 @@ public class TurningAutoPilot extends AutoPilotBase {
 
         Logger.printInfo("TurningAutoPilot",
                 String.format("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x,
-                this.getCentreLineX(toTile.x,toTile.y), d(turningSpeed), this.getCentreLineX(toTile.x, toTile.y) - d(turningSpeed), car.getX()
+                this.getCentreLineX(toTile.x,toTile.y),
+                        d(turningSpeed),
+                        this.getCentreLineX(toTile.x, toTile.y) - d(turningSpeed), car.getX()
                 )
         );
 
@@ -240,6 +242,10 @@ public class TurningAutoPilot extends AutoPilotBase {
         }
     }
 
+    /**
+     * Shorthand function for changing the current state
+     * @param newState
+     */
     private void changeState(State newState) {
         if (this.state != newState) {
             this.state = newState;

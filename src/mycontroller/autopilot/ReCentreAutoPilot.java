@@ -10,7 +10,9 @@ import mycontroller.mapmanager.MapManagerInterface;
 import world.WorldSpatial;
 
 /**
- * Recentres a moving car to a certain position along the X or Y axis.
+ * An AutoPilot that recentres a moving car to a certain position along the X or Y axis.
+ * <p>
+ * It works by first turn left/right a bit, move straight a bit, and then turning back.
  */
 public class ReCentreAutoPilot extends AutoPilotBase {
     public enum CentringAxis {
@@ -69,7 +71,7 @@ public class ReCentreAutoPilot extends AutoPilotBase {
                     originalAngle = car.getAngle();
 
                     turningMode = getTurningMode(orientation, getPosOnCentringAxis(car));
-                    if (turningMode !=null) changeState(State.TurningA);
+                    if (turningMode != null) changeState(State.TurningA);
 
                 }
 
@@ -122,13 +124,28 @@ public class ReCentreAutoPilot extends AutoPilotBase {
     private boolean canStartTurning(SensorInfo car) {
         return true;
     }
+
+    /**
+     * Calculates the absolute difference between two angles
+     *
+     * @param a
+     * @param b
+     * @return
+     */
     private double angleDifference(double a, double b) {
-        double diff = Math.abs(a-b);
-        if (diff > 180) diff = 180.0 -diff;
+        double diff = Math.abs(a - b);
+        if (diff > 180) diff = 180.0 - diff;
         return diff;
     }
 
 
+    /**
+     * Infer which way we are turning
+     *
+     * @param orientation
+     * @param posOnAxis
+     * @return
+     */
     private WorldSpatial.RelativeDirection getTurningMode(WorldSpatial.Direction orientation, float posOnAxis) {
         if (this.axis == CentringAxis.X) {
             if (orientation == WorldSpatial.Direction.NORTH) {
@@ -147,6 +164,12 @@ public class ReCentreAutoPilot extends AutoPilotBase {
         return null;    // invalid configuration, should not turn
     }
 
+    /**
+     * Gets the position of the car along the axis of moving direction
+     *
+     * @param carInfo
+     * @return
+     */
     private float getPosOnCentringAxis(SensorInfo carInfo) {
         switch (this.axis) {
             case X:
@@ -158,18 +181,33 @@ public class ReCentreAutoPilot extends AutoPilotBase {
         return 0;
     }
 
+    /**
+     * Estimates the distance we need to travel during "turning back"
+     *
+     * @param speed
+     * @param thetaRad current angle difference in radians
+     * @return
+     */
     private double getDistanceForTurningBack(double speed, double thetaRad) {
         // integrate sin(5*pi/6*x) from 0 to a/(5*pi/6)
 
-        return -6.0/5.0/Math.PI * (Math.cos(thetaRad)-1.0) * speed;
+        // these number are results of calculus, doesn't make much sense to
+        // make them static fields.
+
+        return -6.0 / 5.0 / Math.PI * (Math.cos(thetaRad) - 1.0) * speed;
     }
 
+    /**
+     * Should we start turning back now?
+     * @param carInfo
+     * @return
+     */
     private boolean shouldTurnBack(SensorInfo carInfo) {
 
         double distanceFromTarget = Math.abs(getPosOnCentringAxis(carInfo) - target);
 
-        double angleDiffRad = angleDifference(originalAngle, carInfo.getAngle())* Math.PI/180.0;
-        double distanceNeededForTurningBack = getDistanceForTurningBack(carInfo.getSpeed(),angleDiffRad);
+        double angleDiffRad = angleDifference(originalAngle, carInfo.getAngle()) * Math.PI / 180.0;
+        double distanceNeededForTurningBack = getDistanceForTurningBack(carInfo.getSpeed(), angleDiffRad);
 
         return distanceNeededForTurningBack >= distanceFromTarget - DISTANCE_MARGIN;
     }
@@ -204,8 +242,8 @@ public class ReCentreAutoPilot extends AutoPilotBase {
         return "ReCentreAutoPilot{" +
                 "axis=" + axis +
                 ", state=" + state +
-                ", ["+ (lastInfo!=null ? getPosOnCentringAxis(lastInfo) : "?") +"->"+ target +
-                "], TurningMode= " +turningMode+"}";
+                ", [" + (lastInfo != null ? getPosOnCentringAxis(lastInfo) : "?") + "->" + target +
+                "], TurningMode= " + turningMode + "}";
     }
 
     /**
