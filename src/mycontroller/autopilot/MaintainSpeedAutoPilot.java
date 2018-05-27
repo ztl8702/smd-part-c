@@ -13,10 +13,18 @@ import mycontroller.mapmanager.MapManagerInterface;
  * An AutoPilot that maintains the car speed at a given value.
  */
 public class MaintainSpeedAutoPilot extends AutoPilotBase {
+
+    /**
+     * Error margin when comparing speed values
+     */
 	public static float SPEED_EPS = 0.005f;
+
+	/**
+     * Target speed
+     */
 	private float target;
 
-	public enum State {
+	private enum State {
 		RecoveringWait, RecoveringReverse, Accelerating, Decelerating, Idle
 	}
 
@@ -32,6 +40,11 @@ public class MaintainSpeedAutoPilot extends AutoPilotBase {
 		this.target = target;
 	}
 
+    /**
+     * How long has the car been under-speed
+     *
+     * used for determining if the car is stuck
+     */
 	private float underSpeedTime = 0;
 	private float recoveringWaitTime = 0;
 	private float recoveringReverseTime = 0;
@@ -48,7 +61,7 @@ public class MaintainSpeedAutoPilot extends AutoPilotBase {
 						// Circuit breaker mechanism: if the car does not move, we need to
 						// back off for a while before pressing the pedal again.
 						// This is needed due to a bug in the Simulation.
-						System.err.println("!!!!!!!!!!!!!!!!!!STUCK!!!!!!!!!!!!!!!!!");
+                        Logger.printWarning("MaintainSpeedAutoPilot","STUCK!!!!");
 						changeState(State.RecoveringWait);
 						break;
 					}
@@ -83,16 +96,15 @@ public class MaintainSpeedAutoPilot extends AutoPilotBase {
 			break;
 		case RecoveringReverse:
 			changeState(State.Idle);
-			System.err.println("!!!!!!!!!!!!!!!!!!RECOVERED!!!!!!!!!!!!!!!!!");
+			Logger.printWarning("MaintainSpeedAutoPilot","RECOVERED!!");
 			return ActuatorAction.backward();
-		// break;
 		}
 		return ActuatorAction.nothing();
 	}
 
 	private void changeState(State newState) {
 		if (this.state != newState) {
-			Logger.printInfo("MaintinSpeedOperator","state change: " + this.state + " -> " + newState);
+			Logger.printInfo("MaintainSpeedAutoPilot","state change: " + this.state + " -> " + newState);
 			this.state = newState;
 
 			if (newState == State.Accelerating) {

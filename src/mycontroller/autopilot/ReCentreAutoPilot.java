@@ -15,11 +15,15 @@ import world.WorldSpatial;
  * It works by first turn left/right a bit, move straight a bit, and then turning back.
  */
 public class ReCentreAutoPilot extends AutoPilotBase {
+
+    /**
+     * The axis along which to perform recentering
+     */
     public enum CentringAxis {
         X, Y
     }
 
-    public enum State {
+    private enum State {
         Idle, TurningA, GoingStraight, TurningBack, Finished
     }
 
@@ -231,6 +235,10 @@ public class ReCentreAutoPilot extends AutoPilotBase {
 
     }
 
+    /**
+     * Shorthand for changing the current state
+     * @param newState
+     */
     private void changeState(State newState) {
         if (newState != state) {
             state = newState;
