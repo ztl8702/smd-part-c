@@ -37,6 +37,8 @@ public class ReverseAutoPilot extends AutoPilotBase {
 
         switch (state) {
             case Idle:
+                // records the starting location
+                // so that we can calculate distance travelled later
                 startX = carStatus.getX();
                 startY = carStatus.getY();
                 state = State.Reversing;
@@ -52,7 +54,7 @@ public class ReverseAutoPilot extends AutoPilotBase {
                 }
                 break;
             case Stopping:
-                if (carStatus.getSpeed()<0.05){
+                if (carStatus.getSpeed()< Util.STOPPED_THRESHOLD){
                     state = State.Finished;
                 }
                 break;
