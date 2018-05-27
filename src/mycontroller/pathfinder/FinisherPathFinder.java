@@ -92,7 +92,7 @@ public class FinisherPathFinder extends PathFinderBase {
     private ArrayList<Coordinate> doGetPath(Coordinate startPosition, 
             float startingSpeed, float startingAngle) {
 
-        PathFinder finisher = new AStarPathFinder(mapManager, 
+        PathFinder finisher = new AStarPathFinder2(mapManager,
                 MAX_SEARCH_DEPTH, World.MAP_WIDTH, World.MAP_HEIGHT);
 
         ArrayList<Coordinate> finalPath = new ArrayList<>();
