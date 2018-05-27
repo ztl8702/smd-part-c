@@ -115,7 +115,7 @@ public class FinisherPathFinder extends PathFinderBase {
                 ArrayList<Coordinate> subPath = finisher.getPath(
                         new Coordinate(cX, cY),
                         new Coordinate(goalX, goalY),
-                        startingSpeed, //TODO: change this
+                        startingSpeed, // can change this to optimise
                         lastAngle);
 
                 if (subPath != null) {

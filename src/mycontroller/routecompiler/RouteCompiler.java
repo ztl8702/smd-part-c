@@ -15,6 +15,8 @@ import java.util.Queue;
  * RouteCompile converts a list of coordinates (output of PathFinder) to
  * AutoPilots which carry out the path by taking turns
  * controlling the car (one AutoPilot a time)
+ *
+ * Note: we planned to have multiple implementation but dit not have the time
  */
 public interface RouteCompiler {
 

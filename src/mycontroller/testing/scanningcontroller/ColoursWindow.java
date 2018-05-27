@@ -1,12 +1,7 @@
 
 
-/** TODO: POTENTIALL TO REMOVE **/
+/** TEST ONLY. NOT FOR GRADING. **/
 
-
-/*
- * Group number: 117
- * Therrense Lua (782578), Tianlei Zheng (773109)
- */
 
 package mycontroller.testing.scanningcontroller;
 

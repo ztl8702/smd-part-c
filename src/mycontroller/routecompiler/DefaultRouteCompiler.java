@@ -19,7 +19,6 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 
-//TODO: for Radium to comment
 
 /**
  * Naive RouteCompiler implementation

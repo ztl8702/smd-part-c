@@ -13,8 +13,6 @@ import mycontroller.mapmanager.MapManager;
  */
 public abstract class PathFinderBase implements PathFinder {
 
-    // TODO: move common code between different path finders here
-
     protected MapManager mapManager;
     protected static int MAX_SEARCH_DEPTH = 500;
 

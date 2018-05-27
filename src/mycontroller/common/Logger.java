@@ -17,7 +17,7 @@ public class Logger {
     // DEBUG is somewhere in between.
 
     private static boolean PRINT_INFO = false;
-    private static boolean PRINT_DEBUG = false;
+    private static boolean PRINT_DEBUG = true;
     private static boolean PRINT_WARNING = true;
 
     /**

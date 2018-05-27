@@ -9,7 +9,7 @@ import mycontroller.common.Cell;
 import mycontroller.common.Cell.CellType;
 import mycontroller.common.Logger;
 import mycontroller.common.Util;
-import mycontroller.mapmanager.MapManagerInterface;
+import mycontroller.mapmanager.MapManager;
 import utilities.Coordinate;
 import world.WorldSpatial;
 import world.WorldSpatial.Direction;
@@ -119,7 +119,7 @@ public class AStarPathFinder2 extends PathFinderBase {
      * @param width
      * @param height
      */
-    public AStarPathFinder2(MapManagerInterface mapManager, int maxSearchDistance, int width, int height) {
+    public AStarPathFinder2(MapManager mapManager, int maxSearchDistance, int width, int height) {
         super(mapManager);
         this.maxSearchDistance = maxSearchDistance;
         this.width = width;

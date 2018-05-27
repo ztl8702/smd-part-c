@@ -23,8 +23,6 @@ import mycontroller.navigator.DefaultNavigator;
 import mycontroller.navigator.Navigator;
 import mycontroller.pathfinder.*;
 
-//TODO: VERY BIG TODO, can't hard code the value for when to switch to recovery mode, DISCUSS with Radium
-// Radium: Yeah. But we might also try to use different health thresholds in different situations.
 
 /**
  * Our main controller class that keeps track of different states of the game
@@ -190,8 +188,6 @@ public class MyAIController extends CarController {
         if (currentState == State.Idle
                 || currentState == State.ExecutingExploringPath
                 || currentState == State.ExecutingFinishPath) {
-            // TODO: should we "unstuck" while we are recoverying for health?
-            // will it end up in a "unstuck"->recover->"unstuck"->recover loop?
             if (isStopped()) {
                 stuckTimeCounter += delta;
             } else {

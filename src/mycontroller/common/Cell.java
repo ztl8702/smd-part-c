@@ -10,14 +10,16 @@ package mycontroller.common;
  * for DefaultMapManager to update the map and other classes to identify tiles
  */
 
-// TODO: make into factory???
-
 public class Cell {
 
 	public enum CellType {ROAD, WALL, START, FINISH, LAVA, HEALTH, UNREACHABLE}
 	public int key;
 	public CellType type;
 
+	/**
+	 * Get a unique string representing each cell type (with key number as part of the type)
+	 * @return
+	 */
 	public String getCellTypeHash() {
 		return String.format("(%s,%d)",this.type.toString(),this.key);
 	}
