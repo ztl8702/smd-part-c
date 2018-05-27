@@ -135,8 +135,10 @@ public class MyAIController extends CarController {
             case Idle:
                 switch (currentGoal) {
                     case Explore: {
-                        PathFinder wallFollower = new WallFollowingPathFinder(mapManager);
-                        ArrayList<Coordinate> path = wallFollower.getPath(
+                        //PathFinder exploreFinder = new WallFollowingPathFinder(mapManager);
+                        PathFinder exploreFinder = new ExplorePathFinder(mapManager);
+
+                        ArrayList<Coordinate> path = exploreFinder.getPath(
                                 new Coordinate(this.getPosition()), null, this.getSpeed(), this.getAngle());
                         navigator.loadNewPath(path, false);
                         changeState(State.ExecutingExploringPath);

@@ -18,6 +18,7 @@ import java.security.InvalidParameterException;
 public class TurningAutoPilot extends AutoPilotBase {
 
     private static final double TURNING_OVERRUN_DISTANCE = 0.001;
+    private static final float ANGLE_EPS = 0.05f;
 
     private enum TurningType {
         EastToNorth, EastToSouth
@@ -80,66 +81,66 @@ public class TurningAutoPilot extends AutoPilotBase {
         this.toTile = toTile;
         this.turningMode = turningMode;
 
-        // let some other AutoPilot care about the speed
+        // let some other AutoPilot carInfoe about the speed
         maintainSpeedOpt = AutoPilotFactory.maintainSpeed((float)turningSpeed);
         state = State.Waiting;
     }
 
     @Override
-    public ActuatorAction handle(float delta, SensorInfo car) {
-        Coordinate coord = new Coordinate(car.getTileX(), car.getTileY());
+    public ActuatorAction handle(float delta, SensorInfo carInfo) {
+        Coordinate coord = new Coordinate(carInfo.getTileX(), carInfo.getTileY());
 
         Logger.printInfo("TurningAutoPilot",
                 String.format("toTileX=%d centreX=%f d=%f beforeTurn=%f currentX=%f\n", toTile.x,
                 this.getCentreLineX(toTile.x,toTile.y),
                         d(turningSpeed),
-                        this.getCentreLineX(toTile.x, toTile.y) - d(turningSpeed), car.getX()
+                        this.getCentreLineX(toTile.x, toTile.y) - d(turningSpeed), carInfo.getX()
                 )
         );
 
         switch (this.state) {
             case Waiting:
-                if (reachedBufferArea(coord, car.getOrientation())) {
+                if (reachedBufferArea(coord, carInfo.getOrientation())) {
                     changeState(State.ReachTurningSpeed);
                 } 
                 break;
             case ReachTurningSpeed:
                 // Handle situation where the turningSpeed cannot be reached
-                if (Math.abs(car.getSpeed() - turningSpeed)>0.01 && car.getSpeed()>Util.MAX_TURNING_SPEED_U_TURN-0.01) {
+                if (Math.abs(carInfo.getSpeed() - turningSpeed)>0.01 && carInfo.getSpeed()>Util.MAX_TURNING_SPEED_U_TURN-0.01) {
 
-                    double distanceToReachSpeed = car.getSpeed() > turningSpeed ?
-                            Util.getStoppingDistance(car.getSpeed(), turningSpeed)
-                            : Util.getAccelerateDistance(car.getSpeed(), turningSpeed);
+                    double distanceToReachSpeed = carInfo.getSpeed() > turningSpeed ?
+                            Util.getStoppingDistance(carInfo.getSpeed(), turningSpeed)
+                            : Util.getAccelerateDistance(carInfo.getSpeed(), turningSpeed);
                     double distanceToTurn = d(turningSpeed);
-                    double availableDistance =  distanceFromTarget(car.getX(), car.getY());
+                    double availableDistance =  distanceFromTarget(carInfo.getX(), carInfo.getY());
                     if (distanceToReachSpeed+distanceToTurn > availableDistance) {
                         Logger.printWarning("TurningAutoPilot", "I cannot reduce speed to turningSpeed!");
                         // if we can still do it using current speed?
-                        if (d(car.getSpeed())- TURNING_OVERRUN_DISTANCE >= availableDistance) {
+                        if (d(carInfo.getSpeed())- TURNING_OVERRUN_DISTANCE >= availableDistance) {
                             Logger.printWarning("TurningAutoPilot",
-                                    String.format("But we can still turn!, changing turingSpeed to %.5f", car.getSpeed()));
+                                    String.format("But we can still turn!, changing turingSpeed to %.5f", carInfo.getSpeed()));
 
                         } else {
                             Logger.printWarning("TurningAutoPilot","PANIC!!!!!");
                         }
-                        turningSpeed = car.getSpeed();
-                        maintainSpeedOpt = AutoPilotFactory.maintainSpeed(car.getSpeed());
+                        turningSpeed = carInfo.getSpeed();
+                        maintainSpeedOpt = AutoPilotFactory.maintainSpeed(carInfo.getSpeed());
                     }
                 }
                 
-                if (reachedTurningPoint(car.getX(), car.getY(), Math.min(car.getSpeed(),turningSpeed))) {
+                if (reachedTurningPoint(carInfo.getX(), carInfo.getY(), Math.min(carInfo.getSpeed(),turningSpeed))) {
                     changeState(State.StartTurning);
                 }
                 break;
             case StartTurning:
-                float a = car.getAngle();
+                float a = carInfo.getAngle();
                 if (reachedTargetAngle(a)) {
                     changeState(State.FinishedTurning);
                 }
                 break;
 
         }
-        ActuatorAction speedOpt = this.maintainSpeedOpt.handle(delta, car);
+        ActuatorAction speedOpt = this.maintainSpeedOpt.handle(delta, carInfo);
 
         switch (state) {
             case Waiting:
@@ -166,7 +167,7 @@ public class TurningAutoPilot extends AutoPilotBase {
     }
 
     /**
-     * Has the car reached the "buffer area", where we need to start adjusting the speed.
+     * Has the carInfo reached the "buffer area", where we need to start adjusting the speed.
      *
      * @param coord
      * @return
@@ -188,7 +189,7 @@ public class TurningAutoPilot extends AutoPilotBase {
     }
 
     /**
-     * Has the car reached the position where we need to start applying turnLeft/turnRight
+     * Has the carInfo reached the position where we need to start applying turnLeft/turnRight
      *
      * @param x
      * @param y
@@ -221,7 +222,7 @@ public class TurningAutoPilot extends AutoPilotBase {
     }
 
     /**
-     * Has the car turned to the desired orientation?
+     * Has the carInfo turned to the desired orientation?
      *
      * @param a
      * @return
@@ -229,14 +230,16 @@ public class TurningAutoPilot extends AutoPilotBase {
     private boolean reachedTargetAngle(float a) {
         switch (toDirection) {
             case NORTH:
-                return WorldSpatial.NORTH_DEGREE - 0.05f <= a && a <= WorldSpatial.NORTH_DEGREE + 0.05f;
+                return WorldSpatial.NORTH_DEGREE - ANGLE_EPS <= a && a <= WorldSpatial.NORTH_DEGREE + ANGLE_EPS;
             case SOUTH:
-                return WorldSpatial.SOUTH_DEGREE - 0.05f <= a && a <= WorldSpatial.SOUTH_DEGREE + 0.05f;
+                return WorldSpatial.SOUTH_DEGREE - ANGLE_EPS <= a && a <= WorldSpatial.SOUTH_DEGREE + ANGLE_EPS;
             case WEST:
-                return WorldSpatial.WEST_DEGREE - 0.05f <= a && a <= WorldSpatial.WEST_DEGREE + 0.05f;
+                return WorldSpatial.WEST_DEGREE - ANGLE_EPS <= a && a <= WorldSpatial.WEST_DEGREE + ANGLE_EPS;
             case EAST:
-                return (WorldSpatial.EAST_DEGREE_MAX - 0.05f <= a && a <= WorldSpatial.EAST_DEGREE_MAX + 0.05f)
-                        || (WorldSpatial.EAST_DEGREE_MIN - 0.05f <= a && a <= WorldSpatial.EAST_DEGREE_MIN + 0.05f);
+                return (WorldSpatial.EAST_DEGREE_MAX - ANGLE_EPS <= a
+                        && a <= WorldSpatial.EAST_DEGREE_MAX + ANGLE_EPS)
+                        || (WorldSpatial.EAST_DEGREE_MIN - ANGLE_EPS <= a
+                        && a <= WorldSpatial.EAST_DEGREE_MIN + ANGLE_EPS);
             default:
                 return false;
         }

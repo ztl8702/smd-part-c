@@ -25,7 +25,7 @@ public class ForwardToAutoPilot extends AutoPilotBase {
      * <p>
      * Should be set to slightly higher than the WALL_BUFFER, but less than 2*WALL_BUFFER
      */
-    private static double RECENTER_EPS = 0.22;
+    private static double RECENTER_EPS = 0.19;
 
     /**
      * Are we moving horizontally or vertically?

@@ -5,6 +5,7 @@
 
 package mycontroller.pathfinder;
 
+import mycontroller.common.Cell;
 import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManager;
 import utilities.Coordinate;
@@ -79,4 +80,38 @@ public abstract class PathFinderBase implements PathFinder {
         }
         return finalPath;
     }
+
+    /**
+     * Whether a location is close to Lava
+     * @param coord
+     * @return
+     */
+    protected boolean closeToLava(Coordinate coord) {
+        for (Coordinate delta: Util.DIRECTIONS_EIGHT) {
+            Coordinate newCoord = new Coordinate(coord.x+delta.x , coord.y+delta.y);
+            if (mapManager.isWithinBoard(newCoord)) {
+                if (mapManager.getCell(newCoord.x, newCoord.y).type == Cell.CellType.LAVA){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether a location is close to wall
+     * @param coord
+     * @return
+     */
+    protected boolean closeToWall(Coordinate coord) {
+
+        for (Coordinate delta: Util.DIRECTIONS_EIGHT) {
+            Coordinate newCoord = new Coordinate(coord.x+delta.x , coord.y+delta.y);
+            if (mapManager.isWall(newCoord.x, newCoord.y)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

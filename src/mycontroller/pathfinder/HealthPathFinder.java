@@ -31,7 +31,7 @@ public class HealthPathFinder extends PathFinderBase {
         
         boolean isColdStart = startingSpeed < 0.1;
 
-        PathFinder finisher = new AStarPathFinder2(mapManager,
+        PathFinder finisher = new AStarPathFinder(mapManager,
                 MAX_SEARCH_DEPTH, World.MAP_WIDTH, World.MAP_HEIGHT);
 
         Set<Coordinate> healthTiles = mapManager.getHealthTiles();

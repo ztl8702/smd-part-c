@@ -120,7 +120,7 @@ public class DefaultMapManager implements MapManager {
 
     @Override
     public Set<Coordinate> getUnseenLocations() {
-        return null;
+        return new HashSet(this.unseen);
     }
 
 

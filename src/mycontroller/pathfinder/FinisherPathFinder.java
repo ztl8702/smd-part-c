@@ -13,7 +13,6 @@ import utilities.Coordinate;
 import world.World;
 import world.WorldSpatial;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -93,7 +92,7 @@ public class FinisherPathFinder extends PathFinderBase {
     private ArrayList<Coordinate> doGetPath(Coordinate startPosition, 
             float startingSpeed, float startingAngle) {
 
-        PathFinder finisher = new AStarPathFinder2(mapManager,
+        PathFinder finisher = new AStarPathFinder(mapManager,
                 MAX_SEARCH_DEPTH, World.MAP_WIDTH, World.MAP_HEIGHT);
 
 

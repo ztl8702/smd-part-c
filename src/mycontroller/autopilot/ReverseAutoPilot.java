@@ -8,6 +8,8 @@ package mycontroller.autopilot;
 import mycontroller.common.Util;
 import mycontroller.mapmanager.MapManager;
 
+import java.util.Random;
+
 /**
  * A simple AutoPilot that reverse the car a little bit.
  *
@@ -19,6 +21,7 @@ public class ReverseAutoPilot extends AutoPilotBase {
     private static final float REVERSE_DISTANCE = 0.7f;
     private enum State {Idle, Reversing, Stopping, Finished}
     private State state;
+    private Random random = new Random();
 
     /**
      * Starting location
@@ -63,7 +66,15 @@ public class ReverseAutoPilot extends AutoPilotBase {
 
         switch (state) {
             case Reversing:
-                return ActuatorAction.backward();
+                int rand = random.nextInt(10);
+                if (rand < 3) {
+                    return ActuatorAction.combine(ActuatorAction.turnLeft(), ActuatorAction.backward());
+                } else if (rand < 6) {
+                    return ActuatorAction.combine(ActuatorAction.turnRight(), ActuatorAction.backward());
+                } else {
+                    return ActuatorAction.backward();
+                }
+
             case Stopping:
                 return ActuatorAction.brake();
             default:
