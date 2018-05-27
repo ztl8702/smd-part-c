@@ -34,7 +34,7 @@ public class ForwardToAutoPilot extends AutoPilotBase {
         X, Y
     }
 
-    public enum State {
+    private enum State {
         Idle, On, Recentering, Finished
     }
 
@@ -65,6 +65,12 @@ public class ForwardToAutoPilot extends AutoPilotBase {
         } else {
             throw new InvalidParameterException();
         }
+
+        // offset the end point a little
+        // to let the next AutoPilot take over earlier
+        float offset = Math.signum(toPos - fromPos) * 0.1f;
+        toPos -= offset;
+
         state = State.Idle;
         this.targetSpeed = targetSpeed;
     }
@@ -218,7 +224,7 @@ public class ForwardToAutoPilot extends AutoPilotBase {
 
     @Override
     public boolean canBeSwappedOut() {
-        if (state == State.Recentering) {
+        if (state == State.Recentering || state == State.On) {
             return false;
         } else {
             return true;
