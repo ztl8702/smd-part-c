@@ -5,6 +5,10 @@ made by:
 `Therrense Lua (github: ttvs)`
 `Tianlei Zheng (github: ztl8702)`
 
+## Specification
+- Explore surrounding area (car has memory of explored area and a vision of a few squares around it)
+- Collect keys in ascending order before going to finish tile
+- While maintaining enough health (health regeneration on ice tiles, health lost on lava tiles)
 
 ## Features
 - Design & implemented a low-level subsystem to manoeuvre a car with high precision and coordination 
